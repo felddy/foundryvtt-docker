@@ -1,0 +1,35 @@
+---
+version: "3.7"
+
+secrets:
+  fullchain_pem:
+    file: ./secrets/fullchain.pem
+  privkey_pem:
+    file: ./secrets/privkey.pem
+
+
+services:
+  postfix:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: postfix
+    init: true
+    restart: always
+    environment:
+      - PRIMARY_DOMAIN=example.com
+      - RELAY_IP=
+    ports:
+      - target: "25"
+        published: "1025"
+        protocol: tcp
+        mode: host
+      - target: "587"
+        published: "1587"
+        protocol: tcp
+        mode: host
+    secrets:
+      - source: fullchain_pem
+        target: fullchain.pem
+      - source: privkey_pem
+        target: privkey.pem
