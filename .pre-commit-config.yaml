@@ -12,7 +12,7 @@ repos:
         args:
           - --allow-missing-credentials
       - id: detect-private-key
-        exclude: secrets/privkey.pem
+        exclude: src/secrets/privkey.pem
       - id: end-of-file-fixer
         exclude: files/(issue|motd)
       - id: mixed-line-ending

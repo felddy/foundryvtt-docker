@@ -3,11 +3,11 @@ version: "3.7"
 
 secrets:
   fullchain_pem:
-    file: ./secrets/fullchain.pem
+    file: ./src/secrets/fullchain.pem
   privkey_pem:
-    file: ./secrets/privkey.pem
+    file: ./src/secrets/privkey.pem
   mailarchive_passwd_txt:
-    file: ./secrets/mailarchive_passwd.txt
+    file: ./src/secrets/mailarchive_passwd.txt
 
 
 services:

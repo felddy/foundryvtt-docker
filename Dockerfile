@@ -27,7 +27,7 @@ RUN mv /etc/postfix/master.cf /etc/postfix/master.cf.orig
 RUN mv /etc/default/opendkim /etc/default/opendkim.orig
 RUN mv /etc/default/opendmarc /etc/default/opendmarc.orig
 
-COPY ./templates ./templates/
+COPY ./src/templates ./templates/
 COPY ./src/docker-entrypoint.sh .
 
 VOLUME ["/var/log", "/var/spool/postfix"]
