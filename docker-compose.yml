@@ -6,6 +6,8 @@ secrets:
     file: ./secrets/fullchain.pem
   privkey_pem:
     file: ./secrets/privkey.pem
+  mailarchive_passwd_txt:
+    file: ./secrets/mailarchive_passwd.txt
 
 
 services:
@@ -18,7 +20,10 @@ services:
     restart: always
     environment:
       - PRIMARY_DOMAIN=example.com
-      - RELAY_IP=
+      - RELAY_IP=172.16.202.1/32
+    networks:
+      front:
+        ipv4_address: 172.16.202.2
     ports:
       - target: "25"
         published: "1025"
@@ -28,8 +33,22 @@ services:
         published: "1587"
         protocol: tcp
         mode: host
+      - target: "993"
+        published: "1993"
+        protocol: tcp
+        mode: host
     secrets:
       - source: fullchain_pem
         target: fullchain.pem
       - source: privkey_pem
         target: privkey.pem
+      - source: mailarchive_passwd_txt
+        target: mailarchive_passwd.txt
+
+networks:
+  front:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.202.0/24
