@@ -1,6 +1,6 @@
-# skeleton-generic #
+# docker-postfix #
 
-[![Build Status](https://travis-ci.com/cisagov/skeleton-generic.svg?branch=develop)](https://travis-ci.com/cisagov/skeleton-generic)
+[![Build Status](https://travis-ci.com/cisagov/docker-postfix.svg?branch=develop)](https://travis-ci.com/cisagov/docker-postfix)
 
 This is a generic skeleton project that can be used to quickly get a
 new [cisagov](https://github.com/cisagov) GitHub project started.
