@@ -34,7 +34,7 @@ Two environment variables are used to generate the configurations at runtime:
 
 - `fullchain.pem`: public key
 - `privkey.pem`: private key
-- `mailarchive_password.txt`: password for the mailarchive user
+- `users.txt`: account credentials to create at startup
 
 ### Volumes ###
 
