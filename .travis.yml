@@ -28,7 +28,6 @@ install:
   - travis_scripts/build_docker_image.sh
 before_script:
   - docker-compose up -d
-  - docker-compose ps | grep -q postfix_postfix_1
 script:
   - pre-commit run --all-files
   - pytest -v
