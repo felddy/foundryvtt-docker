@@ -49,12 +49,22 @@ repos:
     rev: v1.17.1
     hooks:
       - id: pyupgrade
+  # Run bandit on "tests" tree with a configuration
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.6.0
+    rev: 2a1dbab
     hooks:
       - id: bandit
+        name: bandit (tests tree)
+        files: tests
         args:
           - --config=.bandit.yml
+  # Run bandit everything but tests directory
+  - repo: https://github.com/PyCQA/bandit
+    rev: 2a1dbab
+    hooks:
+      - id: bandit
+        name: bandit (everything else)
+        exclude: tests
   - repo: https://github.com/python/black
     rev: 19.3b0
     hooks:
@@ -63,7 +73,6 @@ repos:
     rev: v4.1.0a0
     hooks:
       - id: ansible-lint
-        # files: molecule/default/playbook.yml
   - repo: https://github.com/antonbabenko/pre-commit-terraform.git
     rev: v1.12.0
     hooks:
