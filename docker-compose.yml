@@ -6,8 +6,8 @@ secrets:
     file: ./src/secrets/fullchain.pem
   privkey_pem:
     file: ./src/secrets/privkey.pem
-  mailarchive_passwd_txt:
-    file: ./src/secrets/mailarchive_passwd.txt
+  users_txt:
+    file: ./src/secrets/users.txt
 
 
 services:
@@ -42,8 +42,8 @@ services:
         target: fullchain.pem
       - source: privkey_pem
         target: privkey.pem
-      - source: mailarchive_passwd_txt
-        target: mailarchive_passwd.txt
+      - source: users_txt
+        target: users.txt
 
 networks:
   front:
