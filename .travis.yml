@@ -5,6 +5,11 @@ python: 3.7
 # pre-commit hooks can use Docker, so we should go ahead and enable it
 services: docker
 
+env:
+  global:
+    - IMAGE_NAME=dhsncats/postfix
+    - DOCKER_USER=felddy
+
 # Cache pip packages and pre-commit plugins to speed up builds
 cache:
   pip: true
@@ -13,5 +18,17 @@ cache:
 
 install:
   - pip install --upgrade -r requirements-test.txt
+
 script:
   - pre-commit run --all-files
+  #- travis_scripts/build_docker_image.sh
+
+after_success:
+  - coveralls
+
+# deploy:
+#   - provider: script
+#     script: bash travis_scripts/deploy_to_docker_hub.sh
+#     on:
+#       tags: true
+#       python: '3.7'
