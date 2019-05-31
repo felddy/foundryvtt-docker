@@ -15,7 +15,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: postfix
+    image: dhsncats/postfix
     init: true
     restart: always
     environment:
