@@ -1,16 +1,46 @@
-# docker-postfix #
+# docker-postfix 🐳📮 #
 
 [![Build Status](https://travis-ci.com/cisagov/docker-postfix.svg?branch=develop)](https://travis-ci.com/cisagov/docker-postfix)
 
-This is a generic skeleton project that can be used to quickly get a
-new [cisagov](https://github.com/cisagov) GitHub project started.
-This skeleton project contains [licensing information](LICENSE.md), as
-well as [pre-commit hooks](https://pre-commit.com) and a [Travis
-CI](https://travis-ci.com) configuration appropriate for the major
-languages that we use.
+Creates a Docker container with an installation of the
+[postfix](http://postfix.org) MTA.  Additionally it has an IMAP
+server ([dovecot](https://dovecot.org)) for accessing the archvies
+of sent email.  All email is BCC's to the `mailarchive` account.
 
-In many cases you will instead want to use one of the more specific
-skeleton projects derived from this one.
+## Usage ##
+
+A sample [docker composition](docker-compose.yml) is included in this repository.
+To build and start the container use the command: `docker-compose up`
+
+### Ports ###
+
+By default this container will listen on the following ports:
+
+- 1025: `smtp`
+- 1587: `submission`
+- 1993: `imaps`
+
+### Environment Variables ###
+
+Two environment variables are used to generate the configurations at runtime:
+
+- `PRIMARY_DOMAIN`: the domain of the mail server
+- `RELAY_IP`: (optional) an IP address that is allowed to relay mail without authentication
+
+### Secrets ###
+
+- `fullchain.pem`: public key
+- `privkey.pem`: private key
+- `mailarchive_password.txt`: password for the mailarchive user
+
+### Volumes ###
+
+Two optional volumes can be attached to this container to persist the
+mail spool directory, as well as the logging directory.  (Note that
+the mail logs are available using the docker log command.)
+
+- `/var/spool/postfix`: mail queues
+- `/var/log`: system logs
 
 ## Contributing ##
 
