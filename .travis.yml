@@ -26,10 +26,14 @@ cache:
 install:
   - pip install --upgrade -r requirements-test.txt
   - travis_scripts/build_docker_image.sh
+before_script:
+  - docker-compose up -d
+  - docker-compose ps | grep -q postfix_postfix_1
 script:
   - pre-commit run --all-files
-after_success:
-  - coveralls
+  - pytest -v
+after_script:
+  - docker-compose down
 deploy:
   - provider: script
     script: bash travis_scripts/deploy_to_docker_hub.sh
