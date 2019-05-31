@@ -5,7 +5,7 @@
 Creates a Docker container with an installation of the
 [postfix](http://postfix.org) MTA.  Additionally it has an IMAP
 server ([dovecot](https://dovecot.org)) for accessing the archvies
-of sent email.  All email is BCC's to the `mailarchive` account.
+of sent email.  All email is BCC'd to the `mailarchive` account.
 
 ## Usage ##
 
@@ -14,11 +14,14 @@ To build and start the container use the command: `docker-compose up`
 
 ### Ports ###
 
-By default this container will listen on the following ports:
+This container exposes the following ports:
 
-- 1025: `smtp`
-- 1587: `submission`
-- 1993: `imaps`
+- 25: `smtp`
+- 587: `submission`
+- 993: `imaps`
+
+The sample [docker composition](docker-compose.yml) publishes the
+exposed ports at 1025, 1587, and 1993.
 
 ### Environment Variables ###
 
