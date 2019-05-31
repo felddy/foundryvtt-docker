@@ -4,6 +4,7 @@ MAINTAINER Mark Feldhousen <mark.feldhousen@trio.dhs.gov>
 RUN apt-get update && \
 DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
 ca-certificates \
+diceware \
 dovecot-imapd \
 dovecot-lmtpd \
 gettext-base \
