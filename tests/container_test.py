@@ -11,44 +11,62 @@ MESSAGE = """
 This is a test message sent during the unit tests.
 """
 DOMAIN = "example.com"
-TEST_USER = "mailarchive"
-TEST_PW = "foobar"
+ARCHIVE_USER = "mailarchive"
+ARCHIVE_PW = "foobar"
+TEST_SEND_USER = "testsender1"
+TEST_SEND_PW = "lemmy is god"
 IMAP_PORT = 1993
 
 
 @pytest.mark.parametrize("port", [1025, 1587])
-def test_sending_mail(port):
+@pytest.mark.parametrize("to_user", [ARCHIVE_USER, TEST_SEND_USER])
+def test_sending_mail(port, to_user):
     """Send an email message to the server."""
     msg = EmailMessage()
     msg.set_content(MESSAGE)
     msg["Subject"] = f"Test Message on port {port}"
     msg["From"] = f"test@{DOMAIN}"
-    msg["To"] = f"mailarchive@{DOMAIN}"
+    msg["To"] = f"{to_user}@{DOMAIN}"
     with smtplib.SMTP("localhost", port=port) as s:
         s.send_message(msg)
 
 
-def test_imap_login():
+@pytest.mark.parametrize(
+    "username,password",
+    [
+        (ARCHIVE_USER, ARCHIVE_PW),
+        (TEST_SEND_USER, TEST_SEND_PW),
+        pytest.param(ARCHIVE_USER, TEST_SEND_PW, marks=pytest.mark.xfail),
+        pytest.param("your_mom", "so_fat", marks=pytest.mark.xfail),
+    ],
+)
+def test_imap_login(username, password):
     """Test logging in to the IMAP server."""
     with IMAP4_SSL("localhost", IMAP_PORT) as m:
-        m.login("mailarchive", "foobar")
+        m.login(username, password)
 
 
-def test_imap_messages_exist():
+@pytest.mark.parametrize(
+    "username,password", [(ARCHIVE_USER, ARCHIVE_PW), (TEST_SEND_USER, TEST_SEND_PW)]
+)
+def test_imap_messages_exist(username, password):
     """Test test existence of our test messages."""
     with IMAP4_SSL("localhost", IMAP_PORT) as m:
-        m.login(TEST_USER, TEST_PW)
+        m.login(username, password)
         typ, data = m.select()
-        assert typ == "OK", "Select did not return OK status"
+        assert typ == "OK", f"Select did not return OK status for {username}"
         message_count = int(data[0])
-        print(f"inbox message count: {message_count}")
-        assert message_count > 0, "Expected message in the inbox"
+        print(f"{username} inbox message count: {message_count}")
+        assert message_count > 0, f"Expected message in the {username} inbox"
 
 
-def test_imap_access():
+@pytest.mark.parametrize(
+    "username,password", [(ARCHIVE_USER, ARCHIVE_PW), (TEST_SEND_USER, TEST_SEND_PW)]
+)
+def test_imap_reading(username, password):
     """Test receiving message from the IMAP server."""
     with IMAP4_SSL("localhost", IMAP_PORT) as m:
-        m.login(TEST_USER, TEST_PW)
+        m.login(username, password)
         typ, data = m.select()
         assert typ == "OK", "Select did not return OK status"
         message_count = int(data[0])
@@ -72,10 +90,13 @@ def test_imap_access():
         assert typ == "OK", "Expunge did not return OK status"
 
 
-def test_imap_delete_all():
+@pytest.mark.parametrize(
+    "username,password", [(ARCHIVE_USER, ARCHIVE_PW), (TEST_SEND_USER, TEST_SEND_PW)]
+)
+def test_imap_delete_all(username, password):
     """Test deleting messages from the IMAP server."""
     with IMAP4_SSL("localhost", IMAP_PORT) as m:
-        m.login(TEST_USER, TEST_PW)
+        m.login(username, password)
         typ, data = m.select()
         assert typ == "OK", "Select did not return OK status"
         typ, data = m.search(None, "ALL")
@@ -92,10 +113,13 @@ def test_imap_delete_all():
         assert typ == "OK", "Expunge did not return OK status"
 
 
-def test_imap_messages_cleared():
+@pytest.mark.parametrize(
+    "username,password", [(ARCHIVE_USER, ARCHIVE_PW), (TEST_SEND_USER, TEST_SEND_PW)]
+)
+def test_imap_messages_cleared(username, password):
     """Test that all messages were expunged."""
     with IMAP4_SSL("localhost", IMAP_PORT) as m:
-        m.login(TEST_USER, TEST_PW)
+        m.login(username, password)
         typ, data = m.select()
         assert typ == "OK", "Select did not return OK status"
         message_count = int(data[0])

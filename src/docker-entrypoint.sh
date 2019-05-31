@@ -4,6 +4,7 @@
 set -e
 #set -x
 
+
 function generate_configs() {
   # configure postfix
   echo "Generating postfix configurations for ${PRIMARY_DOMAIN}"
@@ -38,6 +39,24 @@ function generate_configs() {
   echo "All configurations generated for ${PRIMARY_DOMAIN}"
 }
 
+
+function generate_users() {
+  echo "Generating users and passwords:"
+  echo "--------------------------------------------"
+  while IFS=" " read -r username password || [ -n "$username" ]
+  do
+    if [ -z "$password" ]; then password=$(diceware -d-);
+      echo -e "$username\t$password"
+    else
+      echo -e "$username\t<set by secrets file>"
+    fi
+    adduser "$username" --quiet --disabled-password --shell /usr/sbin/nologin --gecos "" &>/dev/null || true
+    echo "$username:$password" | chpasswd || true
+  done
+  echo "--------------------------------------------"
+}
+
+
 if [ "$1" = 'postfix' ]; then
   echo "Starting mail server with:"
   echo "  PRIMARY_DOMAIN=${PRIMARY_DOMAIN}"
@@ -51,12 +70,13 @@ if [ "$1" = 'postfix' ]; then
     echo "Configurations already generated for ${PRIMARY_DOMAIN}, preserving."
   fi
 
-  # set password of mailarchive user to secret
-  echo "mailarchive:$(< /run/secrets/mailarchive_passwd.txt)" | chpasswd
+  # generate the users from the secrets
+  grep -v '^#\|^$' /run/secrets/users.txt | generate_users
 
   # postfix needs fresh copies of files in its chroot jail
   cp /etc/{hosts,localtime,nsswitch.conf,resolv.conf,services} /var/spool/postfix/etc/
 
+  echo "DKIM DNS entry:"
   echo "--------------------------------------------"
   cat "/etc/opendkim/keys/${PRIMARY_DOMAIN}/mail.txt"
   echo "--------------------------------------------"
