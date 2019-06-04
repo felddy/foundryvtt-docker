@@ -1,6 +1,6 @@
-# docker-postfix 🐳📮 #
+# postfix-docker 📮🐳 #
 
-[![Build Status](https://travis-ci.com/cisagov/docker-postfix.svg?branch=develop)](https://travis-ci.com/cisagov/docker-postfix)
+[![Build Status](https://travis-ci.com/cisagov/postfix-docker.svg?branch=develop)](https://travis-ci.com/cisagov/postfix-docker)
 
 Creates a Docker container with an installation of the
 [postfix](http://postfix.org) MTA.  Additionally it has an IMAP
