@@ -25,7 +25,7 @@ cache:
     - "$HOME/.cache/pre-commit"
 install:
   - pip install --upgrade -r requirements-test.txt
-  - travis_scripts/build_docker_image.sh
+  - docker build -t "$IMAGE_NAME" .
 before_script:
   - docker-compose up -d
 script:
@@ -33,9 +33,21 @@ script:
   - pytest -v
 after_script:
   - docker-compose down
+before_deploy:
+  - version=$(./bump_version.sh show)
+  - IFS='.' read -r -a version_array <<< "$version"
+  - docker login -u "$DOCKER_USER" -p "$DOCKER_PW"
+  - docker tag "$IMAGE_NAME" "${IMAGE_NAME}:latest"
+  - docker tag "$IMAGE_NAME" "${IMAGE_NAME}:${version}"
+  - docker tag "$IMAGE_NAME"
+    "${IMAGE_NAME}:${version_array[0]}.${version_array[1]}"
+  - docker tag "$IMAGE_NAME" "${IMAGE_NAME}:${version_array[0]}"
 deploy:
   - provider: script
-    script: bash travis_scripts/deploy_to_docker_hub.sh
+    script: docker push "${IMAGE_NAME}:latest" &&
+      docker push "${IMAGE_NAME}:${version}" &&
+      docker push "${IMAGE_NAME}:${version_array[0]}.${version_array[1]}" &&
+      docker push "${IMAGE_NAME}:${version_array[0]}"
     on:
       tags: true
       python: '3.7'
