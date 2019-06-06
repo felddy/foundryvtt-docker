@@ -1,5 +1,6 @@
 FROM python:3.7-alpine
 LABEL maintainer="mark.feldhousen@trio.dhs.gov"
+LABEL version="0.0.1"
 
 ARG CISA_UID=421
 ENV CISA_HOME="/home/cisa"
