@@ -2,53 +2,24 @@
 version: "3.7"
 
 secrets:
-  fullchain_pem:
-    file: ./src/secrets/fullchain.pem
-  privkey_pem:
-    file: ./src/secrets/privkey.pem
-  users_txt:
-    file: ./src/secrets/users.txt
-
+  quote_txt:
+    file: ./src/secrets/quote.txt
 
 services:
-  postfix:
+  example:
     build:
       context: .
       dockerfile: Dockerfile
-    image: dhsncats/postfix
+    image: dhsncats/example
     init: true
-    restart: always
+    restart: on-failure
     environment:
-      - PRIMARY_DOMAIN=example.com
-      - RELAY_IP=172.16.202.1/32
-    networks:
-      front:
-        ipv4_address: 172.16.202.2
+      - ECHO_MESSAGE=Hello World from docker-compose!
     ports:
-      - target: "25"
-        published: "1025"
-        protocol: tcp
-        mode: host
-      - target: "587"
-        published: "1587"
-        protocol: tcp
-        mode: host
-      - target: "993"
-        published: "1993"
+      - target: "8080"
+        published: "8080"
         protocol: tcp
         mode: host
     secrets:
-      - source: fullchain_pem
-        target: fullchain.pem
-      - source: privkey_pem
-        target: privkey.pem
-      - source: users_txt
-        target: users.txt
-
-networks:
-  front:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.16.202.0/24
+      - source: quote_txt
+        target: quote.txt
