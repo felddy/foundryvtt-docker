@@ -7,18 +7,18 @@ env:
   global:
     - IMAGE_NAME=dhsncats/example
     - DOCKER_USER=felddy
-    # - secure: >-
-    #     R8uSOMb+2aZV/bTK8EU3L5sYqNUiVZpS3kBU0XvVW3rnZgdW1QIHwLU2VOAv9kgpw1e
-    #     zXaAi3OPPboi3eMWTXGQGYM3prZePlpDk+cVwCZB5sQn4xw692p/VmNgnxrY9NTts0Y
-    #     0qPSW9YdCEza8RLYbxaar8PGaLDdh5GwYBeBK8wrvd51PQa8J1IKDKRKfsbrKLRjHv8
-    #     d8qSNT2yKa8vX63l80ftwHs07IOO2YKaUjtS4DlON+XHbLqXkfgVqQ8VUntW0qjb1M1
-    #     KBGLckD6/qeCqMAPHDvuJY+fT2n+6Q0tDZbyJhYzYDN9eTTBuetIDoEZSU8vpvDslrG
-    #     qH8Pu93x4g63DkMl+lfMm6gNjkB8DLxOlHJvdjBHjiiIsSPdUdSxI/Y7GtkchD/Mkdq
-    #     JI5PyQSPnMvLAiNrhysGuIkKnD4hfDyR2RyePFw8zLgKj/Hsm71O1oX7I3aJu08xYL5
-    #     EaXRFkeOMzCPamXNcKjpHWxP7UZqGROBe6e7eOKaJSFzpNZPczgHyi3XxoS8NNPIh0q
-    #     4LTxeqHSUuzyEtg8az3meRiR9z+5LGA7mt2YZ7yyTPwizi2X2LVbx9yCtfnfEG/jrqI
-    #     tx6GFgOb7a02jEbDNQ5q0qR56IwFRSlw55EdWMo2gnh2PtJ044QaMzr/du2VM6wydAR
-    #     n2KsiL8piwAEc=
+    - secure: >-
+        GWxja6rCcevNRay3uOGEt1wpzGOAoKgfquyror60VtkG07GCJ/rCBa/jNsTRRwwDxYW
+        MqY6xQlAU+GzNeuBxKAlmyrLRRYZDmcBpPgQQPbiC0b5ftGCzTuhdYAj4Hg+LyHKbNP
+        H0zsXfQRy2NdWPJ8rr3RFL89a/If0hJVL5OEEHfmzpfvHoDvBJQwhmL2sPZizgCsgh6
+        eRStRvUWj3taVb5VZ1uIlet8P3g7azkD7tTNx+wAxhjlLpaQfBcy/CC27ogw+QOvgdF
+        kefskYz54LLzTyXYhRhACjuGaukpBvQBFzBi3MOFYoLj4kb+9b3mqHlnQZLOSo2zlWV
+        30mTC7eed5KE64MuQ6I1E72B0rnAoVpnwAjXVIvzfhKBuzbhS54tWjKbqK6UAGxbg6t
+        wJDiNaB+nYk6zozJ93TQT02XDUOdDS45hO2Kc/CUwJbrZc7V4aYN6Dj30tWy8d2TI8s
+        GMPuJm8tyxpT/h2eUUPhVzhMCk+4efIBa6cb99wZgkphLmWQefLLpZy8pMwOH7c3ywU
+        +6tVPBZxSEm4tFRYyPwgl9qvzE8E0WM3FPNgwVO9aypx61HcO8NVD7alUW2j+s3taHX
+        aVpaCtsf+bpsXPro3/ofst+FHiFPZGBL2iiSIYtFYI4hkDFq9iGGGexo9zgYS6CMexu
+        YoZtThDw6kaLI=
 cache:
   pip: true
   directories:
