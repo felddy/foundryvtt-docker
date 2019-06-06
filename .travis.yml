@@ -26,13 +26,9 @@ cache:
 install:
   - pip install --upgrade --requirement requirements-test.txt
   - docker build --tag "$IMAGE_NAME" .
-before_script:
-  - docker-compose up --detach
 script:
   - pre-commit run --all-files
   - pytest --verbose
-after_script:
-  - docker-compose down
 before_deploy:
   - version=$(./bump_version.sh show)
   - IFS='.' read -r -a version_array <<< "$version"
