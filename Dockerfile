@@ -15,8 +15,8 @@ openssl \
 py-pip
 
 WORKDIR ${CISA_HOME}
-# TODO remove branch
-RUN git clone --branch improvement/data https://github.com/cisagov/skeleton-python-library.git . && \
+
+RUN git clone https://github.com/cisagov/skeleton-python-library.git . && \
 pip install --requirement requirements.txt && \
 ln -snf /run/secrets/quote.txt src/example/data/secret.txt
 
