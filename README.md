@@ -1,49 +1,60 @@
-# postfix-docker 📮🐳 #
+# skeleton-docker 💀🐳 #
 
-[![Build Status](https://travis-ci.com/cisagov/postfix-docker.svg?branch=develop)](https://travis-ci.com/cisagov/postfix-docker)
+[![Build Status](https://travis-ci.com/cisagov/skeleton-docker.svg?branch=develop)](https://travis-ci.com/cisagov/skeleton-docker)
 
-Creates a Docker container with an installation of the
-[postfix](http://postfix.org) MTA.  Additionally it has an IMAP
-server ([dovecot](https://dovecot.org)) for accessing the archvies
-of sent email.  All email is BCC'd to the `mailarchive` account.
+## Docker Image ##
+
+![MicroBadger Layers](https://img.shields.io/microbadger/layers/dhsncats/example.svg)
+![MicroBadger Size](https://img.shields.io/microbadger/image-size/dhsncats/example.svg)
+
+This is a docker skeleton project that can be used to quickly get a
+new [cisagov](https://github.com/cisagov) GitHub docker project started.
+This skeleton project contains [licensing information](LICENSE.md), as
+well as [pre-commit hooks](https://pre-commit.com) and a [Travis
+CI](https://travis-ci.com) configuration appropriate for docker
+containers and the major languages that we use.
 
 ## Usage ##
 
-A sample [docker composition](docker-compose.yml) is included in this repository.
-To build and start the container use the command: `docker-compose up`
+### Install ###
 
-### Ports ###
+Pull `dhsncats/example` from the Docker repository:
+
+    docker pull dhsncats/example
+
+Or build `dhsncats/example` from source:
+
+    git clone https://github.com/cisagov/skeleton-docker.git
+    cd skeleton-docker
+    docker-compose build
+
+### Run ###
+
+## Ports ##
 
 This container exposes the following ports:
 
-- 25: `smtp`
-- 587: `submission`
-- 993: `imaps`
+| Port  | Protocol | Service  |
+|-------|----------|----------|
+| 8080  | TCP      | http     |
 
-The sample [docker composition](docker-compose.yml) publishes the
-exposed ports at 1025, 1587, and 1993.
+## Environment Variables ##
 
-### Environment Variables ###
+| Variable      | Default Value                 | Purpose      |
+|---------------|-------------------------------|--------------|
+| ECHO_MESSAGE  | `Hello World from Dockerfile` | Text to echo |
 
-Two environment variables are used to generate the configurations at runtime:
+## Secrets ##
 
-- `PRIMARY_DOMAIN`: the domain of the mail server
-- `RELAY_IP`: (optional) an IP address that is allowed to relay mail without authentication
+| Filename      | Purpose              |
+|---------------|----------------------|
+| quote.txt     | Secret text to echo  |
 
-### Secrets ###
+## Volumes ##
 
-- `fullchain.pem`: public key
-- `privkey.pem`: private key
-- `users.txt`: account credentials to create at startup
-
-### Volumes ###
-
-Two optional volumes can be attached to this container to persist the
-mail spool directory, as well as the logging directory.  (Note that
-the mail logs are available using the docker log command.)
-
-- `/var/spool/postfix`: mail queues
-- `/var/log`: system logs
+| Mount point | Purpose        |
+|-------------|----------------|
+| /var/log    | logging output |
 
 ## Contributing ##
 
