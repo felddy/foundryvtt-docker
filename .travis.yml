@@ -5,20 +5,20 @@ python: 3.7
 services: docker
 env:
   global:
-    - IMAGE_NAME=dhsncats/postfix
+    - IMAGE_NAME=dhsncats/example
     - DOCKER_USER=felddy
-    - secure: >-
-        R8uSOMb+2aZV/bTK8EU3L5sYqNUiVZpS3kBU0XvVW3rnZgdW1QIHwLU2VOAv9kgpw1e
-        zXaAi3OPPboi3eMWTXGQGYM3prZePlpDk+cVwCZB5sQn4xw692p/VmNgnxrY9NTts0Y
-        0qPSW9YdCEza8RLYbxaar8PGaLDdh5GwYBeBK8wrvd51PQa8J1IKDKRKfsbrKLRjHv8
-        d8qSNT2yKa8vX63l80ftwHs07IOO2YKaUjtS4DlON+XHbLqXkfgVqQ8VUntW0qjb1M1
-        KBGLckD6/qeCqMAPHDvuJY+fT2n+6Q0tDZbyJhYzYDN9eTTBuetIDoEZSU8vpvDslrG
-        qH8Pu93x4g63DkMl+lfMm6gNjkB8DLxOlHJvdjBHjiiIsSPdUdSxI/Y7GtkchD/Mkdq
-        JI5PyQSPnMvLAiNrhysGuIkKnD4hfDyR2RyePFw8zLgKj/Hsm71O1oX7I3aJu08xYL5
-        EaXRFkeOMzCPamXNcKjpHWxP7UZqGROBe6e7eOKaJSFzpNZPczgHyi3XxoS8NNPIh0q
-        4LTxeqHSUuzyEtg8az3meRiR9z+5LGA7mt2YZ7yyTPwizi2X2LVbx9yCtfnfEG/jrqI
-        tx6GFgOb7a02jEbDNQ5q0qR56IwFRSlw55EdWMo2gnh2PtJ044QaMzr/du2VM6wydAR
-        n2KsiL8piwAEc=
+    # - secure: >-
+    #     R8uSOMb+2aZV/bTK8EU3L5sYqNUiVZpS3kBU0XvVW3rnZgdW1QIHwLU2VOAv9kgpw1e
+    #     zXaAi3OPPboi3eMWTXGQGYM3prZePlpDk+cVwCZB5sQn4xw692p/VmNgnxrY9NTts0Y
+    #     0qPSW9YdCEza8RLYbxaar8PGaLDdh5GwYBeBK8wrvd51PQa8J1IKDKRKfsbrKLRjHv8
+    #     d8qSNT2yKa8vX63l80ftwHs07IOO2YKaUjtS4DlON+XHbLqXkfgVqQ8VUntW0qjb1M1
+    #     KBGLckD6/qeCqMAPHDvuJY+fT2n+6Q0tDZbyJhYzYDN9eTTBuetIDoEZSU8vpvDslrG
+    #     qH8Pu93x4g63DkMl+lfMm6gNjkB8DLxOlHJvdjBHjiiIsSPdUdSxI/Y7GtkchD/Mkdq
+    #     JI5PyQSPnMvLAiNrhysGuIkKnD4hfDyR2RyePFw8zLgKj/Hsm71O1oX7I3aJu08xYL5
+    #     EaXRFkeOMzCPamXNcKjpHWxP7UZqGROBe6e7eOKaJSFzpNZPczgHyi3XxoS8NNPIh0q
+    #     4LTxeqHSUuzyEtg8az3meRiR9z+5LGA7mt2YZ7yyTPwizi2X2LVbx9yCtfnfEG/jrqI
+    #     tx6GFgOb7a02jEbDNQ5q0qR56IwFRSlw55EdWMo2gnh2PtJ044QaMzr/du2VM6wydAR
+    #     n2KsiL8piwAEc=
 cache:
   pip: true
   directories:
