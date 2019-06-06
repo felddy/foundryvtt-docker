@@ -1,38 +1,28 @@
-FROM debian:buster-slim
-MAINTAINER Mark Feldhousen <mark.feldhousen@trio.dhs.gov>
+FROM python:3.7-alpine
+LABEL maintainer="mark.feldhousen@trio.dhs.gov"
 
-RUN apt-get update && \
-DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+ARG CISA_UID=421
+ENV CISA_HOME="/home/cisa"
+ENV ECHO_MESSAGE="Hello World from Dockerfile"
+
+RUN addgroup --system --gid ${CISA_UID} cisa \
+  && adduser --system --uid ${CISA_UID} --ingroup cisa cisa
+
+RUN apk --update --no-cache add \
 ca-certificates \
-diceware \
-dovecot-imapd \
-dovecot-lmtpd \
-gettext-base \
-mailutils \
-opendkim \
-opendkim-tools \
-opendmarc \
-postfix \
-procmail \
-sasl2-bin \
-&& apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+git \
+openssl \
+py-pip
 
-RUN adduser mailarchive --quiet --disabled-password \
---shell /usr/sbin/nologin --gecos "Mail Archive"
+WORKDIR ${CISA_HOME}
+# TODO remove branch
+RUN git clone --branch improvement/data https://github.com/cisagov/skeleton-python-library.git . && \
+pip install --requirement requirements.txt && \
+ln -snf /run/secrets/quote.txt src/example/data/secret.txt
 
-USER root
-WORKDIR /root
+USER cisa
 
-# make backups of configurations.  These are modified at startup.
-RUN mv /etc/postfix/master.cf /etc/postfix/master.cf.orig
-RUN mv /etc/default/opendkim /etc/default/opendkim.orig
-RUN mv /etc/default/opendmarc /etc/default/opendmarc.orig
-
-COPY ./src/templates ./templates/
-COPY ./src/docker-entrypoint.sh .
-
-VOLUME ["/var/log", "/var/spool/postfix"]
-EXPOSE 25/TCP 587/TCP 993/TCP
-
-ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["postfix", "-v", "start-fg"]
+EXPOSE 8080/TCP
+VOLUME ["/var/log"]
+ENTRYPOINT ["example"]
+CMD ["--log-level", "DEBUG"]
