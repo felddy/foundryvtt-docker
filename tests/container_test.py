@@ -11,7 +11,10 @@ VERSION_FILE = "src/version.txt"
 
 def test_container_count(dockerc):
     """Verify the test composition and container."""
-    assert len(dockerc.containers()) == 2, "Wrong number of containers were running."
+    # stopped parameter allows non-running containers in results
+    assert (
+        len(dockerc.containers(stopped=True)) == 2
+    ), "Wrong number of containers were started."
 
 
 def test_wait_for_exits(main_container, version_container):
