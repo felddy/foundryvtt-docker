@@ -46,7 +46,7 @@ repos:
         additional_dependencies:
           - flake8-docstrings
   - repo: https://github.com/asottile/pyupgrade
-    rev: v1.17.1
+    rev: v1.18.0
     hooks:
       - id: pyupgrade
   # Run bandit on "tests" tree with a configuration
@@ -78,7 +78,6 @@ repos:
     hooks:
       - id: terraform_fmt
       - id: terraform_validate_no_variables
-      - id: terraform_docs
   - repo: https://github.com/IamTheFij/docker-pre-commit
     rev: v1.0.0
     hooks:
