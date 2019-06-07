@@ -13,15 +13,16 @@ RUN addgroup --system --gid ${CISA_UID} cisa \
 
 RUN apk --update --no-cache add \
 ca-certificates \
-git \
 openssl \
 py-pip
 
 WORKDIR ${CISA_HOME}
 
-RUN git clone https://github.com/cisagov/skeleton-python-library.git . && \
-pip install --requirement requirements.txt && \
-ln -snf /run/secrets/quote.txt src/example/data/secret.txt
+RUN wget -O sourcecode.tgz https://github.com/cisagov/skeleton-python-library/archive/v${VERSION}.tar.gz && \
+  tar xzf sourcecode.tgz --strip-components=1 && \
+  pip install --requirement requirements.txt && \
+  ln -snf /run/secrets/quote.txt src/example/data/secret.txt && \
+  rm sourcecode.tgz
 
 USER cisa
 
