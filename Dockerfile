@@ -1,6 +1,8 @@
 FROM python:3.7-alpine
+ARG VERSION="0.0.1"
 LABEL maintainer="mark.feldhousen@trio.dhs.gov"
-LABEL version="0.0.1"
+LABEL vendor="Cyber and Infrastructure Security Agency"
+LABEL version=${VERSION}
 
 ARG CISA_UID=421
 ENV CISA_HOME="/home/cisa"
