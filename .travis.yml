@@ -25,12 +25,17 @@ cache:
     - "$HOME/.cache/pre-commit"
 install:
   - pip install --upgrade --requirement requirements-test.txt
-  - docker build --tag "$IMAGE_NAME" .
+  - version=$(./bump_version.sh show)
+  - docker build
+    --tag "$IMAGE_NAME"
+    --build-arg GIT_COMMIT=$(git log -1 --format=%H)
+    --build-arg GIT_REMOTE=$(git remote get-url origin)
+    --build-arg VERSION=${version}
+    .
 script:
   - pre-commit run --all-files
   - pytest --verbose
 before_deploy:
-  - version=$(./bump_version.sh show)
   - IFS='.' read -r -a version_array <<< "$version"
   - docker login --username "$DOCKER_USER" --password "$DOCKER_PW"
   - docker tag "$IMAGE_NAME" "${IMAGE_NAME}:latest"
