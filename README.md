@@ -26,7 +26,7 @@ Or build `dhsncats/example` from source:
 
     git clone https://github.com/cisagov/skeleton-docker.git
     cd skeleton-docker
-    docker-compose build
+    docker-compose build --build-arg VERSION=0.0.1
 
 ### Run ###
 

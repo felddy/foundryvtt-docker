@@ -11,6 +11,8 @@ services:
   example:
     # Run the container normally
     build:
+      # VERSION must be specified on the command line:
+      # e.g., --build-arg VERSION=0.0.1
       context: .
       dockerfile: Dockerfile
     image: dhsncats/example
