@@ -30,6 +30,8 @@ Or build `dhsncats/example` from source:
 
 ### Run ###
 
+    docker-compose run --rm example
+
 ## Ports ##
 
 This container exposes the following ports:
