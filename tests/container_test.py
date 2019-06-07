@@ -49,7 +49,7 @@ def test_version_matches(version_container):
         version_container.labels["version"] == project_version
     ), "Dockerfile version label does not match project version"
     travis_tag = os.getenv("TRAVIS_TAG")
-    if travis_tag is not None:
+    if travis_tag not in [None, ""]:
         assert (
             travis_tag == project_version
         ), "TRAVIS_TAG does not match the project version"
