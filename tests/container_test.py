@@ -1,6 +1,8 @@
 #!/usr/bin/env pytest -vs
 """Tests for example container."""
 
+import os
+
 ENV_VAR = "ECHO_MESSAGE"
 ENV_VAR_VAL = "Hello World from docker-compose!"
 SECRET_QUOTE = (
@@ -46,3 +48,8 @@ def test_version_matches(version_container):
     assert (
         version_container.labels["version"] == project_version
     ), "Dockerfile version label does not match project version"
+    travis_tag = os.getenv("TRAVIS_TAG")
+    if travis_tag is not None:
+        assert (
+            travis_tag == project_version
+        ), "TRAVIS_TAG does not match the project version"
