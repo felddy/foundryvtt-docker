@@ -51,5 +51,5 @@ def test_version_matches(version_container):
     travis_tag = os.getenv("TRAVIS_TAG")
     if travis_tag:
         assert (
-            travis_tag == project_version
+            travis_tag == project_version or travis_tag == f"v{project_version}"
         ), "TRAVIS_TAG does not match the project version"
