@@ -1,6 +1,8 @@
 # skeleton-docker 💀🐳 #
 
 [![Build Status](https://travis-ci.com/cisagov/skeleton-docker.svg?branch=develop)](https://travis-ci.com/cisagov/skeleton-docker)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/cisagov/skeleton-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/skeleton-docker/alerts/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/cisagov/skeleton-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/skeleton-docker/context:python)
 
 ## Docker Image ##
 
