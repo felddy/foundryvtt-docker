@@ -1,0 +1,8 @@
+---
+extraction:
+  python:
+    python_setup:
+      version: 3
+      requirements_files:
+        - requirements-test.txt
+      setup_py: false
