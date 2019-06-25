@@ -24,15 +24,13 @@ repos:
       - id: requirements-txt-fixer
       - id: trailing-whitespace
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.16.0
+    rev: v0.17.0
     hooks:
       - id: markdownlint
-        # The LICENSE.md must match the license text exactly for
-        # GitHub's autorecognition fu to work, so we should leave it
-        # alone.
-        exclude: LICENSE.md
+        args:
+          - --config=.mdl_config.json
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.15.0
+    rev: v1.16.0
     hooks:
       - id: yamllint
   - repo: https://github.com/detailyang/pre-commit-shell
@@ -46,12 +44,12 @@ repos:
         additional_dependencies:
           - flake8-docstrings
   - repo: https://github.com/asottile/pyupgrade
-    rev: v1.18.0
+    rev: v1.19.0
     hooks:
       - id: pyupgrade
   # Run bandit on "tests" tree with a configuration
   - repo: https://github.com/PyCQA/bandit
-    rev: 2a1dbab
+    rev: 1.6.1
     hooks:
       - id: bandit
         name: bandit (tests tree)
@@ -60,7 +58,7 @@ repos:
           - --config=.bandit.yml
   # Run bandit everything but tests directory
   - repo: https://github.com/PyCQA/bandit
-    rev: 2a1dbab
+    rev: 1.6.1
     hooks:
       - id: bandit
         name: bandit (everything else)
@@ -83,6 +81,6 @@ repos:
     hooks:
       - id: docker-compose-check
   - repo: https://github.com/prettier/prettier
-    rev: 1.17.1
+    rev: 1.18.2
     hooks:
       - id: prettier
