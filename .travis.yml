@@ -7,6 +7,7 @@ env:
   global:
     - IMAGE_NAME=dhsncats/example
     - DOCKER_USER=felddy
+    # DOCKER_PW
     - secure: >-
         GWxja6rCcevNRay3uOGEt1wpzGOAoKgfquyror60VtkG07GCJ/rCBa/jNsTRRwwDxYW
         MqY6xQlAU+GzNeuBxKAlmyrLRRYZDmcBpPgQQPbiC0b5ftGCzTuhdYAj4Hg+LyHKbNP
