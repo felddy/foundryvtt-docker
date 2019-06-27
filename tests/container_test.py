@@ -2,9 +2,11 @@
 """Tests for example container."""
 
 import os
+import time
 
 ENV_VAR = "ECHO_MESSAGE"
 ENV_VAR_VAL = "Hello World from docker-compose!"
+READY_MESSAGE = "This is a debug message"
 SECRET_QUOTE = (
     "There are no secrets better kept than the secrets everybody guesses."  # nosec
 )
@@ -17,6 +19,20 @@ def test_container_count(dockerc):
     assert (
         len(dockerc.containers(stopped=True)) == 2
     ), "Wrong number of containers were started."
+
+
+def test_wait_for_ready(main_container):
+    """Wait for container to be ready."""
+    TIMEOUT = 10
+    for i in range(TIMEOUT):
+        if READY_MESSAGE in main_container.logs().decode("utf-8"):
+            break
+        time.sleep(1)
+    else:
+        raise Exception(
+            f"Container does not seem ready.  "
+            f'Expected "{READY_MESSAGE}" in the log within {TIMEOUT} seconds.'
+        )
 
 
 def test_wait_for_exits(main_container, version_container):
