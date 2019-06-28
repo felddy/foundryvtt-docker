@@ -7,6 +7,7 @@ env:
   global:
     - IMAGE_NAME=dhsncats/example
     - DOCKER_USER=felddy
+    # DOCKER_PW
     - secure: >-
         GWxja6rCcevNRay3uOGEt1wpzGOAoKgfquyror60VtkG07GCJ/rCBa/jNsTRRwwDxYW
         MqY6xQlAU+GzNeuBxKAlmyrLRRYZDmcBpPgQQPbiC0b5ftGCzTuhdYAj4Hg+LyHKbNP
@@ -48,7 +49,8 @@ deploy:
     script: docker push "${IMAGE_NAME}:latest" &&
       docker push "${IMAGE_NAME}:${version}" &&
       docker push "${IMAGE_NAME}:${version_array[0]}.${version_array[1]}" &&
-      docker push "${IMAGE_NAME}:${version_array[0]}"
+      docker push "${IMAGE_NAME}:${version_array[0]}" &&
+      ./push_readme.sh
     on:
       tags: true
       python: '3.7'
