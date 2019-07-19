@@ -4,12 +4,15 @@
 import os
 import time
 
+import pytest
+
 ENV_VAR = "ECHO_MESSAGE"
 ENV_VAR_VAL = "Hello World from docker-compose!"
 READY_MESSAGE = "This is a debug message"
 SECRET_QUOTE = (
     "There are no secrets better kept than the secrets everybody guesses."  # nosec
 )
+TRAVIS_TAG = os.getenv("TRAVIS_TAG")
 VERSION_FILE = "src/version.txt"
 
 
@@ -50,8 +53,22 @@ def test_output(main_container):
     assert SECRET_QUOTE in log_output, "Secret not found in log output."
 
 
-def test_version_matches(version_container):
-    """Verify the container outputs the correct version."""
+@pytest.mark.skipif(
+    TRAVIS_TAG in [None, ""], reason="this is not a release (TRAVIS_TAG not set)"
+)
+def test_release_version():
+    """Verify that release tag version agrees with the module version."""
+    pkg_vars = {}
+    with open(VERSION_FILE) as f:
+        exec(f.read(), pkg_vars)  # nosec
+    project_version = pkg_vars["__version__"]
+    assert (
+        TRAVIS_TAG == f"v{project_version}"
+    ), "TRAVIS_TAG does not match the project version"
+
+
+def test_log_version(version_container):
+    """Verify the container outputs the correct version to the logs."""
     version_container.wait()  # make sure container exited if running test isolated
     log_output = version_container.logs().decode("utf-8").strip()
     pkg_vars = {}
@@ -60,12 +77,15 @@ def test_version_matches(version_container):
     project_version = pkg_vars["__version__"]
     assert (
         log_output == project_version
-    ), f"Container version output does not match project version file {VERSION_FILE}"
+    ), f"Container version output to log does not match project version file {VERSION_FILE}"
+
+
+def test_container_version_label_matches(version_container):
+    """Verify the container version label is the correct version."""
+    pkg_vars = {}
+    with open(VERSION_FILE) as f:
+        exec(f.read(), pkg_vars)  # nosec
+    project_version = pkg_vars["__version__"]
     assert (
         version_container.labels["version"] == project_version
     ), "Dockerfile version label does not match project version"
-    travis_tag = os.getenv("TRAVIS_TAG")
-    if travis_tag:
-        assert (
-            travis_tag == project_version or travis_tag == f"v{project_version}"
-        ), "TRAVIS_TAG does not match the project version"
