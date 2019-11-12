@@ -1,7 +1,7 @@
 ---
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v2.4.0
     hooks:
       - id: check-executables-have-shebangs
       - id: check-json
@@ -24,13 +24,13 @@ repos:
       - id: requirements-txt-fixer
       - id: trailing-whitespace
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.18.0
+    rev: v0.19.0
     hooks:
       - id: markdownlint
         args:
           - --config=.mdl_config.json
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.17.0
+    rev: v1.18.0
     hooks:
       - id: yamllint
   - repo: https://github.com/detailyang/pre-commit-shell
@@ -38,13 +38,13 @@ repos:
     hooks:
       - id: shell-lint
   - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.7.8
+    rev: 3.7.9
     hooks:
       - id: flake8
         additional_dependencies:
           - flake8-docstrings
   - repo: https://github.com/asottile/pyupgrade
-    rev: v1.23.0
+    rev: v1.25.1
     hooks:
       - id: pyupgrade
   # Run bandit on "tests" tree with a configuration
@@ -64,11 +64,11 @@ repos:
         name: bandit (everything else)
         exclude: tests
   - repo: https://github.com/python/black
-    rev: 19.3b0
+    rev: 19.10b0
     hooks:
       - id: black
   - repo: https://github.com/ansible/ansible-lint.git
-    rev: v4.1.1a0
+    rev: v4.1.1a3
     hooks:
       - id: ansible-lint
   - repo: https://github.com/antonbabenko/pre-commit-terraform.git

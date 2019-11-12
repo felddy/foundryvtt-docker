@@ -1,6 +1,6 @@
 # skeleton-docker 💀🐳 #
 
-[![Build Status](https://travis-ci.com/cisagov/skeleton-docker.svg?branch=develop)](https://travis-ci.com/cisagov/skeleton-docker)
+[![GitHub Build Status](https://github.com/cisagov/skeleton-docker/workflows/build/badge.svg)](https://github.com/cisagov/skeleton-docker/actions)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/cisagov/skeleton-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/skeleton-docker/alerts/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/cisagov/skeleton-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/skeleton-docker/context:python)
 
@@ -12,10 +12,9 @@
 This is a docker skeleton project that can be used to quickly get a
 new [cisagov](https://github.com/cisagov) GitHub docker project
 started.  This skeleton project contains [licensing
-information](LICENSE), as well as [pre-commit
-hooks](https://pre-commit.com) and a [Travis
-CI](https://travis-ci.com) configuration appropriate for docker
-containers and the major languages that we use.
+information](LICENSE), as well as [pre-commit hooks](https://pre-commit.com)
+and [GitHub Actions](https://github.com/features/actions) configurations
+appropriate for docker containers and the major languages that we use.
 
 ## Usage ##
 
