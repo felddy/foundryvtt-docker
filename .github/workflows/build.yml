@@ -8,7 +8,6 @@ env:
   PIP_CACHE_DIR: ~/.cache/pip
   PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
 
-
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -65,6 +64,10 @@ jobs:
     needs: [lint, test]
     steps:
       - uses: actions/checkout@v1
+      - name: Determine image version
+        id: get_ver
+        run: |
+          echo "##[set-output name=version;]$(./bump_version.sh show)"
       - name: Build docker image
         run: |
           version=$(./bump_version.sh show)
@@ -72,14 +75,14 @@ jobs:
             --tag "$IMAGE_NAME" \
             --build-arg GIT_COMMIT=$(git log -1 --format=%H) \
             --build-arg GIT_REMOTE=$(git remote get-url origin) \
-            --build-arg VERSION=${version} \
+            --build-arg VERSION=${{ steps.get_ver.outputs.version }} \
             .
       - name: Save docker image
         run: |
           mkdir dist
           version=$(./bump_version.sh show)
-          docker save $IMAGE_NAME:latest | \
-            gzip > dist/"${IMAGE_NAME}"_"${version}".tar.gz
+          docker save $IMAGE_NAME:latest | gzip > \
+            dist/"${IMAGE_NAME}"_"${{ steps.get_ver.outputs.version }}".tar.gz
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
