@@ -58,8 +58,7 @@ jobs:
         run: |
           mkdir dist
           version=$(./bump_version.sh show)
-          docker save $IMAGE_NAME:latest | gzip > \
-            dist/"${IMAGE_NAME}"_"${{ steps.get_ver.outputs.version }}".tar.gz
+          docker save $IMAGE_NAME:latest | gzip > dist/image.tar.gz
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
@@ -91,6 +90,6 @@ jobs:
         with:
           name: dist
       - name: Load docker image
-        run: docker load < dist/*.tar.gz
+        run: docker load < dist/image.tar.gz
       - name: Run tests
         run: pytest
