@@ -1,31 +1,30 @@
 # skeleton-docker 💀🐳 #
 
-[![Build Status](https://travis-ci.com/cisagov/skeleton-docker.svg?branch=develop)](https://travis-ci.com/cisagov/skeleton-docker)
+[![GitHub Build Status](https://github.com/cisagov/skeleton-docker/workflows/build/badge.svg)](https://github.com/cisagov/skeleton-docker/actions)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/cisagov/skeleton-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/skeleton-docker/alerts/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/cisagov/skeleton-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/skeleton-docker/context:python)
 
 ## Docker Image ##
 
-![MicroBadger Layers](https://img.shields.io/microbadger/layers/dhsncats/example.svg)
-![MicroBadger Size](https://img.shields.io/microbadger/image-size/dhsncats/example.svg)
+![MicroBadger Layers](https://img.shields.io/microbadger/layers/cisagov/example.svg)
+![MicroBadger Size](https://img.shields.io/microbadger/image-size/cisagov/example.svg)
 
 This is a docker skeleton project that can be used to quickly get a
 new [cisagov](https://github.com/cisagov) GitHub docker project
 started.  This skeleton project contains [licensing
-information](LICENSE), as well as [pre-commit
-hooks](https://pre-commit.com) and a [Travis
-CI](https://travis-ci.com) configuration appropriate for docker
-containers and the major languages that we use.
+information](LICENSE), as well as [pre-commit hooks](https://pre-commit.com)
+and [GitHub Actions](https://github.com/features/actions) configurations
+appropriate for docker containers and the major languages that we use.
 
 ## Usage ##
 
 ### Install ###
 
-Pull `dhsncats/example` from the Docker repository:
+Pull `cisagov/example` from the Docker repository:
 
-    docker pull dhsncats/example
+    docker pull cisagov/example
 
-Or build `dhsncats/example` from source:
+Or build `cisagov/example` from source:
 
     git clone https://github.com/cisagov/skeleton-docker.git
     cd skeleton-docker
