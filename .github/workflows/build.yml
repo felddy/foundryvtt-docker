@@ -92,4 +92,6 @@ jobs:
       - name: Load docker image
         run: docker load < dist/image.tar.gz
       - name: Run tests
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: pytest
