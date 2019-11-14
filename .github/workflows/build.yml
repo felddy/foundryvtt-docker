@@ -4,7 +4,7 @@ name: build
 on: [push]
 
 env:
-  IMAGE_NAME: dhsncats/example
+  IMAGE_NAME: cisagov/example
   PIP_CACHE_DIR: ~/.cache/pip
   PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
 

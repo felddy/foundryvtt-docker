@@ -6,7 +6,7 @@ on:
     types: [prereleased, released]
 
 env:
-  IMAGE_NAME: dhsncats/example
+  IMAGE_NAME: cisagov/example
   DOCKER_PW: ${{ secrets.DOCKER_PW }}
   DOCKER_USER: ${{ secrets.DOCKER_USER }}
 

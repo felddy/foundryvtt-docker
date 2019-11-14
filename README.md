@@ -6,8 +6,8 @@
 
 ## Docker Image ##
 
-![MicroBadger Layers](https://img.shields.io/microbadger/layers/dhsncats/example.svg)
-![MicroBadger Size](https://img.shields.io/microbadger/image-size/dhsncats/example.svg)
+![MicroBadger Layers](https://img.shields.io/microbadger/layers/cisagov/example.svg)
+![MicroBadger Size](https://img.shields.io/microbadger/image-size/cisagov/example.svg)
 
 This is a docker skeleton project that can be used to quickly get a
 new [cisagov](https://github.com/cisagov) GitHub docker project
@@ -20,11 +20,11 @@ appropriate for docker containers and the major languages that we use.
 
 ### Install ###
 
-Pull `dhsncats/example` from the Docker repository:
+Pull `cisagov/example` from the Docker repository:
 
-    docker pull dhsncats/example
+    docker pull cisagov/example
 
-Or build `dhsncats/example` from source:
+Or build `cisagov/example` from source:
 
     git clone https://github.com/cisagov/skeleton-docker.git
     cd skeleton-docker
