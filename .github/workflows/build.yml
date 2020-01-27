@@ -1,7 +1,10 @@
 ---
 name: build
 
-on: [push]
+on: [
+  push,
+  pull_request
+]
 
 env:
   IMAGE_NAME: cisagov/example
