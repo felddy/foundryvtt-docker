@@ -48,7 +48,7 @@ repos:
         additional_dependencies:
           - flake8-docstrings
   - repo: https://github.com/asottile/pyupgrade
-    rev: v1.26.2
+    rev: v2.0.0
     hooks:
       - id: pyupgrade
   # Run bandit on "tests" tree with a configuration
@@ -98,3 +98,7 @@ repos:
     rev: 1.19.1
     hooks:
       - id: prettier
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.761
+    hooks:
+      - id: mypy
