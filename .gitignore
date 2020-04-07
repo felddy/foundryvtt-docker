@@ -1,4 +1,4 @@
 .mypy_cache
-__pycache__
-.python-version
 .pytest_cache
+.python-version
+__pycache__
