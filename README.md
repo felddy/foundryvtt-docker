@@ -24,13 +24,11 @@ docker pull felddy/foundryvtt
 
 ### Run ###
 
-The easiest way to start the container is to create a
-`docker-compose.yml` similar to the following.  If you use a
-serial port to connect to your weather station, make sure the
-container has permissions to access the port.  The uid/gid can
-be set using the environment variables below.
+The easiest way to start the container is to create a `docker-compose.yml`
+similar to the following.  The uid/gid can be set using the environment
+variables below.
 
-Modify any paths or devices as needed:
+Modify any paths as needed:
 
 ```yaml
 ---
@@ -39,19 +37,41 @@ version: "3.7"
 volumes:
   data:
 
+# This docker-compose file is used to build and test the container
 services:
-  foundryvtt:
+  foundry:
+    # Run the container normally
+    build:
+      # VERSION must be specified on the command line:
+      # e.g., --build-arg VERSION=0.0.1
+      context: .
+      dockerfile: Dockerfile
     image: felddy/foundryvtt
     init: true
-    restart: "yes"
+    restart: "always"
     volumes:
       - type: bind
         source: ./data
         target: /data
     environment:
       - TIMEZONE=US/Eastern
-      - FOUNDRY_UID=foundry
+      - FOUNDRY_ADMIN_KEY=null
       - FOUNDRY_GID=foundry
+      - FOUNDRY_HOSTNAME=null
+      - FOUNDRY_PROXY_PORT=null
+      - FOUNDRY_PROXY_SSL=false
+      - FOUNDRY_ROUTE_PREFIX=null
+      - FOUNDRY_SSL_CERT=null
+      - FOUNDRY_SSL_KEY=null
+      - FOUNDRY_UID=foundry
+      - FOUNDRY_UPDATE_CHANNEL="beta"
+      - FOUNDRY_UPNP=false
+      - FOUNDRY_WORLD=null
+    ports:
+      - target: "30000"
+        published: "30000"
+        protocol: tcp
+        mode: host
 ```
 
 Create a directory on the host to store the configuration files:
