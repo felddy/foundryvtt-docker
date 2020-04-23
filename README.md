@@ -1,4 +1,4 @@
-# foundryvtt-docker 💀🐳 #
+# foundryvtt-docker ⚔️🛡🐳 #
 
 [![GitHub Build Status](https://github.com/cisagov/foundryvtt-docker/workflows/build/badge.svg)](https://github.com/cisagov/foundryvtt-docker/actions)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/cisagov/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/foundryvtt-docker/alerts/)
@@ -6,59 +6,129 @@
 
 ## Docker Image ##
 
-![MicroBadger Layers](https://img.shields.io/microbadger/layers/cisagov/example.svg)
-![MicroBadger Size](https://img.shields.io/microbadger/image-size/cisagov/example.svg)
+[![MicroBadger Version](https://images.microbadger.com/badges/version/felddy/foundryvtt.svg)](https://hub.docker.com/repository/docker/felddy/foundryvtt)
+![MicroBadger Layers](https://img.shields.io/microbadger/layers/felddy/foundryvtt-docker.svg)
 
-This is a docker skeleton project that can be used to quickly get a
-new [cisagov](https://github.com/cisagov) GitHub docker project
-started.  This skeleton project contains [licensing
-information](LICENSE), as well as [pre-commit hooks](https://pre-commit.com)
-and [GitHub Actions](https://github.com/features/actions) configurations
-appropriate for docker containers and the major languages that we use.
+This docker container can be used to quickly get a
+[FoundryVTT](https://foundryvtt.com) instance up and running.
 
 ## Usage ##
 
-### Install ###
+<!-- ### Install ###
 
-Pull `cisagov/example` from the Docker repository:
+Pull `felddy/foundryvtt` from the Docker repository:
 
-    docker pull cisagov/example
-
-Or build `cisagov/example` from source:
-
-    git clone https://github.com/cisagov/foundryvtt-docker.git
-    cd foundryvtt-docker
-    docker-compose build --build-arg VERSION=0.0.1
+```console
+docker pull felddy/foundryvtt
+``` -->
 
 ### Run ###
 
-    docker-compose run --rm example
+The easiest way to start the container is to create a
+`docker-compose.yml` similar to the following.  If you use a
+serial port to connect to your weather station, make sure the
+container has permissions to access the port.  The uid/gid can
+be set using the environment variables below.
 
-## Ports ##
+Modify any paths or devices as needed:
 
-This container exposes the following ports:
+```yaml
+---
+version: "3.7"
 
-| Port  | Protocol | Service  |
-|-------|----------|----------|
-| 8080  | TCP      | http     |
+volumes:
+  data:
 
-## Environment Variables ##
+services:
+  foundryvtt:
+    image: felddy/foundryvtt
+    init: true
+    restart: "yes"
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data
+    environment:
+      - TIMEZONE=US/Eastern
+      - FOUNDRY_UID=foundry
+      - FOUNDRY_GID=foundry
+```
 
-| Variable      | Default Value                 | Purpose      |
-|---------------|-------------------------------|--------------|
-| ECHO_MESSAGE  | `Hello World from Dockerfile` | Text to echo |
+Create a directory on the host to store the configuration files:
 
-## Secrets ##
+```console
+mkdir data
+```
 
-| Filename      | Purpose              |
-|---------------|----------------------|
-| quote.txt     | Secret text to echo  |
+If this is the first time running foundryvtt, use the following command to
+start the container and generate a configuration file:
+
+```console
+docker-compose run foundryvtt
+```
+
+The configuration file will be created in the `data` directory.
+You should edit this file to match the setup of your weather station.
+When you are satisfied with configuration the container can be started
+in the background with:
+
+```console
+docker-compose up -d
+```
 
 ## Volumes ##
 
 | Mount point | Purpose        |
 |-------------|----------------|
-| /var/log    | logging output |
+| /data    | configuration file storage |
+
+## Environment Variables ##
+
+| Mount point  | Purpose | Default |
+|--------------|---------|---------|
+| TIMEZONE     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | UTC |
+| FOUNDRY_UID    | `uid` the daemon will be run under. | foundry |
+| FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
+| FOUNDRY_ADMIN_KEY | Encrypted admin password. | null |
+| FOUNDRY_HOSTNAME | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
+| FOUNDRY_PROXY_PORT | Inform the Foundry Server that the software is running behind a reverse proxy on some other port. This allows the invitation links created to the game to include the correct external port. | null |
+| FOUNDRY_PROXY_SSL | Indicates whether the software is running behind a reverse proxy that uses SSL. This allows invitation links and A/V functionality to work as if the Foundry Server had SSL configured directly. | false |
+| FOUNDRY_ROUTE_PREFIX | A string path which is appended to the base hostname to serve Foundry VTT content from a specific namespace. For example setting this to demo will result in data being served from `http://x.x.x.x:30000/demo/`. | null |
+| FOUNDRY_SSL_CERT | An absolute or relative path that points towards a SSL certificate file which is used jointly with the sslKey option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | null |
+| FOUNDRY_SSL_KEY | An absolute or relative path that points towards a SSL key file which is used jointly with the sslCert option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | null |
+| FOUNDRY_UPDATE_CHANNEL | The update channel to subscribe to.  "alpha", "beta", or "release". | "beta" |
+| FOUNDRY_UPNP | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | false |
+| FOUNDRY_WORLD | The world startup at system start. | null |
+
+## Building ##
+
+This Docker container has multi-platform support and requires
+the use of the
+[`buildx` experimental feature](https://docs.docker.com/buildx/working-with-buildx/).
+Make sure to enable experimental features in your environment.
+
+To build the container from source:
+
+Place the `foundryvtt-0.5.5.zip` file in the root of the repository.
+
+```console
+git clone https://github.com/felddy/foundryvtt-docker.git
+cd foundryvtt-docker
+docker buildx build \
+  --platform linux/amd64 \
+  --build-arg VERSION=0.5.5 \
+  --output type=docker \
+  --tag felddy/foundryvtt .
+```
+
+## Debugging ##
+
+There are a few helper arguments that can be used to diagnose container issues
+in your environment.
+
+| Purpose | Command |
+|---------|---------|
+| Drop into a shell in the container | `docker-compose run foundryvtt --shell` |
 
 ## Contributing ##
 
