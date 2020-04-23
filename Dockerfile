@@ -2,41 +2,46 @@ ARG GIT_COMMIT=unspecified
 ARG GIT_REMOTE=unspecified
 ARG VERSION=unspecified
 
-FROM python:3.7-alpine
+# Unarchiver Stage
+FROM --platform=$TARGETPLATFORM alpine:latest as unarchiver
+ARG VERSION
+ENV ARCHIVE="foundryvtt-${VERSION}.zip"
+
+WORKDIR /root
+COPY src/entrypoint.sh ${ARCHIVE} ./
+RUN unzip ${ARCHIVE}
+
+# Final Stage
+FROM --platform=$TARGETPLATFORM node:12-alpine
 
 ARG GIT_COMMIT
 ARG GIT_REMOTE
+ARG TARGETPLATFORM
 ARG VERSION
 
-LABEL git_commit=${GIT_COMMIT}
-LABEL git_remote=${GIT_REMOTE}
-LABEL maintainer="mark.feldhousen@trio.dhs.gov"
-LABEL vendor="Cyber and Infrastructure Security Agency"
-LABEL version=${VERSION}
+LABEL org.opencontainers.image.authors="markf+github@geekpad.com"
+LABEL org.opencontainers.image.licenses="CC0-1.0"
+LABEL org.opencontainers.image.revision=${GIT_COMMIT}
+LABEL org.opencontainers.image.source=${GIT_REMOTE}
+LABEL org.opencontainers.image.title="FoundryVTT"
+LABEL org.opencontainers.image.vendor="Geekpad"
+LABEL org.opencontainers.image.version=${VERSION}
 
-ARG CISA_UID=421
-ENV CISA_HOME="/home/cisa"
-ENV ECHO_MESSAGE="Hello World from Dockerfile"
+ARG FOUNDRY_UID=421
+ENV FOUNDRY_HOME="/home/foundry"
 
-RUN addgroup --system --gid ${CISA_UID} cisa \
-  && adduser --system --uid ${CISA_UID} --ingroup cisa cisa
+RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
+  && adduser --system --uid ${FOUNDRY_UID} --ingroup foundry foundry
 
-RUN apk --update --no-cache add \
-ca-certificates \
-openssl \
-py-pip
+RUN apk --update --no-cache add su-exec
 
-WORKDIR ${CISA_HOME}
+WORKDIR ${FOUNDRY_HOME}
 
-RUN wget -O sourcecode.tgz https://github.com/cisagov/skeleton-python-library/archive/v${VERSION}.tar.gz && \
-  tar xzf sourcecode.tgz --strip-components=1 && \
-  pip install --requirement requirements.txt && \
-  ln -snf /run/secrets/quote.txt src/example/data/secret.txt && \
-  rm sourcecode.tgz
+COPY --from=unarchiver /root/ .
+COPY src/entrypoint.sh ${ARCHIVE} ./
 
-USER cisa
+VOLUME ["/data"]
 
-EXPOSE 8080/TCP
-VOLUME ["/var/log"]
-ENTRYPOINT ["example"]
-CMD ["--log-level", "DEBUG"]
+EXPOSE 30000/TCP
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["resources/app/main.js", "--port=30000", "--headless", "--dataPath=/data"]
