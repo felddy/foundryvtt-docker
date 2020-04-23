@@ -1,3 +1,4 @@
+docker-compose
 pre-commit
 pytest
 pytest-dockerc
