@@ -129,7 +129,8 @@ Make sure to enable experimental features in your environment.
 
 To build the container from source:
 
-Place the `foundryvtt-0.5.5.zip` file in the root of the repository.
+Place the `foundryvtt-0.5.5.zip` file in the archives directory with any
+additional hot fix archives.
 
 ```console
 git clone https://github.com/felddy/foundryvtt-docker.git
@@ -137,6 +138,7 @@ cd foundryvtt-docker
 docker buildx build \
   --platform linux/amd64 \
   --build-arg VERSION=0.5.5 \
+  --build-arg HOTFIX_VERSION=0.5.6 \
   --output type=docker \
   --tag felddy/foundryvtt .
 ```
