@@ -4,7 +4,7 @@ ARG VERSION=unspecified
 ARG HOTFIX_VERSION
 
 # Unarchiver Stage
-FROM --platform=$TARGETPLATFORM alpine:latest as unarchiver
+FROM alpine:latest as stage-1
 ARG VERSION
 ARG HOTFIX_VERSION
 ENV ARCHIVE="foundryvtt-${VERSION}.zip"
@@ -18,9 +18,8 @@ RUN if [ -n "${HOTFIX_VERSION}" ]; then \
       unzip -o -d dist/resources/app ${HOTFIX_ARCHIVE} ; \
     fi
 
-
 # Final Stage
-FROM --platform=$TARGETPLATFORM node:12-alpine
+FROM node:12-alpine as stage-2
 
 ARG GIT_COMMIT
 ARG GIT_REMOTE
@@ -45,8 +44,8 @@ RUN apk --update --no-cache add su-exec
 
 WORKDIR ${FOUNDRY_HOME}
 
-COPY --from=unarchiver /root/dist/ .
 COPY src/entrypoint.sh ./
+COPY --from=stage-1 /root/dist/ .
 
 VOLUME ["/data"]
 
