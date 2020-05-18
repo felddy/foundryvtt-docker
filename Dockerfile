@@ -44,8 +44,8 @@ RUN apk --update --no-cache add su-exec
 
 WORKDIR ${FOUNDRY_HOME}
 
-COPY src/entrypoint.sh ./
 COPY --from=stage-1 /root/dist/ .
+COPY src/entrypoint.sh src/set_password.js ./
 
 VOLUME ["/data"]
 
