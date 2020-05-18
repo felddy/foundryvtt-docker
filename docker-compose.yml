@@ -9,11 +9,13 @@ services:
   foundry:
     # Run the container normally
     build:
-      # VERSION must be specified on the command line:
-      # e.g., --build-arg VERSION=0.0.1
+      args:
+        - VERSION=0.5.7
+        # - HOTFIX_VERSION=0.5.8
       context: .
       dockerfile: Dockerfile
-    image: felddy/foundryvtt
+    image: felddy/foundryvtt:0.5.7
+    hostname: felddy_foundryvtt
     init: true
     restart: "always"
     volumes:
@@ -22,7 +24,7 @@ services:
         target: /data
     environment:
       - TIMEZONE=US/Eastern
-      - FOUNDRY_ADMIN_KEY=null
+      - FOUNDRY_ADMIN_KEY=atropos
       - FOUNDRY_GID=foundry
       - FOUNDRY_HOSTNAME=null
       - FOUNDRY_PROXY_PORT=null
