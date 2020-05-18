@@ -2,5 +2,8 @@ __pycache__
 .mypy_cache
 .pytest_cache
 .python-version
+*-mine.*
+*.tgz
+*.zip
 data
-foundryvtt-*.zip
+Dockerfile-x
