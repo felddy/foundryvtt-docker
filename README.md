@@ -57,7 +57,7 @@ services:
         target: /data
     environment:
       - TIMEZONE=US/Eastern
-      - FOUNDRY_ADMIN_KEY=null
+      - FOUNDRY_ADMIN_KEY=atropos
       - FOUNDRY_GID=foundry
       - FOUNDRY_HOSTNAME=null
       - FOUNDRY_PROXY_PORT=null
