@@ -25,10 +25,7 @@ docker pull felddy/foundryvtt
 ### Run ###
 
 The easiest way to start the container is to create a `docker-compose.yml`
-similar to the following.  The uid/gid can be set using the environment
-variables below.
-
-Modify any paths as needed:
+similar to the example below.  Modify any paths as needed:
 
 ```yaml
 ---
@@ -37,10 +34,8 @@ version: "3.7"
 volumes:
   data:
 
-# This docker-compose file is used to build and test the container
 services:
   foundry:
-    # Run the container normally
     build:
       args:
         - VERSION=0.5.7
@@ -82,20 +77,10 @@ Create a directory on the host to store the configuration files:
 mkdir data
 ```
 
-If this is the first time running foundryvtt, use the following command to
-start the container and generate a configuration file:
+Start the container and detach:
 
 ```console
-docker-compose run foundryvtt
-```
-
-The configuration file will be created in the `data` directory.
-You should edit this file to match the setup of your weather station.
-When you are satisfied with configuration the container can be started
-in the background with:
-
-```console
-docker-compose up -d
+docker-compose up --detach
 ```
 
 ## Volumes ##
