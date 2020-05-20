@@ -15,7 +15,7 @@ all of which should be in this repository.
 
 If you want to report a bug or request a new feature, the most direct
 method is to [create an
-issue](https://github.com/cisagov/foundryvtt-docker/issues) in this
+issue](https://github.com/felddy/foundryvtt-docker/issues) in this
 repository.  We recommend that you first search through existing
 issues (both open and closed) to check if your particular issue has
 already been reported.  If it has then you might want to add a comment
@@ -25,7 +25,7 @@ one.
 ## Pull requests ##
 
 If you choose to [submit a pull
-request](https://github.com/cisagov/foundryvtt-docker/pulls), you will
+request](https://github.com/felddy/foundryvtt-docker/pulls), you will
 notice that our continuous integration (CI) system runs a fairly
 extensive set of linters and syntax checkers.  Your pull request may
 fail these checks, and that's OK.  If you want you can stop there and
