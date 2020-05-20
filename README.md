@@ -1,8 +1,8 @@
 # foundryvtt-docker ⚔️🛡🐳 #
 
-[![GitHub Build Status](https://github.com/cisagov/foundryvtt-docker/workflows/build/badge.svg)](https://github.com/cisagov/foundryvtt-docker/actions)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/cisagov/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/foundryvtt-docker/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/cisagov/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/foundryvtt-docker/context:python)
+[![GitHub Build Status](https://github.com/felddy/foundryvtt-docker/workflows/build/badge.svg)](https://github.com/felddy/foundryvtt-docker/actions)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/felddy/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/felddy/foundryvtt-docker/alerts/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/felddy/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/felddy/foundryvtt-docker/context:python)
 
 ## Docker Image ##
 
