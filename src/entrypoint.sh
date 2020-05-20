@@ -15,6 +15,11 @@ if [ "$(id -u)" = 0 ]; then
   exit 0
 fi
 
+if [ "$1" = "--version" ]; then
+  cat version.txt
+  exit 0
+fi
+
 if [ "$1" = "--shell" ]; then
   /bin/sh
   exit $?
