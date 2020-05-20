@@ -200,7 +200,7 @@ in your environment.
 
 | Purpose | Command |
 |---------|---------|
-| Drop into a shell in the container | `docker-compose run foundryvtt --shell` |
+| Drop into a shell in the container | `docker-compose run foundry --shell` |
 
 ## Contributing ##
 
