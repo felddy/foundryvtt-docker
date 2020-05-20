@@ -4,11 +4,6 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/felddy/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/felddy/foundryvtt-docker/alerts/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/felddy/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/felddy/foundryvtt-docker/context:python)
 
-## Docker Image ##
-
-[![MicroBadger Version](https://images.microbadger.com/badges/version/felddy/foundryvtt.svg)](https://hub.docker.com/repository/docker/felddy/foundryvtt)
-![MicroBadger Layers](https://img.shields.io/microbadger/layers/felddy/foundryvtt-docker.svg)
-
 This docker container can be used to quickly get a
 [FoundryVTT](https://foundryvtt.com) instance up and running.
 
