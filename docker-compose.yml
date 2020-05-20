@@ -24,7 +24,7 @@ services:
         target: /data
     environment:
       - TIMEZONE=US/Eastern
-      - FOUNDRY_ADMIN_KEY=atropos
+      - FOUNDRY_ADMIN_KEY="atropos"
       - FOUNDRY_GID=foundry
       - FOUNDRY_HOSTNAME=null
       - FOUNDRY_PROXY_PORT=null
@@ -42,9 +42,9 @@ services:
         protocol: tcp
         mode: host
 
-  # foundry-version:
-  #   # Run the container to collect version information
-  #   image: felddy/foundryvtt
-  #   init: true
-  #   restart: "no"
-  #   command: --version
+  foundry-version:
+    # Run the container to collect version information
+    image: felddy/foundryvtt:0.5.7
+    init: true
+    restart: "no"
+    command: --version

@@ -5,7 +5,7 @@ https://docs.pytest.org/en/latest/writing_plugins.html#conftest-py-plugins
 # Third-Party Libraries
 import pytest
 
-MAIN_SERVICE_NAME = "example"
+MAIN_SERVICE_NAME = "foundry"
 VERSION_SERVICE_NAME = f"{MAIN_SERVICE_NAME}-version"
 
 

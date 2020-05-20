@@ -1,5 +1,5 @@
 #!/usr/bin/env pytest -vs
-"""Tests for example container."""
+"""Tests for foundry container."""
 
 # Standard Python Libraries
 import os
@@ -8,12 +8,7 @@ import time
 # Third-Party Libraries
 import pytest
 
-ENV_VAR = "ECHO_MESSAGE"
-ENV_VAR_VAL = "Hello World from docker-compose!"
-READY_MESSAGE = "This is a debug message"
-SECRET_QUOTE = (
-    "There are no secrets better kept than the secrets everybody guesses."  # nosec
-)
+READY_MESSAGE = "Foundry Virtual Tabletop"
 RELEASE_TAG = os.getenv("RELEASE_TAG")
 VERSION_FILE = "src/version.txt"
 
@@ -42,17 +37,9 @@ def test_wait_for_ready(main_container):
 
 def test_wait_for_exits(main_container, version_container):
     """Wait for containers to exit."""
-    assert main_container.wait() == 0, "Container service (main) did not exit cleanly"
     assert (
         version_container.wait() == 0
     ), "Container service (version) did not exit cleanly"
-
-
-def test_output(main_container):
-    """Verify the container had the correct output."""
-    main_container.wait()  # make sure container exited if running test isolated
-    log_output = main_container.logs().decode("utf-8")
-    assert SECRET_QUOTE in log_output, "Secret not found in log output."
 
 
 @pytest.mark.skipif(
@@ -89,5 +76,5 @@ def test_container_version_label_matches(version_container):
         exec(f.read(), pkg_vars)  # nosec
     project_version = pkg_vars["__version__"]
     assert (
-        version_container.labels["version"] == project_version
+        version_container.labels["org.opencontainers.image.version"] == project_version
     ), "Dockerfile version label does not match project version"
