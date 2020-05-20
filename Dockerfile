@@ -46,6 +46,7 @@ WORKDIR ${FOUNDRY_HOME}
 
 COPY --from=stage-1 /root/dist/ .
 COPY src/entrypoint.sh src/set_password.js ./
+RUN echo ${VERSION} > version.txt
 
 VOLUME ["/data"]
 
