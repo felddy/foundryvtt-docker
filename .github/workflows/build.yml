@@ -7,7 +7,7 @@ on: [
 ]
 
 env:
-  IMAGE_NAME: cisagov/example
+  IMAGE_NAME: felddy/foundry-vtt
   PIP_CACHE_DIR: ~/.cache/pip
   PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
 
