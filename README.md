@@ -56,7 +56,7 @@ services:
       - FOUNDRY_SSL_CERT=null
       - FOUNDRY_SSL_KEY=null
       - FOUNDRY_UID=foundry
-      - FOUNDRY_UPDATE_CHANNEL="beta"
+      - FOUNDRY_UPDATE_CHANNEL=beta
       - FOUNDRY_UPNP=false
       - FOUNDRY_WORLD=null
     ports:
@@ -91,7 +91,7 @@ docker-compose up --detach
 | TIMEZONE     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | UTC |
 | FOUNDRY_UID    | `uid` the daemon will be run under. | foundry |
 | FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
-| FOUNDRY_ADMIN_KEY | Admin password without quotes.  |  |
+| FOUNDRY_ADMIN_KEY | Admin password.  |  |
 | FOUNDRY_HOSTNAME | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
 | FOUNDRY_PROXY_PORT | Inform the Foundry Server that the software is running behind a reverse proxy on some other port. This allows the invitation links created to the game to include the correct external port. | null |
 | FOUNDRY_PROXY_SSL | Indicates whether the software is running behind a reverse proxy that uses SSL. This allows invitation links and A/V functionality to work as if the Foundry Server had SSL configured directly. | false |
