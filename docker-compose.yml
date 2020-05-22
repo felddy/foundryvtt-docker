@@ -10,11 +10,11 @@ services:
     # Run the container normally
     build:
       args:
-        - VERSION=0.5.7
-        # - HOTFIX_VERSION=0.5.8
+        - VERSION=0.6.0
+        # - HOTFIX_VERSION=0.6.1
       context: .
       dockerfile: Dockerfile
-    image: felddy/foundryvtt:0.5.7
+    image: felddy/foundryvtt:0.6.0
     hostname: felddy_foundryvtt
     init: true
     restart: "always"
@@ -33,7 +33,7 @@ services:
       - FOUNDRY_SSL_CERT=null
       - FOUNDRY_SSL_KEY=null
       - FOUNDRY_UID=foundry
-      - FOUNDRY_UPDATE_CHANNEL=beta
+      - FOUNDRY_UPDATE_CHANNEL=release
       - FOUNDRY_UPNP=false
       - FOUNDRY_WORLD=null
     ports:
@@ -44,7 +44,7 @@ services:
 
   foundry-version:
     # Run the container to collect version information
-    image: felddy/foundryvtt:0.5.7
+    image: felddy/foundryvtt:0.6.0
     init: true
     restart: "no"
     command: --version

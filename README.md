@@ -33,11 +33,11 @@ services:
   foundry:
     build:
       args:
-        - VERSION=0.5.7
+        - VERSION=0.6.0
         # - HOTFIX_VERSION=0.5.8
       context: .
       dockerfile: Dockerfile
-    image: felddy/foundryvtt:0.5.7
+    image: felddy/foundryvtt:0.6.0
     hostname: felddy_foundryvtt
     init: true
     restart: "always"
@@ -56,7 +56,7 @@ services:
       - FOUNDRY_SSL_CERT=null
       - FOUNDRY_SSL_KEY=null
       - FOUNDRY_UID=foundry
-      - FOUNDRY_UPDATE_CHANNEL=beta
+      - FOUNDRY_UPDATE_CHANNEL=release
       - FOUNDRY_UPNP=false
       - FOUNDRY_WORLD=null
     ports:
@@ -106,7 +106,7 @@ docker-compose up --detach
 
 To build the container from source:
 
-Place the `foundryvtt-0.5.7.zip` file in the `archives` directory with any
+Place the `foundryvtt-0.6.0.zip` file in the `archives` directory with any
 additional hot fix archives.
 
 ### Standard build ###
@@ -135,9 +135,9 @@ Docker:
     docker buildx build \
       --file Dockerfile-x \
       --platform linux/amd64 \
-      --build-arg VERSION=0.5.7 \
+      --build-arg VERSION=0.6.0 \
       --output type=docker \
-      --tag felddy/foundryvtt:0.5.7 .
+      --tag felddy/foundryvtt:0.6.0 .
     ```
 
 ## Hosting behind Nginx with TLS ##
