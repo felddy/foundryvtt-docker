@@ -17,6 +17,27 @@ Pull `felddy/foundryvtt` from the Docker repository:
 docker pull felddy/foundryvtt
 ``` -->
 
+## Building ##
+
+1. Check out the project:
+
+    ```console
+    git clone https://github.com/felddy/foundryvtt-docker.git
+    cd foundryvtt-docker
+    ```
+
+1. Place the `foundryvtt-0.6.0.zip` file in the `archives` directory with any
+additional hot fix archives.
+
+1. Build the container:
+
+    ```console
+    docker-compose build
+    ```
+
+See the [Platform-specific build](#platform-specific-build) instructions below
+for additional build options.
+
 ### Run ###
 
 The easiest way to start the container is to create a `docker-compose.yml`
@@ -38,7 +59,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: felddy/foundryvtt:0.6.0
-    hostname: felddy_foundryvtt
+    hostname: my_foundry_host
     init: true
     restart: "always"
     volumes:
@@ -66,17 +87,17 @@ services:
         mode: host
 ```
 
-Create a directory on the host to store the configuration files:
+1. Create a directory on the host to store the configuration files:
 
-```console
-mkdir data
-```
+    ```console
+    mkdir data
+    ```
 
-Start the container and detach:
+1. Start the container and detach:
 
-```console
-docker-compose up --detach
-```
+    ```console
+    docker-compose up --detach
+    ```
 
 ## Volumes ##
 
@@ -101,21 +122,6 @@ docker-compose up --detach
 | FOUNDRY_UPDATE_CHANNEL | The update channel to subscribe to.  "alpha", "beta", or "release". | "beta" |
 | FOUNDRY_UPNP | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | false |
 | FOUNDRY_WORLD | The world startup at system start. | null |
-
-## Building ##
-
-To build the container from source:
-
-Place the `foundryvtt-0.6.0.zip` file in the `archives` directory with any
-additional hot fix archives.
-
-### Standard build ###
-
-```console
-git clone https://github.com/felddy/foundryvtt-docker.git
-cd foundryvtt-docker
-docker-compose build
-```
 
 ### Platform-specific build ###
 
