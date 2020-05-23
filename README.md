@@ -35,56 +35,13 @@ docker pull felddy/foundryvtt
     --build-arg PASSWORD=your_password
     ```
 
-See the [Platform-specific build](#platform-specific-build) instructions below
-for additional build options.
+See the [Cross-platform builds](#cross-platform-builds) instructions below for
+additional build options.
 
-### Run ###
+### Running ###
 
-The easiest way to start the container is to create a `docker-compose.yml`
-similar to the example below.  Modify any paths as needed:
-
-```yaml
----
-version: "3.7"
-
-volumes:
-  data:
-
-services:
-  foundry:
-    build:
-      args:
-        - VERSION=0.6.0
-      context: .
-      dockerfile: Dockerfile
-    image: felddy/foundryvtt:0.6.0
-    hostname: my_foundry_host
-    init: true
-    restart: "always"
-    volumes:
-      - type: bind
-        source: ./data
-        target: /data
-    environment:
-      - TIMEZONE=US/Eastern
-      - FOUNDRY_ADMIN_KEY=atropos
-      - FOUNDRY_GID=foundry
-      - FOUNDRY_HOSTNAME=null
-      - FOUNDRY_PROXY_PORT=null
-      - FOUNDRY_PROXY_SSL=false
-      - FOUNDRY_ROUTE_PREFIX=null
-      - FOUNDRY_SSL_CERT=null
-      - FOUNDRY_SSL_KEY=null
-      - FOUNDRY_UID=foundry
-      - FOUNDRY_UPDATE_CHANNEL=release
-      - FOUNDRY_UPNP=false
-      - FOUNDRY_WORLD=null
-    ports:
-      - target: "30000"
-        published: "30000"
-        protocol: tcp
-        mode: host
-```
+A sample [`docker-compose.yml`](docker-compose.yml) file is included in this
+repository.  Modify any configuration options as needed:
 
 1. Create a directory on the host to store the configuration files:
 
@@ -98,11 +55,16 @@ services:
     docker-compose up --detach
     ```
 
+1. Access the web application at:
+[http://localhost:30000](http://localhost:30000).  If all goes well you should
+be prompted for the administrator's password from the `docker-compose.yml` file.
+If you used the example, the password is `atropos`.
+
 ## Volumes ##
 
 | Mount point | Purpose        |
 |-------------|----------------|
-| /data    | configuration file storage |
+| /data    | configuration, data, and log storage |
 
 ## Environment Variables ##
 
@@ -122,7 +84,7 @@ services:
 | FOUNDRY_UPNP | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | false |
 | FOUNDRY_WORLD | The world startup at system start. | null |
 
-### Platform-specific build ###
+### Cross-platform builds ###
 
 To create images that are compatible with other platforms you can use the
 [`buildx`](https://docs.docker.com/buildx/working-with-buildx/) feature of
