@@ -8,6 +8,13 @@
 This docker container can be used to quickly get a
 [FoundryVTT](https://foundryvtt.com) instance up and running.
 
+## Prerequisites ##
+
+* A functioning [Docker](https://docs.docker.com/get-docker/) installation.
+* The [`docker-compose`](https://docs.docker.com/compose/install/) tool.
+* A [FoundryVTT](https://foundryvtt.com/auth/register/) account with a purchased
+  software license.
+
 ## Building ##
 
 1. Check out the project:
