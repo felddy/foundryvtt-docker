@@ -1,17 +1,22 @@
 ARG GIT_COMMIT=unspecified
 ARG GIT_REMOTE=unspecified
-ARG VERSION=unspecified
-ARG HOTFIX_VERSION
-
-# Unarchiver Stage
-FROM alpine:latest as stage-1
 ARG VERSION
 ARG HOTFIX_VERSION
+ARG USERNAME
+ARG PASSWORD
+
+FROM python:3-alpine as stage-1
+ARG HOTFIX_VERSION
+ARG PASSWORD
+ARG USERNAME
+ARG VERSION
 ENV ARCHIVE="foundryvtt-${VERSION}.zip"
 ENV HOTFIX_ARCHIVE="FoundryVTT-${HOTFIX_VERSION}-Hotfix.zip"
 
 WORKDIR /root
-COPY archives ./
+COPY src/download_release.py ./
+RUN pip install requests
+RUN ./download_release.py "${USERNAME}" "${PASSWORD}" "${VERSION}"
 RUN mkdir dist
 RUN unzip -d dist ${ARCHIVE}
 RUN if [ -n "${HOTFIX_VERSION}" ]; then \

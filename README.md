@@ -26,13 +26,12 @@ docker pull felddy/foundryvtt
     cd foundryvtt-docker
     ```
 
-1. Place the `foundryvtt-0.6.0.zip` file in the `archives` directory with any
-additional hot fix archives.
-
-1. Build the container:
+1. Build the container using your FoundryVTT site credentials:
 
     ```console
-    docker-compose build
+    docker-compose build \
+    --build-arg USERNAME=your_username \
+    --build-arg PASSWORD=your_password
     ```
 
 See the [Platform-specific build](#platform-specific-build) instructions below
@@ -141,6 +140,8 @@ Docker:
     docker buildx build \
       --file Dockerfile-x \
       --platform linux/amd64 \
+      --build-arg PASSWORD=your_password \
+      --build-arg USERNAME=your_username \
       --build-arg VERSION=0.6.0 \
       --output type=docker \
       --tag felddy/foundryvtt:0.6.0 .
