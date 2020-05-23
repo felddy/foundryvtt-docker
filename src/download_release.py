@@ -48,10 +48,6 @@ def download_release(username: str, password: str, version: str) -> int:
         logging.fatal("Could not find CSRF middleware token.")
         return -1
     csrfmiddlewaretoken: str = match["token"]
-    import IPython
-
-    IPython.embed()
-    sys.exit(0)
     payload = {
         "csrfmiddlewaretoken": csrfmiddlewaretoken,
         "login_password": password,
