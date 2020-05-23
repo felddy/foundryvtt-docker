@@ -1,17 +1,15 @@
+---
 version: "3.7"
 
 volumes:
   data:
 
+# This docker-compose file is used to build and test the container with pytest
 services:
   foundry:
-    build:
-      args:
-        - VERSION=0.6.0
-      context: .
-      dockerfile: Dockerfile
+    # Run the container normally
     image: felddy/foundryvtt:0.6.0
-    hostname: my_foundry_host
+    hostname: felddy_foundryvtt
     init: true
     restart: "always"
     volumes:
@@ -37,3 +35,10 @@ services:
         published: "30000"
         protocol: tcp
         mode: host
+
+  foundry-version:
+    # Run the container to collect version information
+    image: felddy/foundryvtt:0.6.0
+    init: true
+    restart: "no"
+    command: --version
