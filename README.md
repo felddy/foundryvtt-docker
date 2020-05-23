@@ -54,7 +54,6 @@ services:
     build:
       args:
         - VERSION=0.6.0
-        # - HOTFIX_VERSION=0.5.8
       context: .
       dockerfile: Dockerfile
     image: felddy/foundryvtt:0.6.0
