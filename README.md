@@ -53,9 +53,11 @@ repository.  Modify any configuration options as needed:
     ```
 
 1. Access the web application at:
-[http://localhost:30000](http://localhost:30000).  If all goes well you should
-be prompted for the administrator's password from the `docker-compose.yml` file.
-If you used the example, the password is `atropos`.
+[http://localhost:30000](http://localhost:30000).
+
+If all goes well you should be prompted for your "License Key", the license
+agreement, and then "admin access key" from the `docker-compose.yml` file.  If
+you used the example file, the password is `atropos`.
 
 ## Volumes ##
 
