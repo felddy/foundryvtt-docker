@@ -8,16 +8,6 @@
 This docker container can be used to quickly get a
 [FoundryVTT](https://foundryvtt.com) instance up and running.
 
-## Usage ##
-
-<!-- ### Install ###
-
-Pull `felddy/foundryvtt` from the Docker repository:
-
-```console
-docker pull felddy/foundryvtt
-``` -->
-
 ## Building ##
 
 1. Check out the project:
@@ -38,7 +28,7 @@ docker pull felddy/foundryvtt
 See the [Cross-platform builds](#cross-platform-builds) instructions below for
 additional build options.
 
-### Running ###
+## Running ##
 
 A sample [`docker-compose.yml`](docker-compose.yml) file is included in this
 repository.  Modify any configuration options as needed:
@@ -84,7 +74,7 @@ If you used the example, the password is `atropos`.
 | FOUNDRY_UPNP | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | false |
 | FOUNDRY_WORLD | The world startup at system start. | null |
 
-### Cross-platform builds ###
+## Cross-platform builds ##
 
 To create images that are compatible with other platforms you can use the
 [`buildx`](https://docs.docker.com/buildx/working-with-buildx/) feature of
