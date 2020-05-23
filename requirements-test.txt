@@ -1,4 +1,4 @@
-docker-compose
+--requirement requirements-test.txt
 pre-commit
 pytest
 pytest-dockerc
