@@ -5,8 +5,10 @@
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/felddy/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/felddy/foundryvtt-docker/context:python)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/felddy/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/felddy/foundryvtt-docker/context:javascript)
 
-This docker container can be used to quickly get a
-[FoundryVTT](https://foundryvtt.com) instance up and running.
+You can get a [FoundryVTT](https://foundryvtt.com) instance up and running in
+minutes using this container.  This Docker container is designed to be secure,
+reliable, and simple to use.  It only requires that you provide the credentials
+needed to download a Foundry release.
 
 ## Prerequisites ##
 
@@ -38,13 +40,10 @@ additional build options.
 ## Running ##
 
 A sample [`docker-compose.yml`](docker-compose.yml) file is included in this
-repository.  Modify any configuration options as needed:
-
-1. Create a directory on the host to store the configuration files:
-
-    ```console
-    mkdir data
-    ```
+repository.  Modify any configuration options as needed.  By default your
+Foundry data will be stored in the `data` directory.  It is **strongly**
+recommended that you **change the administrator password** in
+`FOUNDRY_ADMIN_KEY`.
 
 1. Start the container and detach:
 
