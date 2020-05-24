@@ -5,7 +5,7 @@ ARG HOTFIX_VERSION
 ARG USERNAME
 ARG PASSWORD
 
-FROM python:3-alpine as stage-1
+FROM python:3-slim as stage-1
 ARG HOTFIX_VERSION
 ARG PASSWORD
 ARG USERNAME
@@ -14,9 +14,11 @@ ENV ARCHIVE="foundryvtt-${VERSION}.zip"
 ENV HOTFIX_ARCHIVE="FoundryVTT-${HOTFIX_VERSION}-Hotfix.zip"
 
 WORKDIR /root
-COPY src/download_release.py ./
-RUN pip install requests
-RUN ./download_release.py "${USERNAME}" "${PASSWORD}" "${VERSION}"
+RUN apt-get update && apt-get install -y unzip
+COPY src/_version.py src/download_release.py src/
+COPY README.md requirements.txt setup.py ./
+RUN pip install --requirement requirements.txt
+RUN download_release "${USERNAME}" "${PASSWORD}" "${VERSION}"
 RUN mkdir dist
 RUN unzip -d dist ${ARCHIVE}
 RUN if [ -n "${HOTFIX_VERSION}" ]; then \
