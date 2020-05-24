@@ -14,7 +14,7 @@ services:
     restart: "always"
     volumes:
       - type: bind
-        source: /tmp
+        source: /data
         target: /data
     environment:
       - TIMEZONE=US/Eastern
