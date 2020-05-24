@@ -106,9 +106,8 @@ jobs:
           name: dist
       - name: Load docker image
         run: docker load < dist/image.tar.gz
-      - name: Create data directory
+      - name: Set data directory permissions
         run: |
-          mkdir data
           chmod a+rwx data
       - name: Run tests
         env:
