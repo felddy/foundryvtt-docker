@@ -82,7 +82,5 @@ setup(
         ]
     },
     # Conveniently allows one to run the CLI tool as `foundryvtt_docker`
-    entry_points={
-        # "console_scripts": ["download_release = download_release:main"]
-    },
+    entry_points={"console_scripts": ["download_release = download_release:main"]},
 )
