@@ -10,7 +10,7 @@ import pytest
 
 READY_MESSAGE = "Foundry Virtual Tabletop"
 RELEASE_TAG = os.getenv("RELEASE_TAG")
-VERSION_FILE = "src/version.txt"
+VERSION_FILE = "src/_version.py"
 
 
 def test_container_count(dockerc):
