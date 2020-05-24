@@ -23,7 +23,7 @@ def test_container_count(dockerc):
 
 def test_wait_for_ready(main_container):
     """Wait for container to be ready."""
-    TIMEOUT = 10
+    TIMEOUT = 60
     for i in range(TIMEOUT):
         logs = main_container.logs().decode("utf-8")
         if READY_MESSAGE in logs:
