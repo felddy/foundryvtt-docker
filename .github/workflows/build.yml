@@ -110,3 +110,9 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: pytest
+      - name: Upload data artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v1
+        with:
+          name: data
+          path: data
