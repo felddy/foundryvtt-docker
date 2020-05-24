@@ -1,1 +1,1 @@
-docker-compose
+-e .
