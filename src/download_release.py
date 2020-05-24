@@ -6,7 +6,6 @@ import argparse
 import logging
 from pathlib import Path
 import re
-from re import Match
 import sys
 from typing import Optional
 
@@ -43,7 +42,7 @@ def download_release(username: str, password: str, version: str) -> int:
 
     # Extract csrfmiddlewaretoken
     logging.debug("Extracting input token.")
-    match: Optional[Match[str]] = CSRF_TOKEN_RE.search(response.content.decode())
+    match: Optional[re.Match[str]] = CSRF_TOKEN_RE.search(response.content.decode())
     if not match:
         logging.fatal("Could not find CSRF middleware token.")
         return -1
