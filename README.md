@@ -8,8 +8,8 @@
 
 You can get a [FoundryVTT](https://foundryvtt.com) instance up and running in
 minutes using this container.  This Docker container is designed to be secure,
-reliable, and simple to use.  It only requires that you provide the credentials
-needed to download a Foundry release.
+reliable, compact, and simple to use.  It only requires that you provide the
+credentials needed to download a Foundry release.
 
 ## Prerequisites ##
 
