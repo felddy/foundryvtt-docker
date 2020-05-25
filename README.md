@@ -19,14 +19,17 @@ needed to download a Foundry release.
 
 ## Building ##
 
-1. Check out the project:
+1. Copy the project to your machine using the `Clone or download` button above
+   or the command line:
 
     ```console
     git clone https://github.com/felddy/foundryvtt-docker.git
     cd foundryvtt-docker
     ```
 
-1. Build the container using your FoundryVTT site credentials:
+1. Build the container using your FoundryVTT site credentials.  Your credentials
+   are only used to download a Foundry release, and **are not stored** in the
+   image:
 
     ```console
     docker-compose build \
