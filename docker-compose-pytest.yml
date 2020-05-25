@@ -19,6 +19,7 @@ services:
     environment:
       - TIMEZONE=US/Eastern
       - FOUNDRY_ADMIN_KEY=atropos
+      - FOUNDRY_AWS_CONFIG=
       - FOUNDRY_GID=foundry
       - FOUNDRY_HOSTNAME=
       - FOUNDRY_PROXY_PORT=
