@@ -106,7 +106,16 @@ jobs:
           name: dist
       - name: Load docker image
         run: docker load < dist/image.tar.gz
+      - name: Set data directory permissions
+        run: |
+          chmod a+rwx data
       - name: Run tests
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: pytest
+      - name: Upload data artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v1
+        with:
+          name: data
+          path: data

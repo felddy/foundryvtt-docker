@@ -3,7 +3,7 @@ __pycache__
 .pytest_cache
 .python-version
 *-mine.*
+*.egg-info
 *.tgz
 *.zip
-data
 Dockerfile-x
