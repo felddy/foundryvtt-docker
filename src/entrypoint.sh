@@ -28,6 +28,13 @@ fi
 # busybox does not implement ${VAR@Q} substitution to quote variables
 
 set +o nounset
+if [[ $FOUNDRY_AWS_CONFIG ]]; then
+  if [[ $FOUNDRY_AWS_CONFIG == "true" ]];then
+    FOUNDRY_AWS_CONFIG=true
+  else
+    FOUNDRY_AWS_CONFIG=\"${FOUNDRY_AWS_CONFIG}\"
+  fi
+fi
 if [[ $FOUNDRY_HOSTNAME ]]; then
   FOUNDRY_HOSTNAME=\"${FOUNDRY_HOSTNAME}\"
 fi
@@ -45,9 +52,6 @@ if [[ $FOUNDRY_UPDATE_CHANNEL ]]; then
 fi
 if [[ $FOUNDRY_WORLD ]]; then
   FOUNDRY_WORLD=\"${FOUNDRY_WORLD}\"
-fi
-if [[ $FOUNDRY_AWS_CONFIG ]]; then
-  FOUNDRY_AWS_CONFIG=\"${FOUNDRY_AWS_CONFIG}\"
 fi
 set -o nounset
 
