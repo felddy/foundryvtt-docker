@@ -64,7 +64,14 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
-    install_requires=["docker-compose", "docopt", "setuptools >= 24.2.0", "schema"],
+    install_requires=[
+        "docker-compose",
+        "docopt",
+        "schema",
+        "semver",
+        "setuptools >= 24.2.0",
+        "tqdm",
+    ],
     extras_require={
         "test": [
             "pre-commit",
