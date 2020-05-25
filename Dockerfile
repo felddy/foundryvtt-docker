@@ -20,7 +20,7 @@ COPY README.md requirements.txt setup.py ./
 RUN pip install --requirement requirements.txt
 RUN download_release "${USERNAME}" "${PASSWORD}" "${VERSION}"
 RUN mkdir dist
-RUN unzip -d dist ${ARCHIVE}
+RUN unzip -d dist ${ARCHIVE} 'resources/*'
 RUN if [ -n "${HOTFIX_VERSION}" ]; then \
       unzip -o -d dist/resources/app ${HOTFIX_ARCHIVE} ; \
     fi
