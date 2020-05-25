@@ -33,8 +33,8 @@ needed to download a Foundry release.
 
     ```console
     docker-compose build \
-    --build-arg USERNAME=your_username \
-    --build-arg PASSWORD=your_password
+    --build-arg USERNAME='your_username' \
+    --build-arg PASSWORD='your_password'
     ```
 
 See the [Cross-platform builds](#cross-platform-builds) instructions below for
@@ -103,8 +103,8 @@ Docker:
     docker buildx build \
       --file Dockerfile-x \
       --platform linux/amd64 \
-      --build-arg PASSWORD=your_password \
-      --build-arg USERNAME=your_username \
+      --build-arg PASSWORD='your_password' \
+      --build-arg USERNAME='your_username' \
       --build-arg VERSION=0.6.0 \
       --output type=docker \
       --tag felddy/foundryvtt:0.6.0 .
