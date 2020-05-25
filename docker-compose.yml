@@ -28,6 +28,7 @@ services:
       - FOUNDRY_ROUTE_PREFIX=
       - FOUNDRY_SSL_CERT=
       - FOUNDRY_SSL_KEY=
+      - FOUNDRY_AWS_CONFIG=
       - FOUNDRY_UID=foundry
       - FOUNDRY_UPDATE_CHANNEL=release
       - FOUNDRY_UPNP=false

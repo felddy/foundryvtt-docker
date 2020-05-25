@@ -46,6 +46,9 @@ fi
 if [[ $FOUNDRY_WORLD ]]; then
   FOUNDRY_WORLD=\"${FOUNDRY_WORLD}\"
 fi
+if [[ $FOUNDRY_AWS_CONFIG ]]; then
+  FOUNDRY_AWS_CONFIG=\"${FOUNDRY_AWS_CONFIG}\"
+fi
 set -o nounset
 
 # Update configuration file
@@ -59,7 +62,7 @@ cat <<EOF > /data/Config/options.json
   "routePrefix": ${FOUNDRY_ROUTE_PREFIX:-null},
   "sslCert": ${FOUNDRY_SSL_CERT:-null},
   "sslKey": ${FOUNDRY_SSL_KEY:-null},
-  "awsConfig": null,
+  "awsConfig": ${FOUNDRY_AWS_CONFIG:-null},
   "dataPath": "/data",
   "proxySSL": ${FOUNDRY_PROXY_SSL:-false},
   "proxyPort": ${FOUNDRY_PROXY_PORT:-null},
