@@ -63,6 +63,27 @@ If all goes well you should be prompted for your "License Key", the license
 agreement, and then "admin access key" from the `docker-compose.yml` file.  If
 you used the example file, the password is `atropos`.
 
+## Updating ##
+
+The Foundry "Update Software" tab is disabled by default in this container. To
+upgrade to a new version of Foundry, update this repository to the latest
+version and rebuild the image.
+
+1. Stop the running container:
+
+    ```console
+    docker-compose down
+    ```
+
+1. Update to the latest release of this repository:
+
+    ```console
+    git pull
+    ```
+
+1. Follow the previous instructions for [building](#building) and
+   [running](#running) the container above.
+
 ## Volumes ##
 
 | Mount point | Purpose        |
@@ -79,6 +100,7 @@ you used the example file, the password is `atropos`.
 | FOUNDRY_ADMIN_KEY | Admin password.  |  |
 | FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage | null |
 | FOUNDRY_HOSTNAME | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
+| FOUNDRY_NO_UPDATE | Prevent the application from being updated from the web interface.  The application code is immutable when running in a container.  See the [Updating](#updating) section for the steps needed to update this container. | true |
 | FOUNDRY_PROXY_PORT | Inform the Foundry Server that the software is running behind a reverse proxy on some other port. This allows the invitation links created to the game to include the correct external port. | null |
 | FOUNDRY_PROXY_SSL | Indicates whether the software is running behind a reverse proxy that uses SSL. This allows invitation links and A/V functionality to work as if the Foundry Server had SSL configured directly. | false |
 | FOUNDRY_ROUTE_PREFIX | A string path which is appended to the base hostname to serve Foundry VTT content from a specific namespace. For example setting this to `demo` will result in data being served from `http://x.x.x.x:30000/demo/`. | null |
