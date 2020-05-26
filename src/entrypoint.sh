@@ -69,7 +69,7 @@ cat <<EOF > /data/Config/options.json
   "routePrefix": ${FOUNDRY_ROUTE_PREFIX:-null},
   "sslCert": ${FOUNDRY_SSL_CERT:-null},
   "sslKey": ${FOUNDRY_SSL_KEY:-null},
-  "updateChannel": ${FOUNDRY_UPDATE_CHANNEL:-\"beta\"},
+  "updateChannel": ${FOUNDRY_UPDATE_CHANNEL:-\"release\"},
   "upnp": ${FOUNDRY_UPNP:-false},
   "world": ${FOUNDRY_WORLD:-null}
 }
