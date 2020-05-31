@@ -8,7 +8,7 @@ volumes:
 services:
   foundry:
     # Run the container normally
-    image: felddy/foundryvtt:0.6.0
+    image: felddy/foundryvtt:0.6.1
     hostname: felddy_foundryvtt
     init: true
     restart: "always"
@@ -40,7 +40,7 @@ services:
 
   foundry-version:
     # Run the container to collect version information
-    image: felddy/foundryvtt:0.6.0
+    image: felddy/foundryvtt:0.6.1
     init: true
     restart: "no"
     command: --version
