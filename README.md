@@ -116,7 +116,7 @@ To create images that are compatible with other platforms you can use the
 [`buildx`](https://docs.docker.com/buildx/working-with-buildx/) feature of
 Docker:
 
-1. Create an new `Dockerfile` with `buildx` support:
+1. Create the `Dockerfile-x` file with `buildx` platform support:
 
     ```console
     ./buildx-dockerfile.sh
