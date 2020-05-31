@@ -7,10 +7,10 @@ services:
   foundry:
     build:
       args:
-        - VERSION=0.6.0
+        - VERSION=0.6.1
       context: .
       dockerfile: Dockerfile
-    image: felddy/foundryvtt:0.6.0
+    image: felddy/foundryvtt:0.6.1
     hostname: my_foundry_host
     init: true
     restart: "always"
