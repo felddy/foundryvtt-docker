@@ -62,10 +62,6 @@ def download_release(username: str, password: str, version: str) -> int:
     # Make a request to the main site to get our CSRF Token
     logging.info("Requesting FoundryVTT homepage.")
     response: Response = session.get(HOMEPAGE_URL, headers=HEADERS)
-    # import IPython
-    #
-    # IPython.embed()
-    # sys.exit(0)
     response.raise_for_status()
 
     # Extract csrfmiddlewaretoken
