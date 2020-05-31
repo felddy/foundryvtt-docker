@@ -88,6 +88,6 @@ setup(
             "pytest",
         ]
     },
-    # Conveniently allows one to run the CLI tool as `foundryvtt_docker`
+    # Conveniently allows one to run the CLI tool as `download_release`
     entry_points={"console_scripts": ["download_release = download_release:main"]},
 )
