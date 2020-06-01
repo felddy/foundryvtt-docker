@@ -18,6 +18,7 @@ Options:
 """
 
 # Standard Python Libraries
+import json
 import logging
 from pathlib import Path
 import re
@@ -44,12 +45,15 @@ HEADERS: Dict = {
     "Upgrade-Insecure-Requests": "1",
     "User-Agent": "Mozilla/5.0",
 }
+LICENSE_PATH: Path = Path("license.json")
+LICENSE_RE = re.compile(r"(?P<license>(?:[A-Z0-9]{4}-*){6})")
 LOGIN_URL: str = HOMEPAGE_URL + "auth/login/"
 STREAM_CHUNK_SIZE: int = 8192
 
 
 def download_release(username: str, password: str, version: str) -> int:
     """Download a FoundryVTT release using the supplied credentials."""
+    license_url = f"{HOMEPAGE_URL}community/{username}/licenses"
     release_url = f"{HOMEPAGE_URL}releases/download?version={version}&platform=linux"
     release_path: Path = Path(f"foundryvtt-{version}.zip")
 
@@ -86,6 +90,19 @@ def download_release(username: str, password: str, version: str) -> int:
     if "sessionid" not in session.cookies:
         logging.critical(f"Unable to log in as {username}, verify your credentials.")
         return -1
+    logging.info(f"Successfully logged in as {username}.")
+
+    logging.info("Fetching license.")
+    response = session.get(license_url, headers=HEADERS)
+    match = LICENSE_RE.search(response.content.decode())
+    match = None
+    if not match:
+        logging.warning("Could not find license.")
+    else:
+        logging.info(f"Writing license to {LICENSE_PATH}")
+        license: str = match["license"].replace("-", "")
+        with LICENSE_PATH.open("w") as f:
+            json.dump({"license": license}, f, indent=2)
 
     logging.info(f"Downloading release {version} to {release_path}")
     with session.get(release_url, headers=HEADERS, stream=True) as response:
