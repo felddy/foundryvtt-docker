@@ -7,10 +7,10 @@
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/felddy/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/felddy/foundryvtt-docker/context:python)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/felddy/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/felddy/foundryvtt-docker/context:javascript)
 
-You can get a [FoundryVTT](https://foundryvtt.com) instance up and running in
-minutes using this container.  This Docker container is designed to be secure,
-reliable, compact, and simple to use.  It only requires that you provide the
-credentials needed to download a Foundry release.
+You can get a [Foundry Virtual Tabletop](https://foundryvtt.com) instance up and
+running in minutes using this container.  This Docker container is designed to
+be secure, reliable, compact, and simple to use.  It only requires that you
+provide the credentials needed to download a Foundry release.
 
 ## Prerequisites ##
 
@@ -22,8 +22,8 @@ credentials needed to download a Foundry release.
 
 ### Using Docker ###
 
-You can use the following command to start up a FoundryVTT server.  Your
-[foundryvtt.com](https://foundryvtt.com) credentials are required so the
+You can use the following command to start up a Foundry Virtual Tabletop server.
+Your [foundryvtt.com](https://foundryvtt.com) credentials are required so the
 container can install and license your server.
 
 ```console
@@ -134,7 +134,7 @@ upgrade to a new version of Foundry, update your image to the latest version.
 | FOUNDRY_UID    | `uid` the daemon will be run under. | foundry |
 | FOUNDRY_UPDATE_CHANNEL | The update channel to subscribe to.  "alpha", "beta", or "release". | "release" |
 | FOUNDRY_UPNP | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | false |
-| FOUNDRY_VERSION | Version of FoundryVTT to install. | 0.6.1 |
+| FOUNDRY_VERSION | Version of Foundry Virtual Tabletop to install. | 0.6.1 |
 | FOUNDRY_WORLD | The world startup at system start. | null |
 | TIMEZONE     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | UTC |
 
@@ -184,9 +184,9 @@ Docker:
 
 ## Hosting behind Nginx with TLS ##
 
-Below is an example configuration that will serve the FoundryVTT application at
-a specific path.  In this example, the application container will be accessible
-at `https://example.com/vtt`:
+Below is an example configuration that will serve the Foundry Virtual Tabletop
+application at a specific path.  In this example, the application container will
+be accessible at `https://example.com/vtt`:
 
 ```nginx
 server {
@@ -205,7 +205,7 @@ server {
     add_header Access-Control-Allow-Origin https://example.com always;
 
     location /vtt {
-        # FoundryVTT routePrefix = "vtt"
+        # Foundry Virtual Tabletop routePrefix = "vtt"
 
         proxy_http_version 1.1;
         access_log /var/log/nginx/upstream_log upstream_logging;
