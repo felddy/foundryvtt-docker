@@ -15,40 +15,64 @@ credentials needed to download a Foundry release.
 ## Prerequisites ##
 
 * A functioning [Docker](https://docs.docker.com/get-docker/) installation.
-* The [`docker-compose`](https://docs.docker.com/compose/install/) tool.
 * A [FoundryVTT](https://foundryvtt.com/auth/register/) account with a purchased
   software license.
 
-## Building ##
-
-1. Copy the project to your machine using the `Clone or download` button above
-   or the command line:
-
-    ```console
-    git clone https://github.com/felddy/foundryvtt-docker.git
-    cd foundryvtt-docker
-    ```
-
-1. Build the container using your FoundryVTT site credentials.  Your credentials
-   are only used to download a Foundry release, and **are not stored** in the
-   image:
-
-    ```console
-    docker-compose build \
-    --build-arg USERNAME='your_username' \
-    --build-arg PASSWORD='your_password'
-    ```
-
-See the [Cross-platform builds](#cross-platform-builds) instructions below for
-additional build options.
-
 ## Running ##
 
-A sample [`docker-compose.yml`](docker-compose.yml) file is included in this
-repository.  Modify any configuration options as needed.  By default your
-Foundry data will be stored in the `data` directory.  It is **strongly**
-recommended that you **change the administrator password** in
-`FOUNDRY_ADMIN_KEY`.
+### Using Docker ###
+
+You can use the following command to start up a FoundryVTT server.  Your
+[foundryvtt.com](https://foundryvtt.com) credentials are required so the
+container can install and license your server.
+
+```console
+docker run \
+  --env FOUNDRY_USERNAME='<your_username>' \
+  --env FOUNDRT_PASSWORD='<your_password>' \
+  --publish 30000:30000/tcp \
+  --volume /data:<your_data_dir> \
+  felddy/foundryvtt:0.6.1
+```
+
+### Using a Docker composition ###
+
+Using [`docker-compose`](https://docs.docker.com/compose/install/) to manage your
+server is highly recommended.  A `docker-compose.yml` file is a more reliable
+way to start and maintain a container while capturing its configurations.  All
+of Foundry's [configuration
+options](https://foundryvtt.com/article/configuration/) can be specified using
+[environment variables](#environment-variables).
+
+1. Create a `docker-compose.yml` file similar to the one below.  Provide
+   your credentials as values to the environment variables:
+
+    ```yaml
+    version: "3.7"
+
+    volumes:
+      data:
+
+    services:
+      foundry:
+        image: felddy/foundryvtt:0.6.1
+        hostname: my_foundry_host
+        init: true
+        restart: "always"
+        volumes:
+          - type: bind
+            source: ./data
+            target: /data
+        environment:
+          - FOUNDRY_PASSWORD=<your_password>
+          - FOUNDRY_USERNAME=<your_username>
+          - FOUNDRY_ADMIN_KEY=atropos
+        ports:
+          - target: "30000"
+            published: "30000"
+            protocol: tcp
+            mode: host
+    ```
 
 1. Start the container and detach:
 
@@ -59,15 +83,13 @@ recommended that you **change the administrator password** in
 1. Access the web application at:
 [http://localhost:30000](http://localhost:30000).
 
-If all goes well you should be prompted for your "License Key", the license
-agreement, and then "admin access key" from the `docker-compose.yml` file.  If
-you used the example file, the password is `atropos`.
+If all goes well you should be prompted with the license agreement, and then
+"admin access key" set with the `FOUNDRY_ADMIN_KEY` variable.
 
 ## Updating ##
 
 The Foundry "Update Software" tab is disabled by default in this container. To
-upgrade to a new version of Foundry, update this repository to the latest
-version and rebuild the image.
+upgrade to a new version of Foundry, update your image to the latest version.
 
 1. Stop the running container:
 
@@ -75,14 +97,10 @@ version and rebuild the image.
     docker-compose down
     ```
 
-1. Update to the latest release of this repository:
+1. Modify your `docker-compose.yml` file or `Docker` command to use new image
+   tag, or `latest`.
 
-    ```console
-    git pull
-    ```
-
-1. Follow the previous instructions for [building](#building) and
-   [running](#running) the container above.
+1. Follow the previous instructions for [running](#running) the container above.
 
 ## Volumes ##
 
@@ -92,13 +110,21 @@ version and rebuild the image.
 
 ## Environment Variables ##
 
-| Mount point  | Purpose | Default |
-|--------------|---------|---------|
+### Required ###
+
+| Name             | Purpose  |
+|------------------|----------|
+| FOUNDRY_USERNAME | Account username for foundryvtt.com.  Required for downloading an application release. |
+| FOUNDRY_PASSWORD | Account password for foundryvtt.com.  Required for downloading an application release. |
+
+### Optional ###
+
+| Name  | Purpose | Default |
+|-------|---------|---------|
 | TIMEZONE     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | UTC |
-| FOUNDRY_UID    | `uid` the daemon will be run under. | foundry |
-| FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
-| FOUNDRY_ADMIN_KEY | Admin password.  |  |
+| FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared. |  |
 | FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage | null |
+| FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
 | FOUNDRY_HOSTNAME | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
 | FOUNDRY_NO_UPDATE | Prevent the application from being updated from the web interface.  The application code is immutable when running in a container.  See the [Updating](#updating) section for the steps needed to update this container. | true |
 | FOUNDRY_PROXY_PORT | Inform the Foundry Server that the software is running behind a reverse proxy on some other port. This allows the invitation links created to the game to include the correct external port. | null |
@@ -106,9 +132,32 @@ version and rebuild the image.
 | FOUNDRY_ROUTE_PREFIX | A string path which is appended to the base hostname to serve Foundry VTT content from a specific namespace. For example setting this to `demo` will result in data being served from `http://x.x.x.x:30000/demo/`. | null |
 | FOUNDRY_SSL_CERT | An absolute or relative path that points towards a SSL certificate file which is used jointly with the sslKey option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | null |
 | FOUNDRY_SSL_KEY | An absolute or relative path that points towards a SSL key file which is used jointly with the sslCert option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | null |
+| FOUNDRY_UID    | `uid` the daemon will be run under. | foundry |
 | FOUNDRY_UPDATE_CHANNEL | The update channel to subscribe to.  "alpha", "beta", or "release". | "release" |
 | FOUNDRY_UPNP | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | false |
+| FOUNDRY_VERSION | Version of FoundryVTT to install. | 0.6.1 |
 | FOUNDRY_WORLD | The world startup at system start. | null |
+
+## Building from source ##
+
+1. Copy the project to your machine using the `Clone or download` button above
+   or the command line:
+
+    ```console
+    git clone https://github.com/felddy/foundryvtt-docker.git
+    cd foundryvtt-docker
+    ```
+
+1. Build the image:
+
+    ```console
+    docker build \
+      --build-arg VERSION=0.6.1 \
+      --tag felddy/foundryvtt:0.6.1 .
+    ```
+
+See the [Cross-platform builds](#cross-platform-builds) instructions below for
+additional build options.
 
 ## Cross-platform builds ##
 
@@ -128,8 +177,6 @@ Docker:
     docker buildx build \
       --file Dockerfile-x \
       --platform linux/amd64 \
-      --build-arg PASSWORD='your_password' \
-      --build-arg USERNAME='your_username' \
       --build-arg VERSION=0.6.1 \
       --output type=docker \
       --tag felddy/foundryvtt:0.6.1 .
