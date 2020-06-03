@@ -13,7 +13,7 @@ services:
     image: felddy/foundryvtt:0.6.1
     hostname: my_foundry_host
     init: true
-    restart: "always"
+    restart: "unless-stopped"
     volumes:
       - type: bind
         source: ./data
