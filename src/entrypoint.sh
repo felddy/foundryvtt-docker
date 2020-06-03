@@ -20,7 +20,7 @@ echo "Starting felddy/foundryvtt container v${image_version}"
 install_required=false
 if [ -f "resources/app/package.json" ]; then
   installed_version=$(jq --raw-output .version resources/app/package.json)
-  echo "Foundry ${installed_version} is installed."
+  echo "Foundry Virtual Tabletop ${installed_version} is installed."
   if [ "${FOUNDRY_VERSION}" != "${installed_version}" ]; then
     echo "Requested version (${FOUNDRY_VERSION}) from FOUNDRY_VERSION differs."
     echo "Uninstalling version ${FOUNDRY_VERSION}."
@@ -28,7 +28,7 @@ if [ -f "resources/app/package.json" ]; then
     install_required=true
   fi
 else
-  echo "No Foundry installation detected."
+  echo "No Foundry Virtual Tabletop installation detected."
   install_required=true
 fi
 
@@ -40,7 +40,7 @@ if [ $install_required = true ]; then
     exit 1
   fi
   set -o nounset
-  echo "Installing FoundryVTT ${FOUNDRY_VERSION}"
+  echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
   ./download_release.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
   unzip -q "foundryvtt-${FOUNDRY_VERSION}.zip" 'resources/*'
   rm "foundryvtt-${FOUNDRY_VERSION}.zip"
@@ -101,6 +101,7 @@ set -o nounset
 
 # Update configuration file
 mkdir -p /data/Config >& /dev/null
+echo "Generating options.json file."
 cat <<EOF > /data/Config/options.json
 {
   "awsConfig": ${FOUNDRY_AWS_CONFIG:-null},
@@ -131,6 +132,6 @@ else
 fi
 set -o nounset
 
-echo "Starting FoundryVTT"
+echo "Starting Foundry Virtual Tabletop."
 
 node "$@"
