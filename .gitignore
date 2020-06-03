@@ -7,3 +7,5 @@ __pycache__
 *.tgz
 *.zip
 Dockerfile-x
+license.json
+node_modules
