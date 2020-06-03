@@ -76,13 +76,13 @@ const HEADERS = {
 
   var form_params = new URLSearchParams({
     csrfmiddlewaretoken: csrfmiddlewaretoken,
-    login_password: options["<password>"],
+    login_password: password,
     login_redirect: "/",
-    login_username: options["<username>"],
+    login_username: username,
     login: "",
   });
 
-  console.log(`Logging in to Foundry website as ${options["<username>"]}.`);
+  console.log(`Logging in to Foundry website as ${username}.`);
   response = await fetch(LOGIN_URL, {
     body: form_params,
     method: "POST",
@@ -93,17 +93,15 @@ const HEADERS = {
   }
 
   // Check to see if we have a sessionid (logged in)
-  cookies = cookieJar.getCookiesSync(BASE_URL);
-  session_cookie = cookies.find((cookie) => {
+  const cookies = cookieJar.getCookiesSync(BASE_URL);
+  const session_cookie = cookies.find((cookie) => {
     return cookie.key == "sessionid";
   });
   if (typeof session_cookie == "undefined") {
-    console.error(
-      `Unable to log in as ${options["<username>"]}, verify your credentials..`
-    );
+    console.error(`Unable to log in as ${username}, verify your credentials..`);
     return -1;
   }
-  console.log(`Successfully logged in as ${options["<username>"]}.`);
+  console.log(`Successfully logged in as ${username}.`);
 
   console.log("Fetching license.");
   response = await fetch(LICENSE_URL, {
