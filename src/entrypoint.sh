@@ -47,6 +47,7 @@ if [ $install_required = true ]; then
   if [ -f license.json ] && [ ! -f /data/Config/license.json ]; then
     mkdir -p /data/Config
     mv license.json /data/Config
+    chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
   fi
 fi
 
