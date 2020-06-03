@@ -61,7 +61,7 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
         restart: "always"
         volumes:
           - type: bind
-            source: ./data
+            source: <your_data_dir>
             target: /data
         environment:
           - FOUNDRY_PASSWORD=<your_password>
