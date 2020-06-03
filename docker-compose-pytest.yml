@@ -17,6 +17,8 @@ services:
         source: ./data
         target: /data
     environment:
+      - FOUNDRY_PASSWORD # pass through
+      - FOUNDRY_USERNAME # pass through
       - TIMEZONE=US/Eastern
       - FOUNDRY_ADMIN_KEY=atropos
       - FOUNDRY_AWS_CONFIG=
