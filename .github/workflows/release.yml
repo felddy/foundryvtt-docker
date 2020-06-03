@@ -38,7 +38,7 @@ jobs:
         run: ./buildx-dockerfile.sh
       - name: Build Docker images, tag, and publish
         run: |
-          IFS='.' read -r -a version_array \
+          IFS='.' read -r v_major v_minor v_patch \
             <<< "${{ steps.get_ver.outputs.version }}"
           docker buildx build \
             --file Dockerfile-x \
@@ -46,8 +46,8 @@ jobs:
             --output "type=image,push=true" \
             --tag "$IMAGE_NAME:latest" \
             --tag "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}" \
-            --tag "${IMAGE_NAME}:${version_array[0]}.${version_array[1]}" \
-            --tag "${IMAGE_NAME}:${version_array[0]}" \
+            --tag "${IMAGE_NAME}:${v_major}.${v_minor}" \
+            --tag "${IMAGE_NAME}:${v_major}" \
             --build-arg GIT_COMMIT=$(git log -1 --format=%H) \
             --build-arg GIT_REMOTE=$(git remote get-url origin) \
             --build-arg VERSION=${{ steps.get_ver.outputs.version }} \
