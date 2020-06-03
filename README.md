@@ -15,7 +15,7 @@ provide the credentials needed to download a Foundry release.
 ## Prerequisites ##
 
 * A functioning [Docker](https://docs.docker.com/get-docker/) installation.
-* A [FoundryVTT](https://foundryvtt.com/auth/register/) account with a purchased
+* A [FoundryVTT.com](https://foundryvtt.com/auth/register/) account with a purchased
   software license.
 
 ## Running ##
