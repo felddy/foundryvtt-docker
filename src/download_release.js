@@ -10,8 +10,8 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  download_release <username> <password> <version>
-  download_release (-h | --help)
+  download_release.js <username> <password> <version>
+  download_release.js (-h | --help)
 
 Options:
   -h --help              Show this message.
@@ -36,7 +36,7 @@ const streamPipeline = _util.promisify(require("stream").pipeline);
 
 // Constants
 const BASE_URL = "https://foundryvtt.com";
-const LICENSE_PATH = "../license.json";
+const LICENSE_PATH = "license.json";
 const LICENSE_URL = `${BASE_URL}/community/${username}/licenses`;
 const LOGIN_URL = BASE_URL + "/auth/login/";
 const PRIVACY_POLICY_COOKIE =
@@ -48,7 +48,7 @@ const HEADERS = {
   DNT: "1",
   Referer: BASE_URL,
   "Upgrade-Insecure-Requests": "1",
-  "User-Agent": "Mozilla/5.0"
+  "User-Agent": "Mozilla/5.0",
 };
 
 (async () => {
@@ -59,7 +59,7 @@ const HEADERS = {
   console.log("Requesting FoundryVTT homepage.");
   var response = await fetch(BASE_URL, {
     method: "GET",
-    headers: HEADERS
+    headers: HEADERS,
   });
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
@@ -79,14 +79,14 @@ const HEADERS = {
     login_password: options["<password>"],
     login_redirect: "/",
     login_username: options["<username>"],
-    login: ""
+    login: "",
   });
 
-  console.log(`Logging in to Foundry website as ${options["<username>"]}`);
+  console.log(`Logging in to Foundry website as ${options["<username>"]}.`);
   response = await fetch(LOGIN_URL, {
     body: form_params,
     method: "POST",
-    headers: HEADERS
+    headers: HEADERS,
   });
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
@@ -94,7 +94,7 @@ const HEADERS = {
 
   // Check to see if we have a sessionid (logged in)
   cookies = cookieJar.getCookiesSync(BASE_URL);
-  session_cookie = cookies.find(cookie => {
+  session_cookie = cookies.find((cookie) => {
     return cookie.key == "sessionid";
   });
   if (typeof session_cookie == "undefined") {
@@ -108,7 +108,7 @@ const HEADERS = {
   console.log("Fetching license.");
   response = await fetch(LICENSE_URL, {
     method: "GET",
-    headers: HEADERS
+    headers: HEADERS,
   });
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
@@ -124,7 +124,7 @@ const HEADERS = {
     fs.writeFile(
       LICENSE_PATH,
       JSON.stringify({ license: license_no_dashes }, null, 2),
-      function(err) {
+      function (err) {
         if (err) {
           console.warn(`License could not be saved: ${err}`);
         }
@@ -138,13 +138,11 @@ const HEADERS = {
   console.log(`Downloading release ${foundry_version} to ${RELEASE_PATH}`);
   response = await fetch(RELEASE_URL, {
     method: "GET",
-    headers: HEADERS
+    headers: HEADERS,
   });
 
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
   streamPipeline(response.body, fs.createWriteStream(RELEASE_PATH));
-
-  console.debug("Got Here!");
 })();
