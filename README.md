@@ -48,7 +48,7 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
    your credentials as values to the environment variables:
 
     ```yaml
-    version: "3.7"
+    version: "3.8"
 
     volumes:
       data:
