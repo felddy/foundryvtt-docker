@@ -34,10 +34,12 @@ fi
 
 # Install FoundryVTT if needed
 if [ $install_required = true ]; then
+  set +o nounset
   if [ -z "${FOUNDRY_USERNAME}" ] || [ -z "${FOUNDRY_PASSWORD}" ]; then
     echo "FOUNDRY_USERNAME and FOUNDRY_PASSWORD must be set to install FoundryVTT."
     exit 1
   fi
+  set -o nounset
   echo "Installing FoundryVTT ${FOUNDRY_VERSION}"
   ./download_release.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
   unzip -q "foundryvtt-${FOUNDRY_VERSION}.zip" 'resources/*'
