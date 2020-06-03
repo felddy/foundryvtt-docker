@@ -2,8 +2,8 @@
 name: release
 
 on:
-  # release:
-  #   types: [prereleased, released]
+  release:
+    types: [prereleased, released]
 
 env:
   IMAGE_NAME: felddy/foundryvtt
