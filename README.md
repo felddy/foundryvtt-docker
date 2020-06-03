@@ -7,10 +7,13 @@
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/felddy/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/felddy/foundryvtt-docker/context:python)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/felddy/foundryvtt-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/felddy/foundryvtt-docker/context:javascript)
 
+[![Docker Pulls](https://img.shields.io/docker/pulls/felddy/foundryvtt)](https://hub.docker.com/r/felddy/foundryvtt)
+[![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/felddy/foundryvtt)](https://hub.docker.com/r/felddy/foundryvtt)
+
 You can get a [Foundry Virtual Tabletop](https://foundryvtt.com) instance up and
 running in minutes using this container.  This Docker container is designed to
 be secure, reliable, compact, and simple to use.  It only requires that you
-provide the credentials needed to download a Foundry release.
+provide the credentials needed to download a Foundry Virtual Tabletop release.
 
 ## Prerequisites ##
 
