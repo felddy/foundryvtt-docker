@@ -121,7 +121,6 @@ upgrade to a new version of Foundry, update your image to the latest version.
 
 | Name  | Purpose | Default |
 |-------|---------|---------|
-| TIMEZONE     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | UTC |
 | FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared. |  |
 | FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage | null |
 | FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
@@ -137,6 +136,7 @@ upgrade to a new version of Foundry, update your image to the latest version.
 | FOUNDRY_UPNP | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | false |
 | FOUNDRY_VERSION | Version of FoundryVTT to install. | 0.6.1 |
 | FOUNDRY_WORLD | The world startup at system start. | null |
+| TIMEZONE     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | UTC |
 
 ## Building from source ##
 
