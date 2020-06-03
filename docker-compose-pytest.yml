@@ -1,5 +1,5 @@
 ---
-version: "3.7"
+version: "3.8"
 
 volumes:
   data:
@@ -11,12 +11,14 @@ services:
     image: felddy/foundryvtt:0.6.1
     hostname: felddy_foundryvtt
     init: true
-    restart: "always"
+    restart: "unless-stopped"
     volumes:
       - type: bind
         source: ./data
         target: /data
     environment:
+      - FOUNDRY_PASSWORD # pass through
+      - FOUNDRY_USERNAME # pass through
       - TIMEZONE=US/Eastern
       - FOUNDRY_ADMIN_KEY=atropos
       - FOUNDRY_AWS_CONFIG=

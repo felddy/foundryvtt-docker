@@ -6,17 +6,60 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
-if [ "$(id -u)" = 0 ]; then
-  # set timezone using environment
-  ln -snf /usr/share/zoneinfo/"${TIMEZONE:-UTC}" /etc/localtime
-  # drop privileges and restart this script as foundry user
-  su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" "$(readlink -f "$0")" "$@"
+
+image_version=$(cat image_version.txt)
+
+if [ "$1" = "--version" ]; then
+  echo "${image_version}"
   exit 0
 fi
 
-if [ "$1" = "--version" ]; then
-  cat version.txt
-  exit 0
+echo "Starting felddy/foundryvtt container v${image_version}"
+
+# Check to see if an install is required
+install_required=false
+if [ -f "resources/app/package.json" ]; then
+  installed_version=$(jq --raw-output .version resources/app/package.json)
+  echo "Foundry Virtual Tabletop ${installed_version} is installed."
+  if [ "${FOUNDRY_VERSION}" != "${installed_version}" ]; then
+    echo "Requested version (${FOUNDRY_VERSION}) from FOUNDRY_VERSION differs."
+    echo "Uninstalling version ${FOUNDRY_VERSION}."
+    rm -r resources
+    install_required=true
+  fi
+else
+  echo "No Foundry Virtual Tabletop installation detected."
+  install_required=true
+fi
+
+# Install FoundryVTT if needed
+if [ $install_required = true ]; then
+  set +o nounset
+  if [ -z "${FOUNDRY_USERNAME}" ] || [ -z "${FOUNDRY_PASSWORD}" ]; then
+    echo "FOUNDRY_USERNAME and FOUNDRY_PASSWORD must be set to install FoundryVTT."
+    exit 1
+  fi
+  set -o nounset
+  echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
+  ./download_release.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
+  unzip -q "foundryvtt-${FOUNDRY_VERSION}.zip" 'resources/*'
+  rm "foundryvtt-${FOUNDRY_VERSION}.zip"
+  if [ -f license.json ] && [ ! -f /data/Config/license.json ]; then
+    mkdir -p /data/Config
+    mv license.json /data/Config
+    chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
+  fi
+fi
+
+if [ "$(id -u)" = 0 ]; then
+  # set timezone using environment
+  ln -snf /usr/share/zoneinfo/"${TIMEZONE:-UTC}" /etc/localtime
+  if [ "${FOUNDRY_UID:-foundry}" != 0 ]; then
+    # drop privileges and restart this script as foundry user
+    echo "Switching uid:gid to ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}"
+    su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" "$(readlink -f "$0")" "$@"
+    exit 0
+  fi
 fi
 
 if [ "$1" = "--shell" ]; then
@@ -57,6 +100,7 @@ set -o nounset
 
 # Update configuration file
 mkdir -p /data/Config >& /dev/null
+echo "Generating options.json file."
 cat <<EOF > /data/Config/options.json
 {
   "awsConfig": ${FOUNDRY_AWS_CONFIG:-null},
@@ -76,11 +120,17 @@ cat <<EOF > /data/Config/options.json
 }
 EOF
 
-# Save admin password if it is set
+# Save Admin Access Key if it is set
+set +o nounset
 if [ -n "${FOUNDRY_ADMIN_KEY}" ]; then
+  echo "Setting 'Admin Access Key'."
   echo "${FOUNDRY_ADMIN_KEY}" | ./set_password.js > /data/Config/admin.txt
 else
+  echo "Warning: No 'Admin Access Key' has been configured."
   rm /data/Config/admin.txt >& /dev/null || true
 fi
+set -o nounset
+
+echo "Starting Foundry Virtual Tabletop."
 
 node "$@"

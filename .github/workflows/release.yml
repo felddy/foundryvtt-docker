@@ -2,13 +2,16 @@
 name: release
 
 on:
-  # release:
-  #   types: [prereleased, released]
+  release:
+    types: [prereleased, released]
 
 env:
   IMAGE_NAME: felddy/foundryvtt
-  DOCKER_PW: ${{ secrets.DOCKER_PW }}
-  DOCKER_USER: ${{ secrets.DOCKER_USER }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  PLATFORMS: "linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,\
+    linux/arm64,linux/ppc64le,linux/s390x"
+  RUN_TMATE: ${{ secrets.RUN_TMATE }}
 
 jobs:
   release:
@@ -22,32 +25,35 @@ jobs:
         id: get_ver
         run: |
           echo "##[set-output name=version;]$(./bump_version.sh show)"
-      - name: Build Docker image
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          version: latest
+      - name: Log into docker registry
+        run: docker login
+             --username "$DOCKER_USERNAME"
+             --password "$DOCKER_PASSWORD"
+      - name: Create cross-platform support Dockerfile-x
+        run: ./buildx-dockerfile.sh
+      - name: Build Docker images, tag, and publish
         run: |
-          docker build \
-            --tag "$IMAGE_NAME" \
+          IFS='.' read -r v_major v_minor v_patch \
+            <<< "${{ steps.get_ver.outputs.version }}"
+          docker buildx build \
+            --file Dockerfile-x \
+            --platform $PLATFORMS \
+            --output "type=image,push=true" \
+            --tag "$IMAGE_NAME:latest" \
+            --tag "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}" \
+            --tag "${IMAGE_NAME}:${v_major}.${v_minor}" \
+            --tag "${IMAGE_NAME}:${v_major}" \
             --build-arg GIT_COMMIT=$(git log -1 --format=%H) \
             --build-arg GIT_REMOTE=$(git remote get-url origin) \
             --build-arg VERSION=${{ steps.get_ver.outputs.version }} \
             .
-      - name: Tag Docker image
-        run: |
-          IFS='.' read -r -a version_array \
-            <<< "${{ steps.get_ver.outputs.version }}"
-          docker login --username "$DOCKER_USER" --password "$DOCKER_PW"
-          docker tag "$IMAGE_NAME" "${IMAGE_NAME}:latest"
-          docker tag "$IMAGE_NAME" \
-            "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}"
-          docker tag "$IMAGE_NAME" \
-            "${IMAGE_NAME}:${version_array[0]}.${version_array[1]}"
-          docker tag "$IMAGE_NAME" "${IMAGE_NAME}:${version_array[0]}"
-      - name: Publish image to Docker Hub
-        run: |
-          IFS='.' read -r -a version_array \
-            <<< "${{ steps.get_ver.outputs.version }}"
-          docker push "${IMAGE_NAME}:latest"
-          docker push "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}"
-          docker push "${IMAGE_NAME}:${version_array[0]}.${version_array[1]}"
-          docker push "${IMAGE_NAME}:${version_array[0]}"
       - name: Publish README.md to Docker Hub
         run: ./push_readme.sh
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v1
+        if: env.RUN_TMATE

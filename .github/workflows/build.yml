@@ -66,8 +66,6 @@ jobs:
             --build-arg GIT_COMMIT=$(git log -1 --format=%H) \
             --build-arg GIT_REMOTE=$(git remote get-url origin) \
             --build-arg VERSION="$version" \
-            --build-arg USERNAME="$FOUNDRY_USERNAME" \
-            --build-arg PASSWORD="$FOUNDRY_PASSWORD" \
             .
       - name: Save docker image artifact
         run: |
@@ -112,7 +110,7 @@ jobs:
       - name: Run tests
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: pytest
+        run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
         uses: actions/upload-artifact@v1
