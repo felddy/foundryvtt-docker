@@ -21,9 +21,11 @@ def test_container_count(dockerc):
     ), "Wrong number of containers were started."
 
 
+@pytest.mark.slow
 def test_wait_for_ready(main_container):
     """Wait for container to be ready."""
-    TIMEOUT = 10
+    # This could take a while, as we download the application.
+    TIMEOUT = 180
     for i in range(TIMEOUT):
         logs = main_container.logs().decode("utf-8")
         if READY_MESSAGE in logs:
