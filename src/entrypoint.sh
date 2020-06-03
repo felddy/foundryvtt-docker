@@ -76,11 +76,17 @@ cat <<EOF > /data/Config/options.json
 }
 EOF
 
-# Save admin password if it is set
+# Save Admin Access Key if it is set
+set +o nounset
 if [ -n "${FOUNDRY_ADMIN_KEY}" ]; then
+  echo "Setting 'Admin Access Key'."
   echo "${FOUNDRY_ADMIN_KEY}" | ./set_password.js > /data/Config/admin.txt
 else
+  echo "Warning: No 'Admin Access Key' has been configured."
   rm /data/Config/admin.txt >& /dev/null || true
 fi
+set -o nounset
+
+echo "Starting FoundryVTT"
 
 node "$@"
