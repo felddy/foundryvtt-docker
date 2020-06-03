@@ -1,33 +1,12 @@
+ARG FOUNDRY_VERSION=0.6.1
 ARG GIT_COMMIT=unspecified
 ARG GIT_REMOTE=unspecified
 ARG VERSION
-ARG HOTFIX_VERSION
-ARG USERNAME
-ARG PASSWORD
 
-FROM python:3-slim as stage-1
-ARG HOTFIX_VERSION
-ARG PASSWORD
-ARG USERNAME
-ARG VERSION
-ENV ARCHIVE="foundryvtt-${VERSION}.zip"
-ENV HOTFIX_ARCHIVE="FoundryVTT-${HOTFIX_VERSION}-Hotfix.zip"
+FROM node:12-alpine
 
-WORKDIR /root
-RUN apt-get update && apt-get install -y unzip
-COPY src/_version.py src/download_release.py src/
-COPY README.md requirements.txt setup.py ./
-RUN pip install --requirement requirements.txt
-RUN download_release "${USERNAME}" "${PASSWORD}" "${VERSION}"
-RUN mkdir dist
-RUN unzip -d dist ${ARCHIVE} 'resources/*'
-RUN if [ -n "${HOTFIX_VERSION}" ]; then \
-      unzip -o -d dist/resources/app ${HOTFIX_ARCHIVE} ; \
-    fi
-
-# Final Stage
-FROM node:12-alpine as stage-2
-
+ARG FOUNDRY_UID=421
+ARG FOUNDRY_VERSION
 ARG GIT_COMMIT
 ARG GIT_REMOTE
 ARG TARGETPLATFORM
@@ -41,19 +20,18 @@ LABEL org.opencontainers.image.title="FoundryVTT"
 LABEL org.opencontainers.image.vendor="Geekpad"
 LABEL org.opencontainers.image.version=${VERSION}
 
-ARG FOUNDRY_UID=421
 ENV FOUNDRY_HOME="/home/foundry"
+ENV FOUNDRY_VERSION=${FOUNDRY_VERSION}
 
 RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   && adduser --system --uid ${FOUNDRY_UID} --ingroup foundry foundry
 
-RUN apk --update --no-cache add su-exec
+RUN apk --update --no-cache add jq su-exec
 
 WORKDIR ${FOUNDRY_HOME}
 
-COPY --from=stage-1 /root/dist/ .
-COPY src/entrypoint.sh src/set_password.js ./
-RUN echo ${VERSION} > version.txt
+COPY src/entrypoint.sh src/package.json src/set_password.js src/download_release.js ./
+RUN npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]
 
