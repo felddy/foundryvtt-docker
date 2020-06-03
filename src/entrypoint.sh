@@ -6,16 +6,53 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
+
+image_version=$(cat image_version.txt)
+
+if [ "$1" = "--version" ]; then
+  echo "${image_version}"
+  exit 0
+fi
+
+echo "Starting felddy/foundryvtt container v${image_version}"
+
+# Check to see if an install is required
+install_required=false
+if [ -f "resources/app/package.json" ]; then
+  installed_version=$(jq --raw-output .version resources/app/package.json)
+  echo "Foundry ${installed_version} is installed."
+  if [ "${FOUNDRY_VERSION}" != "${installed_version}" ]; then
+    echo "Requested version (${FOUNDRY_VERSION}) from FOUNDRY_VERSION differs."
+    echo "Uninstalling version ${FOUNDRY_VERSION}."
+    rm -r resources
+    install_required=true
+  fi
+else
+  echo "No Foundry installation detected."
+  install_required=true
+fi
+
+# Install FoundryVTT if needed
+if [ $install_required = true ]; then
+  if [ -z "${FOUNDRY_USERNAME}" ] || [ -z "${FOUNDRY_PASSWORD}" ]; then
+    echo "FOUNDRY_USERNAME and FOUNDRY_PASSWORD must be set to install FoundryVTT."
+    exit 1
+  fi
+  echo "Installing FoundryVTT ${FOUNDRY_VERSION}"
+  ./download_release.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
+  unzip -q "foundryvtt-${FOUNDRY_VERSION}.zip" 'resources/*'
+  rm "foundryvtt-${FOUNDRY_VERSION}.zip"
+  if [ -f license.json ] && [ ! -f /data/Config/license.json ]; then
+    mkdir -p /data/Config
+    mv license.json /data/Config
+  fi
+fi
+
 if [ "$(id -u)" = 0 ]; then
   # set timezone using environment
   ln -snf /usr/share/zoneinfo/"${TIMEZONE:-UTC}" /etc/localtime
   # drop privileges and restart this script as foundry user
   su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" "$(readlink -f "$0")" "$@"
-  exit 0
-fi
-
-if [ "$1" = "--version" ]; then
-  cat version.txt
   exit 0
 fi
 
