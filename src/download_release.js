@@ -20,7 +20,7 @@ Options:
 // Argument parsing
 const { docopt } = require("docopt");
 const options = docopt(doc, { version: "0.0.1" });
-const username = options["<username>"];
+const username = options["<username>"].toLowerCase();
 const password = options["<password>"];
 const foundry_version = options["<version>"];
 
