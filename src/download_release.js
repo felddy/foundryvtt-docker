@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
 
 const doc = `
 Download a Foundry Virtual Tabletop release and license key using valid credentials.
@@ -14,19 +13,19 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  download_release.js <username> <password> <version>
+  download_release.js [--log-level=LEVEL] <username> <password> <version>
   download_release.js (-h | --help)
 
 Options:
   -h --help              Show this message.
+  --log-level=LEVEL      If specified, then the log level will be set to
+                         the specified value.  Valid values are "trace", "debug", "info",
+                         "warn", "error", and "fatal". [default: info]
 `;
 
 // Argument parsing
 const { docopt } = require("docopt");
 const options = docopt(doc, { version: "0.0.1" });
-const username = options["<username>"].toLowerCase();
-const password = options["<password>"];
-const foundry_version = options["<version>"];
 
 // Imports
 const _nodeFetch = require("node-fetch");
@@ -36,16 +35,15 @@ const cheerio = require("cheerio");
 const cookieJar = new _tough.CookieJar();
 const fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
 const fs = require("fs");
+const pino = require("pino");
 const streamPipeline = _util.promisify(require("stream").pipeline);
+
+// Setup logger global, configure in main()
+let logger = null;
 
 // Constants
 const BASE_URL = "https://foundryvtt.com";
-const LICENSE_PATH = "license.json";
 const LOGIN_URL = BASE_URL + "/auth/login/";
-const PRIVACY_POLICY_COOKIE =
-  "privacy-policy-accepted=accepted; path=/; domain=foundryvtt.com";
-const RELEASE_PATH = `foundryvtt-${foundry_version}.zip`;
-const RELEASE_URL = `${BASE_URL}/releases/download?version=${foundry_version}&platform=linux`;
 
 const HEADERS = {
   DNT: "1",
@@ -54,30 +52,42 @@ const HEADERS = {
   "User-Agent": "Mozilla/5.0",
 };
 
-(async () => {
-  // Setup cookieJar
-  await cookieJar.setCookie(PRIVACY_POLICY_COOKIE, BASE_URL);
-
+/**
+ * fetchTokens - Fetch the CSRF form and cookie tokens.
+ *
+ * @return {string}  CSRF middleware token extracted from the login form.
+ */
+async function fetchTokens() {
   // Make a request to the main site to get our two CSRF tokens
-  console.log("Requesting FoundryVTT homepage.");
-  var response = await fetch(BASE_URL, {
+  logger.info(`Requesting CSRF tokens from ${BASE_URL}`);
+  const response = await fetch(BASE_URL, {
     method: "GET",
     headers: HEADERS,
   });
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
-  var body = await response.text();
-  var $ = await cheerio.load(body);
+  const body = await response.text();
+  const $ = await cheerio.load(body);
 
-  console.log("Extracting input token.");
   const csrfmiddlewaretoken = $('input[name ="csrfmiddlewaretoken"]').val();
   if (typeof csrfmiddlewaretoken == "undefined") {
-    console.error("Could not find the CSRF middleware token.");
-    return -1;
+    logger.fatal("Could not find the CSRF middleware token.");
+    throw new Error("Could not find the CSRF middleware token.");
   }
+  return csrfmiddlewaretoken;
+}
 
-  var form_params = new URLSearchParams({
+/**
+ * login - Login to site, and get a session cookie, and actual username.
+ *
+ * @param  {string} csrfmiddlewaretoken CSRF middleware token extracted from form.
+ * @param  {string} username            Username or e-mail address of user.
+ * @param  {string} password            Password associated with the username.
+ * @return {string}                     The actual username of the account.
+ */
+async function login(csrfmiddlewaretoken, username, password) {
+  const form_params = new URLSearchParams({
     csrfmiddlewaretoken: csrfmiddlewaretoken,
     login_password: password,
     login_redirect: "/",
@@ -85,8 +95,8 @@ const HEADERS = {
     login: "",
   });
 
-  console.log(`Logging in to Foundry website as ${username}.`);
-  response = await fetch(LOGIN_URL, {
+  logger.info(`Logging in as: ${username}`);
+  const response = await fetch(LOGIN_URL, {
     body: form_params,
     method: "POST",
     headers: HEADERS,
@@ -94,8 +104,8 @@ const HEADERS = {
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
-  var body = await response.text();
-  var $ = await cheerio.load(body);
+  const body = await response.text();
+  const $ = await cheerio.load(body);
 
   // Check to see if we have a sessionid (logged in)
   const cookies = cookieJar.getCookiesSync(BASE_URL);
@@ -103,55 +113,125 @@ const HEADERS = {
     return cookie.key == "sessionid";
   });
   if (typeof session_cookie == "undefined") {
-    console.error(`Unable to log in as ${username}, verify your credentials..`);
-    return -1;
+    logger.fatal(`Unable to log in as ${username}, verify your credentials...`);
+    throw new Error(
+      `Unable to log in as ${username}, verify your credentials...`
+    );
   }
 
   // A user may login with an e-mail address.  Resolve it to a username now.
   const loggedInUsername = $("#login-welcome a").attr("title");
-  console.log(`Successfully logged in as ${loggedInUsername}.`);
+  logger.info(`Successfully logged in as: ${loggedInUsername}`);
+  return loggedInUsername;
+}
 
-  console.log("Fetching license.");
-  const LICENSE_URL = `${BASE_URL}/community/${loggedInUsername}/licenses`;
-  response = await fetch(LICENSE_URL, {
+/**
+ * fetchLicense - Fetch a license key for a user.
+ *
+ * @param  {string} username Username (not e-mail address) of license owner.
+ * @return {string}          License key formatted with dashes.
+ */
+async function fetchLicense(username) {
+  logger.info("Fetching license.");
+  const LICENSE_URL = `${BASE_URL}/community/${username}/licenses`;
+  const response = await fetch(LICENSE_URL, {
     method: "GET",
     headers: HEADERS,
   });
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
-  body = await response.text();
-  $ = await cheerio.load(body);
+  const body = await response.text();
+  const $ = await cheerio.load(body);
 
   const license_with_dashes = $("pre.license-key code").text();
-  if (license_with_dashes) {
-    // remove the dashes
-    const license_no_dashes = license_with_dashes.replace(/-/g, "");
-    console.log(`Writing license to ${LICENSE_PATH}`);
-    fs.writeFile(
-      LICENSE_PATH,
-      JSON.stringify({ license: license_no_dashes }, null, 2),
-      function (err) {
-        if (err) {
-          console.warn(`License could not be saved: ${err}`);
-        }
-        console.log("License successfully saved.");
-      }
-    );
-  } else {
-    console.warn("Could not find license.");
-  }
+  return license_with_dashes;
+}
 
-  console.log(`Downloading release ${foundry_version} to ${RELEASE_PATH}`);
-  response = await fetch(RELEASE_URL, {
+/**
+ * saveLicense - Write a license to a json file.
+ *
+ * @param  {string} license  License key.
+ * @param  {string} filename Filesystem path to write.
+ * @return {undefined}
+ */
+async function saveLicense(license, filename) {
+  // remove dashes from license
+  const license_no_dashes = license.replace(/-/g, "");
+  logger.info(`Writing license to: ${filename}`);
+  await fs.writeFile(
+    filename,
+    JSON.stringify({ license: license_no_dashes }, null, 2),
+    function (err) {
+      if (err) {
+        logger.warn(`License could not be saved: ${err}`);
+      } else {
+        logger.info("License successfully saved.");
+      }
+    }
+  );
+}
+
+/**
+ * downloadRelease - Download a FoundryVTT release and save it to a file.
+ *
+ * @param  {string} version Semantic version to download.
+ * @param  {string} path    Filesystem path to write.
+ * @return {undefined}
+ */
+async function downloadRelease(version, path) {
+  logger.info(`Downloading release ${version} to ${path}...`);
+  const release_url = `${BASE_URL}/releases/download?version=${version}&platform=linux`;
+  const response = await fetch(release_url, {
     method: "GET",
     headers: HEADERS,
   });
-
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
-  streamPipeline(response.body, fs.createWriteStream(RELEASE_PATH));
+  await streamPipeline(response.body, fs.createWriteStream(path));
+  logger.info(`Release download complete.`);
+}
+
+/**
+ * main - Parse command line args, setup logging, do work.
+ *
+ * @return {number}  exit code
+ */
+async function main() {
+  // Extract values from CLI options.
+  const username = options["<username>"].toLowerCase();
+  const password = options["<password>"];
+  const foundry_version = options["<version>"];
+  const log_level = options["--log-level"].toLowerCase();
+
+  // Setup logging.
+  logger = pino({
+    level: log_level,
+    prettyPrint: {
+      translateTime: true,
+      ignore: "pid,hostname",
+    },
+  });
+
+  // Get the tokens and cookies we'll need to login.
+  const csrfmiddlewaretoken = await fetchTokens();
+
+  // Login using the credentials, tokens, and cookies.
+  const loggedInUsername = await login(csrfmiddlewaretoken, username, password);
+
+  // Attempt to fetch a license key.
+  const license = await fetchLicense(loggedInUsername);
+  if (license) {
+    await saveLicense(license, "license.json");
+  } else {
+    logger.warn("Could not find license.");
+  }
+
+  // Download the FoundryVTT release.
+  await downloadRelease(foundry_version, `foundryvtt-${foundry_version}.zip`);
 
   return 0;
-})();
+}
+
+return main();

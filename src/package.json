@@ -7,7 +7,9 @@
     "cheerio": "^1.0.0-rc.3",
     "docopt": "^0.6.2",
     "fetch-cookie": "^0.9.1",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "pino": "^6.3.2",
+    "pino-pretty": "^4.0.0"
   },
   "description": "Utilities to help boot a FoundryVTT server.",
   "devDependencies": {},
