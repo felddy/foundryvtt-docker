@@ -118,7 +118,7 @@ upgrade to a new version of Foundry, update your image to the latest version.
 
 | Name             | Purpose  |
 |------------------|----------|
-| FOUNDRY_USERNAME | Account username for foundryvtt.com.  Required for downloading an application release. |
+| FOUNDRY_USERNAME | Account username or email address for foundryvtt.com.  Required for downloading an application release. |
 | FOUNDRY_PASSWORD | Account password for foundryvtt.com.  Required for downloading an application release. |
 
 ### Optional ###
