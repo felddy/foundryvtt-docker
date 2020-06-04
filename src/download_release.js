@@ -37,7 +37,6 @@ const streamPipeline = _util.promisify(require("stream").pipeline);
 // Constants
 const BASE_URL = "https://foundryvtt.com";
 const LICENSE_PATH = "license.json";
-const LICENSE_URL = `${BASE_URL}/community/${username}/licenses`;
 const LOGIN_URL = BASE_URL + "/auth/login/";
 const PRIVACY_POLICY_COOKIE =
   "privacy-policy-accepted=accepted; path=/; domain=foundryvtt.com";
@@ -91,6 +90,8 @@ const HEADERS = {
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
+  var body = await response.text();
+  var $ = await cheerio.load(body);
 
   // Check to see if we have a sessionid (logged in)
   const cookies = cookieJar.getCookiesSync(BASE_URL);
@@ -101,9 +102,13 @@ const HEADERS = {
     console.error(`Unable to log in as ${username}, verify your credentials..`);
     return -1;
   }
-  console.log(`Successfully logged in as ${username}.`);
+
+  // A user may login with an e-mail address.  Resolve it to a username now.
+  const loggedInUsername = $("#login-welcome a").attr("title");
+  console.log(`Successfully logged in as ${loggedInUsername}.`);
 
   console.log("Fetching license.");
+  const LICENSE_URL = `${BASE_URL}/community/${loggedInUsername}/licenses`;
   response = await fetch(LICENSE_URL, {
     method: "GET",
     headers: HEADERS,
