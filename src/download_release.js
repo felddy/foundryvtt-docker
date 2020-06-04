@@ -19,8 +19,8 @@ Usage:
 Options:
   -h --help              Show this message.
   --log-level=LEVEL      If specified, then the log level will be set to
-                         the specified value.  Valid values are "debug", "info",
-                         "warning", "error", and "critical". [default: info]
+                         the specified value.  Valid values are "trace", "debug", "info",
+                         "warn", "error", and "fatal". [default: info]
 `;
 
 // Argument parsing
@@ -72,7 +72,7 @@ async function fetchTokens() {
 
   const csrfmiddlewaretoken = $('input[name ="csrfmiddlewaretoken"]').val();
   if (typeof csrfmiddlewaretoken == "undefined") {
-    logger.error("Could not find the CSRF middleware token.");
+    logger.fatal("Could not find the CSRF middleware token.");
     throw new Error("Could not find the CSRF middleware token.");
   }
   return csrfmiddlewaretoken;
@@ -113,7 +113,7 @@ async function login(csrfmiddlewaretoken, username, password) {
     return cookie.key == "sessionid";
   });
   if (typeof session_cookie == "undefined") {
-    logger.error(`Unable to log in as ${username}, verify your credentials...`);
+    logger.fatal(`Unable to log in as ${username}, verify your credentials...`);
     throw new Error(
       `Unable to log in as ${username}, verify your credentials...`
     );
