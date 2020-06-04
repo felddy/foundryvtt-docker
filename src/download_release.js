@@ -38,14 +38,12 @@ const fs = require("fs");
 const pino = require("pino");
 const streamPipeline = _util.promisify(require("stream").pipeline);
 
-// Setup Logging
+// Setup logger global, configure in main()
 let logger = null;
 
 // Constants
 const BASE_URL = "https://foundryvtt.com";
 const LOGIN_URL = BASE_URL + "/auth/login/";
-const PRIVACY_POLICY_COOKIE =
-  "privacy-policy-accepted=accepted; path=/; domain=foundryvtt.com";
 
 const HEADERS = {
   DNT: "1",
@@ -60,9 +58,6 @@ const HEADERS = {
  * @return {type}  CSRF middleware token extracted from the login form.
  */
 async function fetchTokens() {
-  // Setup cookieJar
-  await cookieJar.setCookie(PRIVACY_POLICY_COOKIE, BASE_URL);
-
   // Make a request to the main site to get our two CSRF tokens
   logger.info(`Requesting CSRF tokens from ${BASE_URL}`);
   const response = await fetch(BASE_URL, {
