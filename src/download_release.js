@@ -2,7 +2,11 @@
 /* eslint-disable no-console */
 
 const doc = `
-Download the foundry release using valid credentials.
+Download a Foundry Virtual Tabletop release and license key using valid credentials.
+This utility will attempt to create two files:
+
+    foundryvtt-x.y.z.zip - An archive containing the release.
+    license.json - A json file containing the license key.
 
 EXIT STATUS
     This utility exits with one of the following values:
