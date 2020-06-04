@@ -96,7 +96,7 @@ async function login(csrfmiddlewaretoken, username, password) {
   });
 
   logger.info(`Logging in as: ${username}`);
-  response = await fetch(LOGIN_URL, {
+  const response = await fetch(LOGIN_URL, {
     body: form_params,
     method: "POST",
     headers: HEADERS,
@@ -134,15 +134,15 @@ async function login(csrfmiddlewaretoken, username, password) {
 async function fetchLicense(username) {
   logger.info("Fetching license.");
   const LICENSE_URL = `${BASE_URL}/community/${username}/licenses`;
-  response = await fetch(LICENSE_URL, {
+  const response = await fetch(LICENSE_URL, {
     method: "GET",
     headers: HEADERS,
   });
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
-  body = await response.text();
-  $ = await cheerio.load(body);
+  const body = await response.text();
+  const $ = await cheerio.load(body);
 
   const license_with_dashes = $("pre.license-key code").text();
   return license_with_dashes;
@@ -182,7 +182,7 @@ async function saveLicense(license, filename) {
 async function downloadRelease(version, path) {
   logger.info(`Downloading release ${version} to ${path}...`);
   const release_url = `${BASE_URL}/releases/download?version=${version}&platform=linux`;
-  response = await fetch(release_url, {
+  const response = await fetch(release_url, {
     method: "GET",
     headers: HEADERS,
   });
