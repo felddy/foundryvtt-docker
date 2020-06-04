@@ -119,9 +119,9 @@ upgrade to a new version of Foundry, update your image to the latest version.
 
 1. Pull the latest image:
 
-  ```console
-  docker pull felddy/foundryvtt:latest
-  ```
+    ```console
+    docker pull felddy/foundryvtt:latest
+    ```
 
 1. Follow the previous instructions for [running](#running) the container above.
 
