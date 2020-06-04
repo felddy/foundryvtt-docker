@@ -55,7 +55,7 @@ const HEADERS = {
 /**
  * fetchTokens - Fetch the CSRF form and cookie tokens.
  *
- * @return {type}  CSRF middleware token extracted from the login form.
+ * @return {string}  CSRF middleware token extracted from the login form.
  */
 async function fetchTokens() {
   // Make a request to the main site to get our two CSRF tokens
@@ -79,7 +79,7 @@ async function fetchTokens() {
 }
 
 /**
- * login - description
+ * login - Login to site, and get a session cookie, and actual username.
  *
  * @param  {string} csrfmiddlewaretoken CSRF middleware token extracted from form.
  * @param  {string} username            Username or e-mail address of user.
