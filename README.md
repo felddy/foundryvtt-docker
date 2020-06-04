@@ -36,7 +36,7 @@ docker run \
   --env FOUNDRT_PASSWORD='<your_password>' \
   --publish 30000:30000/tcp \
   --volume /data:<your_data_dir> \
-  felddy/foundryvtt:0.6.1
+  felddy/foundryvtt:latest
 ```
 
 ### Using a Docker composition ###
@@ -59,10 +59,10 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
 
     services:
       foundry:
-        image: felddy/foundryvtt:0.6.1
+        image: felddy/foundryvtt:latest
         hostname: my_foundry_host
         init: true
-        restart: "always"
+        restart: "unless-stopped"
         volumes:
           - type: bind
             source: <your_data_dir>
@@ -95,14 +95,33 @@ If all goes well you should be prompted with the license agreement, and then
 The Foundry "Update Software" tab is disabled by default in this container. To
 upgrade to a new version of Foundry, update your image to the latest version.
 
+### Docker-compose ###
+
+1. Pull the latest image from Docker hub:
+
+    ```console
+    docker-compose pull
+    ```
+
+1. Recreate the running container:
+
+    ```console
+    docker-compose up --detach
+    ```
+
+### Docker ###
+
 1. Stop the running container:
 
     ```console
-    docker-compose down
+    docker stop <container_id>
     ```
 
-1. Modify your `docker-compose.yml` file or `Docker` command to use new image
-   tag, or `latest`.
+1. Pull the latest image:
+
+  ```console
+  docker pull felddy/foundryvtt:latest
+  ```
 
 1. Follow the previous instructions for [running](#running) the container above.
 
