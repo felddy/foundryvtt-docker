@@ -148,4 +148,6 @@ const HEADERS = {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
   streamPipeline(response.body, fs.createWriteStream(RELEASE_PATH));
+
+  return 0;
 })();
