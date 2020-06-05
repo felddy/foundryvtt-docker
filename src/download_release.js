@@ -122,7 +122,9 @@ async function login(csrfmiddlewaretoken, username, password) {
   // A user may login with an e-mail address.  Resolve it to a username now.
   const loggedInUsername = $("#login-welcome a").attr("title");
   logger.info(`Successfully logged in as: ${loggedInUsername}`);
-  return loggedInUsername;
+
+  // The site preserves case, but this will break our use in the LICENSE_URL
+  return loggedInUsername.toLowerCase();
 }
 
 /**
