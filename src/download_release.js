@@ -60,6 +60,7 @@ const HEADERS = {
 async function fetchTokens() {
   // Make a request to the main site to get our two CSRF tokens
   logger.info(`Requesting CSRF tokens from ${BASE_URL}`);
+  logger.debug(`Fetching: ${BASE_URL}`);
   const response = await fetch(BASE_URL, {
     method: "GET",
     headers: HEADERS,
@@ -96,6 +97,7 @@ async function login(csrfmiddlewaretoken, username, password) {
   });
 
   logger.info(`Logging in as: ${username}`);
+  logger.debug(`Fetching: ${LOGIN_URL}`);
   const response = await fetch(LOGIN_URL, {
     body: form_params,
     method: "POST",
@@ -122,7 +124,9 @@ async function login(csrfmiddlewaretoken, username, password) {
   // A user may login with an e-mail address.  Resolve it to a username now.
   const loggedInUsername = $("#login-welcome a").attr("title");
   logger.info(`Successfully logged in as: ${loggedInUsername}`);
-  return loggedInUsername;
+
+  // The site preserves case, but this will break our use in the LICENSE_URL
+  return loggedInUsername.toLowerCase();
 }
 
 /**
@@ -134,6 +138,7 @@ async function login(csrfmiddlewaretoken, username, password) {
 async function fetchLicense(username) {
   logger.info("Fetching license.");
   const LICENSE_URL = `${BASE_URL}/community/${username}/licenses`;
+  logger.debug(`Fetching: ${LICENSE_URL}`);
   const response = await fetch(LICENSE_URL, {
     method: "GET",
     headers: HEADERS,
@@ -182,6 +187,7 @@ async function saveLicense(license, filename) {
 async function downloadRelease(version, path) {
   logger.info(`Downloading release ${version} to ${path}...`);
   const release_url = `${BASE_URL}/releases/download?version=${version}&platform=linux`;
+  logger.debug(`Fetching: ${release_url}`);
   const response = await fetch(release_url, {
     method: "GET",
     headers: HEADERS,
