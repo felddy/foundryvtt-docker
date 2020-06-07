@@ -44,6 +44,7 @@ let logger = null;
 // Constants
 const BASE_URL = "https://foundryvtt.com";
 const LOGIN_URL = BASE_URL + "/auth/login/";
+const USERNAME_RE = /\/community\/(?<username>.+)/;
 
 const HEADERS = {
   DNT: "1",
@@ -122,7 +123,10 @@ async function login(csrfmiddlewaretoken, username, password) {
   }
 
   // A user may login with an e-mail address.  Resolve it to a username now.
-  const loggedInUsername = $("#login-welcome a").attr("title");
+  const communityURL = $("#login-welcome a").attr("href");
+  logger.debug(`Community URL: ${communityURL}`);
+  const match = communityURL.match(USERNAME_RE);
+  const loggedInUsername = match.groups.username;
   logger.info(`Successfully logged in as: ${loggedInUsername}`);
 
   // The site preserves case, but this will break our use in the LICENSE_URL
