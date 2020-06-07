@@ -255,8 +255,20 @@ server {
 
 ## Debugging ##
 
-There are a few helper arguments that can be used to diagnose container issues
-in your environment.
+Here are a couple of options that can help if the container isn't working as it
+should.
+
+Making the logging more verbose will provide more information about what is
+going on during container startup.  When reporting an issue, verbose output is
+always more helpful.  Simply set the `CONTAINER_VERBOSE` environment variable to
+`true` to generate more detailed logging.
+
+| Name  | Purpose | Default |
+|-------|---------|---------|
+| CONTAINER_VERBOSE | Set to `true` to enable verbose logging for the container utility scripts. | |
+
+To drop into a shell after release installation but before it is started, you
+can pass the `--shell` option to then entrypoint:
 
 | Purpose | Command |
 |---------|---------|
