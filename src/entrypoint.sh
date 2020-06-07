@@ -39,9 +39,13 @@ if [ $install_required = true ]; then
     echo "FOUNDRY_USERNAME and FOUNDRY_PASSWORD must be set to install FoundryVTT."
     exit 1
   fi
-  set -o nounset
   echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
-  ./download_release.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
+  if [[ ${CONTAINER_VERBOSE} ]]; then
+    ./download_release.js --log-level=trace "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
+  else
+    ./download_release.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
+  fi
+  set -o nounset
   unzip -q "foundryvtt-${FOUNDRY_VERSION}.zip" 'resources/*'
   rm "foundryvtt-${FOUNDRY_VERSION}.zip"
   if [ -f license.json ] && [ ! -f /data/Config/license.json ]; then
