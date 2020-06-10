@@ -33,7 +33,7 @@ container can install and license your server.
 ```console
 docker run \
   --env FOUNDRY_USERNAME='<your_username>' \
-  --env FOUNDRT_PASSWORD='<your_password>' \
+  --env FOUNDRY_PASSWORD='<your_password>' \
   --publish 30000:30000/tcp \
   --volume /data:<your_data_dir> \
   felddy/foundryvtt:latest
