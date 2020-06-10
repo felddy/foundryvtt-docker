@@ -12,11 +12,12 @@ ARG GIT_REMOTE
 ARG TARGETPLATFORM
 ARG VERSION
 
+LABEL com.foundryvtt.version=${FOUNDRY_VERSION}
 LABEL org.opencontainers.image.authors="markf+github@geekpad.com"
 LABEL org.opencontainers.image.licenses="CC0-1.0"
 LABEL org.opencontainers.image.revision=${GIT_COMMIT}
 LABEL org.opencontainers.image.source=${GIT_REMOTE}
-LABEL org.opencontainers.image.title="FoundryVTT"
+LABEL org.opencontainers.image.title="Foundry Virtual Tabletop"
 LABEL org.opencontainers.image.vendor="Geekpad"
 LABEL org.opencontainers.image.version=${VERSION}
 
