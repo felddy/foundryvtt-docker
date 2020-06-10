@@ -132,7 +132,7 @@ jobs:
         with:
           name: dist-normal
       - name: Load docker image
-        run: docker load < dist/image.tar.gz
+        run: docker load < dist-normal/image.tar.gz
       - name: Set data directory permissions
         run: |
           chmod a+rwx data
@@ -172,7 +172,7 @@ jobs:
         with:
           name: dist-pre-install
       - name: Load docker image
-        run: docker load < dist/image.tar.gz
+        run: docker load < dist-pre-install/image.tar.gz
       - name: Set data directory permissions
         run: |
           chmod a+rwx data
