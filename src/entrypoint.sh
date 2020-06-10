@@ -60,7 +60,7 @@ if [ "$(id -u)" = 0 ]; then
   ln -snf /usr/share/zoneinfo/"${TIMEZONE:-UTC}" /etc/localtime
   if [ "${FOUNDRY_UID:-foundry}" != 0 ]; then
     # drop privileges and restart this script as foundry user
-    echo "Switching uid:gid to ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}"
+    echo "Switching uid:gid to ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry} and restarting."
     su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" "$(readlink -f "$0")" "$@"
     exit 0
   fi
