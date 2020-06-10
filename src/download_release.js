@@ -13,7 +13,7 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  download_release.js [--log-level=LEVEL] <username> <password> <version>
+  download_release.js [--log-level=LEVEL] [--no-license] <username> <password> <version>
   download_release.js (-h | --help)
 
 Options:
@@ -21,6 +21,7 @@ Options:
   --log-level=LEVEL      If specified, then the log level will be set to
                          the specified value.  Valid values are "trace", "debug", "info",
                          "warn", "error", and "fatal". [default: info]
+  --no-license           Do not create a license key file.
 `;
 
 // Argument parsing
@@ -214,6 +215,7 @@ async function main() {
   const password = options["<password>"];
   const foundry_version = options["<version>"];
   const log_level = options["--log-level"].toLowerCase();
+  const no_license = options["--no-license"];
 
   // Setup logging.
   logger = pino({
@@ -230,12 +232,16 @@ async function main() {
   // Login using the credentials, tokens, and cookies.
   const loggedInUsername = await login(csrfmiddlewaretoken, username, password);
 
-  // Attempt to fetch a license key.
-  const license = await fetchLicense(loggedInUsername);
-  if (license) {
-    await saveLicense(license, "license.json");
+  if (!no_license) {
+    // Attempt to fetch a license key.
+    const license = await fetchLicense(loggedInUsername);
+    if (license) {
+      await saveLicense(license, "license.json");
+    } else {
+      logger.warn("Could not find license.");
+    }
   } else {
-    logger.warn("Could not find license.");
+    logger.debug("Not fetching license, --no-license flag set.");
   }
 
   // Download the FoundryVTT release.
