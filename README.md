@@ -145,7 +145,7 @@ upgrade to a new version of Foundry, update your image to the latest version.
 | Name  | Purpose | Default |
 |-------|---------|---------|
 | FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared. |  |
-| FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage | null |
+| FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | null |
 | FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
 | FOUNDRY_HOSTNAME | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
 | FOUNDRY_NO_UPDATE | Prevent the application from being updated from the web interface.  The application code is immutable when running in a container.  See the [Updating](#updating) section for the steps needed to update this container. | true |
@@ -158,7 +158,7 @@ upgrade to a new version of Foundry, update your image to the latest version.
 | FOUNDRY_UPDATE_CHANNEL | The update channel to subscribe to.  "alpha", "beta", or "release". | "release" |
 | FOUNDRY_UPNP | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | false |
 | FOUNDRY_VERSION | Version of Foundry Virtual Tabletop to install. | 0.6.2 |
-| FOUNDRY_WORLD | The world startup at system start. | null |
+| FOUNDRY_WORLD | The world to startup at system start. | null |
 | TIMEZONE     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | UTC |
 
 ## Building from source ##
@@ -202,6 +202,25 @@ Docker:
       --platform linux/amd64 \
       --build-arg VERSION=0.6.2 \
       --output type=docker \
+      --tag felddy/foundryvtt:0.6.2 .
+    ```
+
+## Pre-installed release builds ##
+
+It is possible to install a Foundry Virtual Tabletop release into the Docker
+image at build-time.  This results in a significantly larger Docker image, but
+removes the need to install a release at container startup, resulting in a
+faster startup.  It also moves the user authentication to build-time instead of
+start-time.  **Note**: Credentials are only used to fetch a release, and are not
+stored in the resulting image.
+
+1. Build the image with credentials:
+
+    ```console
+    docker build \
+      --build-arg FOUNDRY_USERNAME='<your_username>' \
+      --build-arg FOUNDRY_PASSWORD='<your_password>' \
+      --build-arg VERSION=0.6.2 \
       --tag felddy/foundryvtt:0.6.2 .
     ```
 

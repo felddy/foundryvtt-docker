@@ -1,9 +1,27 @@
+ARG FOUNDRY_PASSWORD
+ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION=0.6.2
 ARG GIT_COMMIT=unspecified
 ARG GIT_REMOTE=unspecified
 ARG VERSION
 
-FROM node:12-alpine
+FROM node:12-alpine as optional-release-stage
+
+ARG FOUNDRY_PASSWORD
+ARG FOUNDRY_USERNAME
+ARG FOUNDRY_VERSION
+ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
+
+WORKDIR /root
+COPY src/package.json src/download_release.js ./
+RUN mkdir dist
+RUN if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
+      npm install && \
+      ./download_release.js --no-license "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}" && \
+      unzip -d dist ${ARCHIVE} 'resources/*'; \
+    fi
+
+FROM node:12-alpine as final-stage
 
 ARG FOUNDRY_UID=421
 ARG FOUNDRY_VERSION
@@ -31,6 +49,7 @@ RUN apk --update --no-cache add jq su-exec
 
 WORKDIR ${FOUNDRY_HOME}
 
+COPY --from=optional-release-stage /root/dist/ .
 COPY src/entrypoint.sh src/package.json src/set_password.js src/download_release.js ./
 RUN npm install && echo ${VERSION} > image_version.txt
 
