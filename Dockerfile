@@ -14,7 +14,8 @@ ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
 
 WORKDIR /root
 COPY src/package.json src/download_release.js ./
-RUN mkdir dist
+# .placeholder file to mitigate https://github.com/moby/moby/issues/37965
+RUN mkdir dist && touch dist/.placeholder
 RUN if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
       npm install && \
       ./download_release.js --no-license "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}" && \
