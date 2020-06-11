@@ -19,7 +19,7 @@
     "docker"
   ],
   "license": "CC0-1.0",
-  "main": "download_release.js",
+  "main": "authenticate.js",
   "name": "foundryvtt-utils",
   "repository": {
     "type": "git",

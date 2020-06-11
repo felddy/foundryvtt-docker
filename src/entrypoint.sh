@@ -41,9 +41,9 @@ if [ $install_required = true ]; then
   fi
   echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
   if [[ ${CONTAINER_VERBOSE} ]]; then
-    ./download_release.js --log-level=trace --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
+    ./authenticate.js --log-level=trace --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
   else
-    ./download_release.js --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
+    ./authenticate.js --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
   fi
   set -o nounset
   unzip -q "foundryvtt-${FOUNDRY_VERSION}.zip" 'resources/*'
