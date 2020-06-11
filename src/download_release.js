@@ -37,6 +37,7 @@ const cookieJar = new _tough.CookieJar();
 const fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
 const fs = require("fs");
 const pino = require("pino");
+const process = require("process");
 const streamPipeline = _util.promisify(require("stream").pipeline);
 
 // Setup logger global, configure in main()
@@ -218,13 +219,16 @@ async function main() {
   const no_license = options["--no-license"];
 
   // Setup logging.
-  logger = pino({
-    level: log_level,
-    prettyPrint: {
-      translateTime: true,
-      ignore: "pid,hostname",
+  logger = pino(
+    {
+      level: log_level,
+      prettyPrint: {
+        translateTime: true,
+        ignore: "pid,hostname",
+      },
     },
-  });
+    pino.destination(process.stderr.fd)
+  );
 
   // Get the tokens and cookies we'll need to login.
   const csrfmiddlewaretoken = await fetchTokens();
