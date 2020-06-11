@@ -12,8 +12,8 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  download_release.js [--log-level=LEVEL] [--license=filename] <username> <password> <version>
-  download_release.js (-h | --help)
+  authenticate.js [--log-level=LEVEL] [--license=filename] <username> <password> <version>
+  authenticate.js (-h | --help)
 
 Options:
   -h --help              Show this message.
