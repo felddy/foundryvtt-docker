@@ -1,4 +1,5 @@
 ARG FOUNDRY_PASSWORD
+ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION=0.6.2
 ARG GIT_COMMIT=unspecified
@@ -8,6 +9,7 @@ ARG VERSION
 FROM node:12-alpine as optional-release-stage
 
 ARG FOUNDRY_PASSWORD
+ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION
 ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
@@ -18,7 +20,11 @@ COPY src/package.json src/authenticate.js ./
 RUN mkdir dist && touch dist/.placeholder
 RUN if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
       npm install && \
-      ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}" && \
+      s3_url=$(./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}") && \
+      wget -O ${ARCHIVE} "${s3_url}" && \
+      unzip -d dist ${ARCHIVE} 'resources/*'; \
+    elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
+      wget -O ${ARCHIVE} "${FOUNDRY_RELEASE_URL}" && \
       unzip -d dist ${ARCHIVE} 'resources/*'; \
     fi
 
