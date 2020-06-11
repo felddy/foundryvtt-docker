@@ -38,7 +38,6 @@ const fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
 const fs = require("fs");
 const pino = require("pino");
 const process = require("process");
-const streamPipeline = _util.promisify(require("stream").pipeline);
 
 // Setup logger global, configure in main()
 let logger = null;
@@ -184,25 +183,28 @@ async function saveLicense(license, filename) {
 }
 
 /**
- * downloadRelease - Download a FoundryVTT release and save it to a file.
+ * fetchReleaseURL - Fetch the pre-signed S3 URL.
  *
  * @param  {string} version Semantic version to download.
- * @param  {string} path    Filesystem path to write.
- * @return {undefined}
+ * @return {string} The URL of the requested release version.
  */
-async function downloadRelease(version, path) {
-  logger.info(`Downloading release ${version} to ${path}...`);
+async function fetchReleaseURL(version) {
+  logger.info(`Fetching S3 pre-signed release URL for ${version}...`);
   const release_url = `${BASE_URL}/releases/download?version=${version}&platform=linux`;
   logger.debug(`Fetching: ${release_url}`);
   const response = await fetch(release_url, {
     method: "GET",
     headers: HEADERS,
+    redirect: "manual",
   });
-  if (!response.ok) {
+  // Expect a redirect status
+  if (!(response.status >= 300 && response.status < 400)) {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
-  await streamPipeline(response.body, fs.createWriteStream(path));
-  logger.info(`Release download complete.`);
+  const s3_url = response.headers.get("location");
+  logger.debug(`S3 presigned URL: ${s3_url}`);
+
+  return s3_url;
 }
 
 /**
@@ -248,10 +250,16 @@ async function main() {
     logger.debug("Not fetching license, --no-license flag set.");
   }
 
-  // Download the FoundryVTT release.
-  await downloadRelease(foundry_version, `foundryvtt-${foundry_version}.zip`);
+  // Generate an S3 pre-signed URL and print it to stdout.
+  const releaseURL = await fetchReleaseURL(foundry_version);
 
-  return 0;
+  if (releaseURL) {
+    process.stdout.write(releaseURL);
+    return 0;
+  } else {
+    logger.error("Could not fetch a release URL.");
+    return -1;
+  }
 }
 
 return main();
