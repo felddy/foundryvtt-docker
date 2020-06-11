@@ -34,20 +34,33 @@ fi
 
 # Install FoundryVTT if needed
 if [ $install_required = true ]; then
+  # Determine how we are going to get the release URL.
   set +o nounset
-  if [ -z "${FOUNDRY_USERNAME}" ] || [ -z "${FOUNDRY_PASSWORD}" ]; then
-    echo "FOUNDRY_USERNAME and FOUNDRY_PASSWORD must be set to install FoundryVTT."
+  if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then
+    echo "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to fetch release URL and license."
+    if [[ ${CONTAINER_VERBOSE} ]]; then
+      s3_url=$(./authenticate.js --log-level=trace --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}")
+    else
+      s3_url=$(./authenticate.js --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}")
+    fi
+  elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then
+    echo "Using FOUNDRY_RELEASE_URL to download release."
+    s3_url="${FOUNDRY_RELEASE_URL}"
+  else
+    echo "Unable to install Foundry: No credentials or release URL provided."
+    echo "Either set FOUNDRY_USERNAME and FOUNDRY_PASSWORD."
+    echo "Or set FOUNDRY_RELEASE_URL."
     exit 1
   fi
-  echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
-  if [[ ${CONTAINER_VERBOSE} ]]; then
-    ./authenticate.js --log-level=trace --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
-  else
-    ./authenticate.js --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}"
-  fi
   set -o nounset
+
+  echo "Downloading Foundry release."
+  wget -O "foundryvtt-${FOUNDRY_VERSION}.zip" "${s3_url}"
+
+  echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
   unzip -q "foundryvtt-${FOUNDRY_VERSION}.zip" 'resources/*'
   rm "foundryvtt-${FOUNDRY_VERSION}.zip"
+
   if [ -f license.json ] && [ ! -f /data/Config/license.json ]; then
     mkdir -p /data/Config
     mv license.json /data/Config
