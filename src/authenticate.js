@@ -239,7 +239,7 @@ async function main() {
 
   if (license_filename) {
     // Attempt to fetch a license key.
-    const license = await fetchLicense(loggedInUsername);
+    const license_key = await fetchLicense(loggedInUsername);
     if (license_key) {
       await saveLicense(license_key, license_filename);
     } else {
