@@ -18,7 +18,7 @@ COPY src/package.json src/download_release.js ./
 RUN mkdir dist && touch dist/.placeholder
 RUN if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
       npm install && \
-      ./download_release.js --no-license "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}" && \
+      ./download_release.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}" && \
       unzip -d dist ${ARCHIVE} 'resources/*'; \
     fi
 
