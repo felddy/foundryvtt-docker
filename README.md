@@ -233,24 +233,24 @@ faster startup.  It also moves the user authentication to build-time instead of
 start-time.  **Note**: Credentials are only used to fetch a release, and are not
 stored in the resulting image.
 
-1. Build the image with credentials:
+Build the image with credentials:
 
-    ```console
-    docker build \
-      --build-arg FOUNDRY_USERNAME='<your_username>' \
-      --build-arg FOUNDRY_PASSWORD='<your_password>' \
-      --build-arg VERSION=0.6.2 \
-      --tag felddy/foundryvtt:0.6.2 .
-    ```
+```console
+docker build \
+  --build-arg FOUNDRY_USERNAME='<your_username>' \
+  --build-arg FOUNDRY_PASSWORD='<your_password>' \
+  --build-arg VERSION=0.6.2 \
+  --tag felddy/foundryvtt:0.6.2 .
+```
 
-1. Or build the image with a temporary URL:
+Or build the image using a temporary URL:
 
-    ```console
-    docker build \
-      --build-arg FOUNDRY_RELEASE_URL='<temporary_url>' \
-      --build-arg VERSION=0.6.2 \
-      --tag felddy/foundryvtt:0.6.2 .
-    ```
+```console
+docker build \
+  --build-arg FOUNDRY_RELEASE_URL='<temporary_url>' \
+  --build-arg VERSION=0.6.2 \
+  --tag felddy/foundryvtt:0.6.2 .
+```
 
 ## Hosting behind Nginx with TLS ##
 
