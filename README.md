@@ -14,7 +14,8 @@
 You can get a [Foundry Virtual Tabletop](https://foundryvtt.com) instance up and
 running in minutes using this container.  This Docker container is designed to
 be secure, reliable, compact, and simple to use.  It only requires that you
-provide the credentials needed to download a Foundry Virtual Tabletop release.
+provide the credentials or URL needed to download a Foundry Virtual Tabletop
+release.
 
 ## Prerequisites ##
 
