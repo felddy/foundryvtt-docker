@@ -52,7 +52,7 @@ icon to the right of the standard `Node.js` download link to obtain a temporary
 download URL for the software.
 
 ```console
- docker run \
+docker run \
   --env FOUNDRY_RELEASE_URL='<temporary_url>' \
   --publish 30000:30000/tcp \
   --volume /data:<your_data_dir> \
