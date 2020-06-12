@@ -39,6 +39,11 @@ docker run \
   felddy/foundryvtt:latest
 ```
 
+If you are using `bash`, or a similar shell, consider pre-pending the Docker
+command with a space to prevent your credentials from being committed to the
+shell history list.  See:
+[`HISTCONTROL`](https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html#index-HISTCONTROL)
+
 ### Using Docker with a temporary URL ###
 
 Alternatively, you may acquire a temporary download token from your user profile
