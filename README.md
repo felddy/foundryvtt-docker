@@ -24,7 +24,7 @@ provide the credentials needed to download a Foundry Virtual Tabletop release.
 
 ## Running ##
 
-### Using Docker ###
+### Using Docker with credentials ###
 
 You can use the following command to start up a Foundry Virtual Tabletop server.
 Your [foundryvtt.com](https://foundryvtt.com) credentials are required so the
@@ -39,7 +39,27 @@ docker run \
   felddy/foundryvtt:latest
 ```
 
-### Using a Docker composition ###
+If you are using `bash`, or a similar shell, consider pre-pending the Docker
+command with a space to prevent your credentials from being committed to the
+shell history list.  See:
+[`HISTCONTROL`](https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html#index-HISTCONTROL)
+
+### Using Docker with a temporary URL ###
+
+Alternatively, you may acquire a temporary download token from your user profile
+page on the Foundry website.  On the "Purchased Licenses" page, click the [🔗]
+icon to the right of the standard `Node.js` download link to obtain a temporary
+download URL for the software.
+
+```console
+docker run \
+  --env FOUNDRY_RELEASE_URL='<temporary_url>' \
+  --publish 30000:30000/tcp \
+  --volume /data:<your_data_dir> \
+  felddy/foundryvtt:latest
+```
+
+## Using a Docker composition ###
 
 Using [`docker-compose`](https://docs.docker.com/compose/install/) to manage your
 server is highly recommended.  A `docker-compose.yml` file is a more reliable
@@ -135,10 +155,14 @@ upgrade to a new version of Foundry, update your image to the latest version.
 
 ### Required ###
 
+Either (`FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD`) or `FOUNDRY_RELEASE_URL` must
+be provided.
+
 | Name             | Purpose  |
 |------------------|----------|
 | FOUNDRY_USERNAME | Account username or email address for foundryvtt.com.  Required for downloading an application release. |
 | FOUNDRY_PASSWORD | Account password for foundryvtt.com.  Required for downloading an application release. |
+| FOUNDRY_RELEASE_URL | S3 pre-signed URL generate from the user's profile.  Required for downloading an application release. |
 
 ### Optional ###
 
@@ -214,15 +238,24 @@ faster startup.  It also moves the user authentication to build-time instead of
 start-time.  **Note**: Credentials are only used to fetch a release, and are not
 stored in the resulting image.
 
-1. Build the image with credentials:
+Build the image with credentials:
 
-    ```console
-    docker build \
-      --build-arg FOUNDRY_USERNAME='<your_username>' \
-      --build-arg FOUNDRY_PASSWORD='<your_password>' \
-      --build-arg VERSION=0.6.2 \
-      --tag felddy/foundryvtt:0.6.2 .
-    ```
+```console
+docker build \
+  --build-arg FOUNDRY_USERNAME='<your_username>' \
+  --build-arg FOUNDRY_PASSWORD='<your_password>' \
+  --build-arg VERSION=0.6.2 \
+  --tag felddy/foundryvtt:0.6.2 .
+```
+
+Or build the image using a temporary URL:
+
+```console
+docker build \
+  --build-arg FOUNDRY_RELEASE_URL='<temporary_url>' \
+  --build-arg VERSION=0.6.2 \
+  --tag felddy/foundryvtt:0.6.2 .
+```
 
 ## Hosting behind Nginx with TLS ##
 

@@ -1,4 +1,5 @@
 ARG FOUNDRY_PASSWORD
+ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION=0.6.2
 ARG GIT_COMMIT=unspecified
@@ -8,17 +9,22 @@ ARG VERSION
 FROM node:12-alpine as optional-release-stage
 
 ARG FOUNDRY_PASSWORD
+ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION
 ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
 
 WORKDIR /root
-COPY src/package.json src/download_release.js ./
+COPY src/package.json src/authenticate.js ./
 # .placeholder file to mitigate https://github.com/moby/moby/issues/37965
 RUN mkdir dist && touch dist/.placeholder
 RUN if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
       npm install && \
-      ./download_release.js --no-license "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}" && \
+      s3_url=$(./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}") && \
+      wget -O ${ARCHIVE} "${s3_url}" && \
+      unzip -d dist ${ARCHIVE} 'resources/*'; \
+    elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
+      wget -O ${ARCHIVE} "${FOUNDRY_RELEASE_URL}" && \
       unzip -d dist ${ARCHIVE} 'resources/*'; \
     fi
 
@@ -51,7 +57,7 @@ RUN apk --update --no-cache add jq su-exec
 WORKDIR ${FOUNDRY_HOME}
 
 COPY --from=optional-release-stage /root/dist/ .
-COPY src/entrypoint.sh src/package.json src/set_password.js src/download_release.js ./
+COPY src/entrypoint.sh src/package.json src/set_password.js src/authenticate.js ./
 RUN npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]

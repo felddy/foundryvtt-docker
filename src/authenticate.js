@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 
 const doc = `
-Download a Foundry Virtual Tabletop release and license key using valid credentials.
-This utility will attempt to create two files:
+Generate a Foundry Virtual Tabletop pre-signed release URL and optionally fetch
+license key using valid credentials.
 
-    foundryvtt-x.y.z.zip - An archive containing the release.
-    license.json - A json file containing the license key.
+The utility will print the release URL to standard out.
 
 EXIT STATUS
     This utility exits with one of the following values:
@@ -13,15 +12,15 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  download_release.js [--log-level=LEVEL] [--no-license] <username> <password> <version>
-  download_release.js (-h | --help)
+  authenticate.js [--log-level=LEVEL] [--license=filename] <username> <password> <version>
+  authenticate.js (-h | --help)
 
 Options:
   -h --help              Show this message.
   --log-level=LEVEL      If specified, then the log level will be set to
                          the specified value.  Valid values are "trace", "debug", "info",
                          "warn", "error", and "fatal". [default: info]
-  --no-license           Do not create a license key file.
+  --license=filename     Fetch a license key and save it to a JSON file.
 `;
 
 // Argument parsing
@@ -37,7 +36,7 @@ const cookieJar = new _tough.CookieJar();
 const fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
 const fs = require("fs");
 const pino = require("pino");
-const streamPipeline = _util.promisify(require("stream").pipeline);
+const process = require("process");
 
 // Setup logger global, configure in main()
 let logger = null;
@@ -183,25 +182,28 @@ async function saveLicense(license, filename) {
 }
 
 /**
- * downloadRelease - Download a FoundryVTT release and save it to a file.
+ * fetchReleaseURL - Fetch the pre-signed S3 URL.
  *
  * @param  {string} version Semantic version to download.
- * @param  {string} path    Filesystem path to write.
- * @return {undefined}
+ * @return {string} The URL of the requested release version.
  */
-async function downloadRelease(version, path) {
-  logger.info(`Downloading release ${version} to ${path}...`);
+async function fetchReleaseURL(version) {
+  logger.info(`Fetching S3 pre-signed release URL for ${version}...`);
   const release_url = `${BASE_URL}/releases/download?version=${version}&platform=linux`;
   logger.debug(`Fetching: ${release_url}`);
   const response = await fetch(release_url, {
     method: "GET",
     headers: HEADERS,
+    redirect: "manual",
   });
-  if (!response.ok) {
+  // Expect a redirect status
+  if (!(response.status >= 300 && response.status < 400)) {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
-  await streamPipeline(response.body, fs.createWriteStream(path));
-  logger.info(`Release download complete.`);
+  const s3_url = response.headers.get("location");
+  logger.debug(`S3 presigned URL: ${s3_url}`);
+
+  return s3_url;
 }
 
 /**
@@ -215,16 +217,19 @@ async function main() {
   const password = options["<password>"];
   const foundry_version = options["<version>"];
   const log_level = options["--log-level"].toLowerCase();
-  const no_license = options["--no-license"];
+  const license_filename = options["--license"];
 
   // Setup logging.
-  logger = pino({
-    level: log_level,
-    prettyPrint: {
-      translateTime: true,
-      ignore: "pid,hostname",
+  logger = pino(
+    {
+      level: log_level,
+      prettyPrint: {
+        translateTime: true,
+        ignore: "pid,hostname",
+      },
     },
-  });
+    pino.destination(process.stderr.fd)
+  );
 
   // Get the tokens and cookies we'll need to login.
   const csrfmiddlewaretoken = await fetchTokens();
@@ -232,22 +237,26 @@ async function main() {
   // Login using the credentials, tokens, and cookies.
   const loggedInUsername = await login(csrfmiddlewaretoken, username, password);
 
-  if (!no_license) {
+  if (license_filename) {
     // Attempt to fetch a license key.
-    const license = await fetchLicense(loggedInUsername);
-    if (license) {
-      await saveLicense(license, "license.json");
+    const license_key = await fetchLicense(loggedInUsername);
+    if (license_key) {
+      await saveLicense(license_key, license_filename);
     } else {
-      logger.warn("Could not find license.");
+      logger.warn("Could not find license key.");
     }
-  } else {
-    logger.debug("Not fetching license, --no-license flag set.");
   }
 
-  // Download the FoundryVTT release.
-  await downloadRelease(foundry_version, `foundryvtt-${foundry_version}.zip`);
+  // Generate an S3 pre-signed URL and print it to stdout.
+  const releaseURL = await fetchReleaseURL(foundry_version);
 
-  return 0;
+  if (releaseURL) {
+    process.stdout.write(releaseURL);
+    return 0;
+  } else {
+    logger.error("Could not fetch a release URL.");
+    return -1;
+  }
 }
 
 return main();
