@@ -34,7 +34,7 @@ fi
 
 # Install FoundryVTT if needed
 if [ $install_required = true ]; then
-  # Determine how we are going to get the release URL.
+  # Determine how we are going to get the release URL
   set +o nounset
   if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then
     echo "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to fetch release URL and license."
