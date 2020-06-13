@@ -1,8 +1,5 @@
 version: "3.8"
 
-volumes:
-  data:
-
 services:
   foundry:
     build:
