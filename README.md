@@ -220,6 +220,9 @@ upgrade to a new version of Foundry, update your image to the latest version.
 Either (`FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD`) or `FOUNDRY_RELEASE_URL` must
 be provided.
 
+`FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD` may be set [using
+secrets](#using-secrets) instead of environment variables.
+
 | Name             | Purpose  |
 |------------------|----------|
 | FOUNDRY_USERNAME | Account username or email address for foundryvtt.com.  Required for downloading an application release. |
