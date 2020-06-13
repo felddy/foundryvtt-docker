@@ -75,6 +75,10 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
     ```yaml
     version: "3.8"
 
+    secrets:
+      config_json:
+        file: <your_credentials_file>
+
     volumes:
       data:
 
@@ -97,6 +101,9 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
             published: "30000"
             protocol: tcp
             mode: host
+        secrets:
+          - source: config_json
+            target: config.json
     ```
 
 1. Start the container and detach:
@@ -110,6 +117,60 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
 
 If all goes well you should be prompted with the license agreement, and then
 "admin access key" set with the `FOUNDRY_ADMIN_KEY` variable.
+
+## Using secrets ##
+
+This container also supports passing `foundry_username`, `foundry_passord`, and
+`foundry_admin_key` via [Docker
+secrets](https://docs.docker.com/engine/swarm/secrets/).  Passing sensitive
+values like your credentials can be more secure using secrets than using
+environment variables.  Your secrets json file can have any name.  This example
+uses `secrets.json`.  Regardless of the name you choose it must be targeted to
+`config.json` as in the example below.
+
+1. To use secrets, create a `secrets.json` file containing the values you want
+   set:
+
+    ```json
+    {
+      "foundry_username": "your_username",
+      "foundry_password": "your_password",
+      "foundry_admin_key": "atropos"
+    }
+    ```
+
+1. Then add the secret to your `docker-compose.yml` file:
+
+    ```yaml
+    version: "3.8"
+
+    secrets:
+      config_json:
+        file: secrets.json
+
+    volumes:
+      data:
+
+    services:
+      foundry:
+        image: felddy/foundryvtt:latest
+        hostname: my_foundry_host
+        init: true
+        restart: "unless-stopped"
+        volumes:
+          - type: bind
+            source: <your_data_dir>
+            target: /data
+        environment:
+        ports:
+          - target: "30000"
+            published: "30000"
+            protocol: tcp
+            mode: host
+        secrets:
+          - source: config_json
+            target: config.json
+    ```
 
 ## Updating ##
 
@@ -159,6 +220,9 @@ upgrade to a new version of Foundry, update your image to the latest version.
 Either (`FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD`) or `FOUNDRY_RELEASE_URL` must
 be provided.
 
+`FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD` may be set [using
+secrets](#using-secrets) instead of environment variables.
+
 | Name             | Purpose  |
 |------------------|----------|
 | FOUNDRY_USERNAME | Account username or email address for foundryvtt.com.  Required for downloading an application release. |
@@ -185,6 +249,12 @@ be provided.
 | FOUNDRY_VERSION | Version of Foundry Virtual Tabletop to install. | 0.6.2 |
 | FOUNDRY_WORLD | The world to startup at system start. | null |
 | TIMEZONE     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | UTC |
+
+## Secrets ##
+
+| Filename        | Purpose |
+|-----------------|---------|
+| config.json     | Allows passing in of `foundry_username`, `foundry_password`, `foundry_admin_key`  |
 
 ## Building from source ##
 

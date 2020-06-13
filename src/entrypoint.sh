@@ -16,6 +16,20 @@ fi
 
 echo "Starting felddy/foundryvtt container v${image_version}"
 
+secret_file="/run/secrets/config.json"
+
+# Check for raft secrets
+if [ -f "${secret_file}" ]; then
+  echo "Reading configured secrets from: ${secret_file}"
+  secret_username=$(jq --exit-status --raw-output .foundry_username ${secret_file}) || secret_username=""
+  secret_password=$(jq --exit-status --raw-output .foundry_password ${secret_file}) || secret_password=""
+  secret_admin_key=$(jq --exit-status --raw-output .foundry_admin_key ${secret_file}) || secret_admin_key=""
+  # Override environment variables if secrets were set
+  FOUNDRY_USERNAME=${secret_username:-$FOUNDRY_USERNAME}
+  FOUNDRY_PASSWORD=${secret_password:-$FOUNDRY_PASSWORD}
+  FOUNDRY_ADMIN_KEY=${secret_admin_key:-$FOUNDRY_ADMIN_KEY}
+fi
+
 # Check to see if an install is required
 install_required=false
 if [ -f "resources/app/package.json" ]; then
@@ -34,7 +48,7 @@ fi
 
 # Install FoundryVTT if needed
 if [ $install_required = true ]; then
-  # Determine how we are going to get the release URL.
+  # Determine how we are going to get the release URL
   set +o nounset
   if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then
     echo "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to fetch release URL and license."
@@ -62,6 +76,7 @@ if [ $install_required = true ]; then
   rm "foundryvtt-${FOUNDRY_VERSION}.zip"
 
   if [ -f license.json ] && [ ! -f /data/Config/license.json ]; then
+    echo "Applying license key."
     mkdir -p /data/Config
     mv license.json /data/Config
     chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
