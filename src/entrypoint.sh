@@ -62,6 +62,7 @@ if [ $install_required = true ]; then
   rm "foundryvtt-${FOUNDRY_VERSION}.zip"
 
   if [ -f license.json ] && [ ! -f /data/Config/license.json ]; then
+    echo "Applying license key."
     mkdir -p /data/Config
     mv license.json /data/Config
     chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
