@@ -79,9 +79,6 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
       config_json:
         file: <your_credentials_file>
 
-    volumes:
-      data:
-
     services:
       foundry:
         image: felddy/foundryvtt:latest
@@ -147,9 +144,6 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
     secrets:
       config_json:
         file: secrets.json
-
-    volumes:
-      data:
 
     services:
       foundry:
