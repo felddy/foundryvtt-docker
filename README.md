@@ -75,10 +75,6 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
     ```yaml
     version: "3.8"
 
-    secrets:
-      config_json:
-        file: <your_credentials_file>
-
     services:
       foundry:
         image: felddy/foundryvtt:latest
@@ -98,9 +94,6 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
             published: "30000"
             protocol: tcp
             mode: host
-        secrets:
-          - source: config_json
-            target: config.json
     ```
 
 1. Start the container and detach:
