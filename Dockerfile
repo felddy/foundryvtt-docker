@@ -1,3 +1,4 @@
+ARG CREATED_TIMESTAMP=unspecified
 ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
@@ -30,6 +31,7 @@ RUN if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
 
 FROM node:12-alpine as final-stage
 
+ARG CREATED_TIMESTAMP=unspecified
 ARG FOUNDRY_UID=421
 ARG FOUNDRY_VERSION
 ARG GIT_COMMIT
@@ -39,6 +41,7 @@ ARG VERSION
 
 LABEL com.foundryvtt.version=${FOUNDRY_VERSION}
 LABEL org.opencontainers.image.authors="markf+github@geekpad.com"
+LABEL org.opencontainers.image.created=${CREATED_TIMESTAMP}
 LABEL org.opencontainers.image.licenses="CC0-1.0"
 LABEL org.opencontainers.image.revision=${GIT_COMMIT}
 LABEL org.opencontainers.image.source=${GIT_REMOTE}

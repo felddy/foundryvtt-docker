@@ -48,6 +48,7 @@ jobs:
             --tag "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}" \
             --tag "${IMAGE_NAME}:${v_major}.${v_minor}" \
             --tag "${IMAGE_NAME}:${v_major}" \
+            --build-arg CREATED_TIMESTAMP=$(date --rfc-3339=seconds) \
             --build-arg GIT_COMMIT=$(git log -1 --format=%H) \
             --build-arg GIT_REMOTE=$(git remote get-url origin) \
             --build-arg VERSION=${{ steps.get_ver.outputs.version }} \
