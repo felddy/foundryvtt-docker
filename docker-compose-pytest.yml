@@ -5,7 +5,7 @@ version: "3.8"
 services:
   foundry:
     # Run the container normally
-    image: felddy/foundryvtt:0.6.3
+    image: felddy/foundryvtt:0.6.2
     hostname: felddy_foundryvtt
     init: true
     restart: "unless-stopped"
@@ -39,7 +39,7 @@ services:
 
   foundry-version:
     # Run the container to collect version information
-    image: felddy/foundryvtt:0.6.3
+    image: felddy/foundryvtt:0.6.2
     init: true
     restart: "no"
     command: --version
