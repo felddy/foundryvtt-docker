@@ -37,7 +37,7 @@ docker run \
   --env FOUNDRY_PASSWORD='<your_password>' \
   --publish 30000:30000/tcp \
   --volume /data:<your_data_dir> \
-  felddy/foundryvtt:latest
+  felddy/foundryvtt:release
 ```
 
 If you are using `bash`, or a similar shell, consider pre-pending the Docker
@@ -57,7 +57,7 @@ docker run \
   --env FOUNDRY_RELEASE_URL='<temporary_url>' \
   --publish 30000:30000/tcp \
   --volume /data:<your_data_dir> \
-  felddy/foundryvtt:latest
+  felddy/foundryvtt:release
 ```
 
 ## Using a Docker composition ###
@@ -77,7 +77,7 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
 
     services:
       foundry:
-        image: felddy/foundryvtt:latest
+        image: felddy/foundryvtt:release
         hostname: my_foundry_host
         init: true
         restart: "unless-stopped"
@@ -140,7 +140,7 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
 
     services:
       foundry:
-        image: felddy/foundryvtt:latest
+        image: felddy/foundryvtt:release
         hostname: my_foundry_host
         init: true
         restart: "unless-stopped"
@@ -161,12 +161,12 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
 
 ## Updating ##
 
-The Foundry "Update Software" tab is disabled by default in this container. To
-upgrade to a new version of Foundry, update your image to the latest version.
+The Foundry "Update Software" tab is disabled by default in this container.  To
+upgrade to a new version of Foundry pull an updated image version.
 
 ### Docker-compose ###
 
-1. Pull the latest image from Docker hub:
+1. Pull the new image from Docker hub:
 
     ```console
     docker-compose pull
@@ -186,13 +186,26 @@ upgrade to a new version of Foundry, update your image to the latest version.
     docker stop <container_id>
     ```
 
-1. Pull the latest image:
+1. Pull the new image:
 
     ```console
-    docker pull felddy/foundryvtt:latest
+    docker pull felddy/foundryvtt:release
     ```
 
 1. Follow the previous instructions for [running](#running) the container above.
+
+## Image tags ##
+
+The images of this container are tagged to
+
+| Image:tag | Description |
+|-----------|-------------|
+|`felddy/foundryvtt:release` | The most recent image from the release channel.  These images are considered stable, and well-tested.  Most users will use this tag. |
+|`felddy/foundryvtt:latest` | The most recently built image.  These can include beta and alpha channel builds, and may contain bugs. |
+|`felddy/foundryvtt:0.6.3`| A specific version. |
+
+See the [tags tab](https://hub.docker.com/r/felddy/foundryvtt/tags) on Docker
+Hub for a list of all the supported tags.
 
 ## Volumes ##
 

@@ -1,9 +1,9 @@
 ---
-name: release
+name: prerelease
 
 on:
   release:
-    types: [released]
+    types: [prereleased]
 
 env:
   IMAGE_NAME: felddy/foundryvtt
@@ -44,7 +44,6 @@ jobs:
             --file Dockerfile-x \
             --platform $PLATFORMS \
             --output "type=image,push=true" \
-            --tag "$IMAGE_NAME:release" \
             --tag "$IMAGE_NAME:latest" \
             --tag "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}" \
             --tag "${IMAGE_NAME}:${v_major}.${v_minor}" \
