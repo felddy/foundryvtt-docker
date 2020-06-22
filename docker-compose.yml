@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   foundry:
-    image: felddy/foundryvtt:latest
+    image: felddy/foundryvtt:release
     hostname: my_foundry_host
     init: true
     restart: "unless-stopped"
