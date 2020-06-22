@@ -196,7 +196,10 @@ upgrade to a new version of Foundry pull an updated image version.
 
 ## Image tags ##
 
-The images of this container are tagged to
+The images of this container are tagged to add additional flexibility during
+deployment.  It is recommended that most users use the `:release` tag.  This tag
+will only be applied to images that support versions from the Foundry "release"
+channel.
 
 | Image:tag | Description |
 |-----------|-------------|
