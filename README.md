@@ -261,7 +261,7 @@ secrets](#using-secrets) instead of environment variables.
 
 ## Building from source ##
 
-1. Copy the project to your machine using the `Clone or download` button above
+1. Copy the project to your machine using the `Clone` button above
    or the command line:
 
     ```console
