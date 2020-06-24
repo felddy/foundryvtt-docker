@@ -165,4 +165,4 @@ set -o nounset
 
 # Spawn node with clean environment to prevent credential leaks
 echo "Starting Foundry Virtual Tabletop."
-env -i node "$@"
+env -i HOME="$HOME" node "$@"
