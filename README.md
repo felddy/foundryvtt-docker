@@ -237,6 +237,7 @@ secrets](#using-secrets) instead of environment variables.
 | Name  | Purpose | Default |
 |-------|---------|---------|
 | CONTAINER_CACHE   | Set to `true` to cache downloads of Foundry releases to the `/data` volume. | |
+| CONTAINER_VERBOSE | Set to `true` to enable verbose logging for the container utility scripts. | |
 | FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared. | |
 | FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | null |
 | FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
@@ -390,12 +391,8 @@ going on during container startup.  When reporting an issue, verbose output is
 always more helpful.  Simply set the `CONTAINER_VERBOSE` environment variable to
 `true` to generate more detailed logging.
 
-| Name  | Purpose | Default |
-|-------|---------|---------|
-| CONTAINER_VERBOSE | Set to `true` to enable verbose logging for the container utility scripts. | |
-
 To drop into a shell after release installation but before it is started, you
-can pass the `--shell` option to then entrypoint:
+can pass the `--shell` option to the entrypoint:
 
 | Purpose | Command |
 |---------|---------|
