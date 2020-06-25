@@ -236,7 +236,8 @@ secrets](#using-secrets) instead of environment variables.
 
 | Name  | Purpose | Default |
 |-------|---------|---------|
-| FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared. |  |
+| CONTAINER_CACHE   | Set to `true` to cache downloads of Foundry releases to the `/data` volume. | |
+| FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared. | |
 | FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | null |
 | FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
 | FOUNDRY_HOSTNAME | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
