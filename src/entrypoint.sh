@@ -79,9 +79,11 @@ if [ $install_required = true ]; then
     echo "Applying license key."
     mkdir -p /data/Config
     mv license.json /data/Config
-    chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
   fi
 fi
+
+# ensure the permissions are set correctly
+chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
 
 if [ "$(id -u)" = 0 ]; then
   # set timezone using environment
