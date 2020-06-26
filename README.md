@@ -236,7 +236,9 @@ secrets](#using-secrets) instead of environment variables.
 
 | Name  | Purpose | Default |
 |-------|---------|---------|
-| FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared. |  |
+| CONTAINER_CACHE   | Set a path to cache downloads of the Foundry release archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_cache`| |
+| CONTAINER_VERBOSE | Set to `true` to enable verbose logging for the container utility scripts. | |
+| FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared. | |
 | FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | null |
 | FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
 | FOUNDRY_HOSTNAME | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
@@ -389,12 +391,8 @@ going on during container startup.  When reporting an issue, verbose output is
 always more helpful.  Simply set the `CONTAINER_VERBOSE` environment variable to
 `true` to generate more detailed logging.
 
-| Name  | Purpose | Default |
-|-------|---------|---------|
-| CONTAINER_VERBOSE | Set to `true` to enable verbose logging for the container utility scripts. | |
-
 To drop into a shell after release installation but before it is started, you
-can pass the `--shell` option to then entrypoint:
+can pass the `--shell` option to the entrypoint:
 
 | Purpose | Command |
 |---------|---------|

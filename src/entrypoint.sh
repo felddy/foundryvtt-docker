@@ -66,22 +66,46 @@ if [ $install_required = true ]; then
     echo "Or set FOUNDRY_RELEASE_URL."
     exit 1
   fi
-  set -o nounset
+
+  if [[ ${CONTAINER_CACHE} ]]; then
+    echo "Using CONTAINER_CACHE: ${CONTAINER_CACHE}"
+    mkdir -p "${CONTAINER_CACHE}"
+  fi
+
+  downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading.zip"
+  release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
 
   echo "Downloading Foundry release."
-  wget -O "foundryvtt-${FOUNDRY_VERSION}.zip" "${s3_url}"
+  # Download release if newer than cached version.
+  # Filter out warnings about bad date formats if the file is missing.
+  curl --fail --time-cond "${release_filename}" \
+       --output "${downloading_filename}" "${s3_url}" 2>&1 | \
+       tr "\r" "\n" | \
+       sed --unbuffered '/^Warning: .* date/d'
+
+  # Rename the download now that it is completed.
+  # If we had a cache hit, the file is already renamed.
+  mv "${downloading_filename}" "${release_filename}" > /dev/null 2>&1 || true
 
   echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
-  unzip -q "foundryvtt-${FOUNDRY_VERSION}.zip" 'resources/*'
-  rm "foundryvtt-${FOUNDRY_VERSION}.zip"
+  unzip -q "${release_filename}" 'resources/*'
+
+  if [[ ${CONTAINER_CACHE} ]]; then
+    echo "Preserving release archive file in cache."
+  else
+    rm "${release_filename}"
+  fi
+  set -o nounset
 
   if [ -f license.json ] && [ ! -f /data/Config/license.json ]; then
     echo "Applying license key."
     mkdir -p /data/Config
     mv license.json /data/Config
-    chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
   fi
 fi
+
+# ensure the permissions are set correctly
+chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
 
 if [ "$(id -u)" = 0 ]; then
   # set timezone using environment
