@@ -236,7 +236,7 @@ secrets](#using-secrets) instead of environment variables.
 
 | Name  | Purpose | Default |
 |-------|---------|---------|
-| CONTAINER_CACHE   | Set to `true` to cache downloads of Foundry releases to the `/data` volume. | |
+| CONTAINER_CACHE   | Set a path to cache downloads of the Foundry release archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_cache`| |
 | CONTAINER_VERBOSE | Set to `true` to enable verbose logging for the container utility scripts. | |
 | FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared. | |
 | FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | null |

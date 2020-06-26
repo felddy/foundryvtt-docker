@@ -68,13 +68,12 @@ if [ $install_required = true ]; then
   fi
 
   if [[ ${CONTAINER_CACHE} ]]; then
-    mkdir -p "/data/container_cache"
-    downloading_filename="/data/container_cache/downloading.zip"
-    release_filename="/data/container_cache/foundryvtt-${FOUNDRY_VERSION}.zip"
-  else
-    downloading_filename="downloading.zip"
-    release_filename="foundryvtt-${FOUNDRY_VERSION}.zip"
+    echo "Using CONTAINER_CACHE: ${CONTAINER_CACHE}"
+    mkdir -p "${CONTAINER_CACHE}"
   fi
+
+  downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading.zip"
+  release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
 
   echo "Downloading Foundry release."
   # Download release if newer than cached version.
