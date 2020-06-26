@@ -78,7 +78,7 @@ if [ $install_required = true ]; then
 
   echo "Downloading Foundry release."
   # Download release if newer than cached version.
-  # Filter out warnings about bad date formats if file is missing.
+  # Filter out warnings about bad date formats if the file is missing.
   curl --fail --time-cond "${release_filename}" \
        --output "${downloading_filename}" "${s3_url}" 2>&1 | \
        tr "\r" "\n" | \
@@ -92,7 +92,7 @@ if [ $install_required = true ]; then
   unzip -q "${release_filename}" 'resources/*'
 
   if [[ ${CONTAINER_CACHE} ]]; then
-    echo "Caching release archive file."
+    echo "Preserving release archive file in cache."
   else
     rm "${release_filename}"
   fi
