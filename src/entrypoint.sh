@@ -82,7 +82,7 @@ if [ $install_required = true ]; then
   curl --fail --time-cond "${release_filename}" \
        --output "${downloading_filename}" "${s3_url}" 2>&1 | \
        tr "\r" "\n" | \
-       grep -v date
+       sed --unbuffered '/^Warning: .* date/d'
 
   # Rename the download now that it is completed.
   # If we had a cache hit, the file is already renamed.
