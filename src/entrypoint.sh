@@ -102,14 +102,34 @@ if [ $install_required = true ]; then
     mkdir -p /data/Config
     mv license.json /data/Config
   fi
-fi
 
-# ensure the permissions are set correctly
-chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
+  # apply patches if requested and the directory exists
+  if [[ ${CONTAINER_PATCHES} ]]; then
+    echo "Using CONTAINER_PATCHES: ${CONTAINER_PATCHES}"
+    if [ -d "${CONTAINER_PATCHES}" ]; then
+      echo "Container patches directory detected.  Starting patching..."
+      for f in "${CONTAINER_PATCHES}"/*
+      do
+        [ -f "$f" ] || continue # we can't set nullglob in busybox
+        echo "Sourcing patch from file: $f"
+        # shellcheck disable=SC1090
+        source "$f"
+      done
+      echo "Completed patching."
+    else
+      echo "Container patches directory not found."
+    fi
+  fi
+fi
 
 if [ "$(id -u)" = 0 ]; then
   # set timezone using environment
   ln -snf /usr/share/zoneinfo/"${TIMEZONE:-UTC}" /etc/localtime
+
+  # ensure the permissions are set correctly
+  echo "Setting data directory permissions."
+  chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
+
   if [ "${FOUNDRY_UID:-foundry}" != 0 ]; then
     # drop privileges and restart this script as foundry user
     echo "Switching uid:gid to ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry} and restarting."
