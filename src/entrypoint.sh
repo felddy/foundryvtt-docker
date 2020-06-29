@@ -102,8 +102,25 @@ if [ $install_required = true ]; then
     mkdir -p /data/Config
     mv license.json /data/Config
   fi
-fi
 
+  # apply patches if requested and the directory exists
+  if [[ ${CONTAINER_PATCHES} ]]; then
+    echo "Using CONTAINER_PATCHES: ${CONTAINER_PATCHES}"
+    if [ -d "${CONTAINER_PATCHES}" ]; then
+      echo "Container patches directory detected.  Starting patching..."
+      for f in "${CONTAINER_PATCHES}"/*
+      do
+        [ -f "$f" ] || continue # we can't set nullglob in busybox
+        echo "Sourcing patch from file: $f"
+        # shellcheck disable=SC1090
+        source "$f"
+      done
+      echo "Completed patching."
+    else
+      echo "Container patches directory not found."
+    fi
+  fi
+fi
 
 if [ "$(id -u)" = 0 ]; then
   # set timezone using environment
