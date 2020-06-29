@@ -104,12 +104,15 @@ if [ $install_required = true ]; then
   fi
 fi
 
-# ensure the permissions are set correctly
-chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
 
 if [ "$(id -u)" = 0 ]; then
   # set timezone using environment
   ln -snf /usr/share/zoneinfo/"${TIMEZONE:-UTC}" /etc/localtime
+
+  # ensure the permissions are set correctly
+  echo "Setting data directory permissions."
+  chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
+
   if [ "${FOUNDRY_UID:-foundry}" != 0 ]; then
     # drop privileges and restart this script as foundry user
     echo "Switching uid:gid to ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry} and restarting."
