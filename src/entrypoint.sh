@@ -49,15 +49,14 @@ fi
 # Install FoundryVTT if needed
 if [ $install_required = true ]; then
   # Determine how we are going to get the release URL
-  set +o nounset
-  if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then
+  if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
     echo "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to fetch release URL and license."
-    if [[ ${CONTAINER_VERBOSE} ]]; then
+    if [[ "${CONTAINER_VERBOSE:-}" ]]; then
       s3_url=$(./authenticate.js --log-level=trace --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}")
     else
       s3_url=$(./authenticate.js --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}")
     fi
-  elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then
+  elif [ "${FOUNDRY_RELEASE_URL:-}" ]; then
     echo "Using FOUNDRY_RELEASE_URL to download release."
     s3_url="${FOUNDRY_RELEASE_URL}"
   else
@@ -67,13 +66,15 @@ if [ $install_required = true ]; then
     exit 1
   fi
 
-  if [[ ${CONTAINER_CACHE} ]]; then
+  if [[ "${CONTAINER_CACHE:-}" ]]; then
     echo "Using CONTAINER_CACHE: ${CONTAINER_CACHE}"
     mkdir -p "${CONTAINER_CACHE}"
   fi
 
+  set +o nounset
   downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading.zip"
   release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
+  set -o nounset
 
   echo "Downloading Foundry release."
   # Download release if newer than cached version.
@@ -90,7 +91,7 @@ if [ $install_required = true ]; then
   echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
   unzip -q "${release_filename}" 'resources/*'
 
-  if [[ ${CONTAINER_CACHE} ]]; then
+  if [[ "${CONTAINER_CACHE:-}" ]]; then
     echo "Preserving release archive file in cache."
   else
     rm "${release_filename}"
@@ -103,7 +104,7 @@ if [ $install_required = true ]; then
   fi
 
   # apply patches if requested and the directory exists
-  if [[ ${CONTAINER_PATCHES} ]]; then
+  if [[ "${CONTAINER_PATCHES:-}" ]]; then
     echo "Using CONTAINER_PATCHES: ${CONTAINER_PATCHES}"
     if [ -d "${CONTAINER_PATCHES}" ]; then
       echo "Container patches directory detected.  Starting patching..."
@@ -119,7 +120,6 @@ if [ $install_required = true ]; then
       echo "Container patches directory not found."
     fi
   fi
-  set -o nounset
 fi
 
 if [ "$(id -u)" = 0 ]; then
@@ -146,33 +146,31 @@ fi
 # Quote all strings for insertion into json
 # busybox does not implement ${VAR@Q} substitution to quote variables
 
-set +o nounset
-if [[ $FOUNDRY_AWS_CONFIG ]]; then
+if [[ "${FOUNDRY_AWS_CONFIG:-}" ]]; then
   if [[ $FOUNDRY_AWS_CONFIG == "true" ]];then
     FOUNDRY_AWS_CONFIG=true
   else
     FOUNDRY_AWS_CONFIG=\"${FOUNDRY_AWS_CONFIG}\"
   fi
 fi
-if [[ $FOUNDRY_HOSTNAME ]]; then
+if [[ "${FOUNDRY_HOSTNAME:-}" ]]; then
   FOUNDRY_HOSTNAME=\"${FOUNDRY_HOSTNAME}\"
 fi
-if [[ $FOUNDRY_ROUTE_PREFIX ]]; then
+if [[ "${FOUNDRY_ROUTE_PREFIX:-}" ]]; then
   FOUNDRY_ROUTE_PREFIX=\"${FOUNDRY_ROUTE_PREFIX}\"
 fi
-if [[ $FOUNDRY_SSL_CERT ]]; then
+if [[ "${FOUNDRY_SSL_CERT:-}" ]]; then
   FOUNDRY_SSL_CERT=\"${FOUNDRY_SSL_CERT}\"
 fi
-if [[ $FOUNDRY_SSL_KEY ]]; then
+if [[ "${FOUNDRY_SSL_KEY:-}" ]]; then
   FOUNDRY_SSL_KEY=\"${FOUNDRY_SSL_KEY}\"
 fi
-if [[ $FOUNDRY_UPDATE_CHANNEL ]]; then
+if [[ "${FOUNDRY_UPDATE_CHANNEL:-}" ]]; then
   FOUNDRY_UPDATE_CHANNEL=\"${FOUNDRY_UPDATE_CHANNEL}\"
 fi
-if [[ $FOUNDRY_WORLD ]]; then
+if [[ "${FOUNDRY_WORLD:-}" ]]; then
   FOUNDRY_WORLD=\"${FOUNDRY_WORLD}\"
 fi
-set -o nounset
 
 # Update configuration file
 mkdir -p /data/Config >& /dev/null
@@ -197,15 +195,13 @@ cat <<EOF > /data/Config/options.json
 EOF
 
 # Save Admin Access Key if it is set
-set +o nounset
-if [ -n "${FOUNDRY_ADMIN_KEY}" ]; then
+if [[ "${FOUNDRY_ADMIN_KEY:-}" ]]; then
   echo "Setting 'Admin Access Key'."
   echo "${FOUNDRY_ADMIN_KEY}" | ./set_password.js > /data/Config/admin.txt
 else
   echo "Warning: No 'Admin Access Key' has been configured."
   rm /data/Config/admin.txt >& /dev/null || true
 fi
-set -o nounset
 
 # Spawn node with clean environment to prevent credential leaks
 echo "Starting Foundry Virtual Tabletop."
