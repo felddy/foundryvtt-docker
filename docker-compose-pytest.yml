@@ -8,12 +8,13 @@ services:
     image: felddy/foundryvtt:0.6.4
     hostname: felddy_foundryvtt
     init: true
-    restart: "unless-stopped"
+    restart: "no"
     volumes:
       - type: bind
         source: ./data
         target: /data
     environment:
+      - CONTAINER_VERBOSE=true
       - FOUNDRY_PASSWORD # pass through
       - FOUNDRY_USERNAME # pass through
       - TIMEZONE=US/Eastern
