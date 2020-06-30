@@ -95,7 +95,6 @@ if [ $install_required = true ]; then
   else
     rm "${release_filename}"
   fi
-  set -o nounset
 
   if [ -f license.json ] && [ ! -f /data/Config/license.json ]; then
     echo "Applying license key."
@@ -120,6 +119,7 @@ if [ $install_required = true ]; then
       echo "Container patches directory not found."
     fi
   fi
+  set -o nounset
 fi
 
 if [ "$(id -u)" = 0 ]; then
