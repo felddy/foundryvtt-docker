@@ -8,7 +8,7 @@ import time
 # Third-Party Libraries
 import pytest
 
-READY_MESSAGE = "Foundry Virtual Tabletop"
+READY_MESSAGE = "Server started and listening on port"
 RELEASE_TAG = os.getenv("RELEASE_TAG")
 VERSION_FILE = "src/_version.py"
 
