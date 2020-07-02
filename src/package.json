@@ -9,7 +9,8 @@
     "fetch-cookie": "^0.9.1",
     "node-fetch": "^2.6.0",
     "pino": "^6.3.2",
-    "pino-pretty": "^4.0.0"
+    "pino-pretty": "^4.0.0",
+    "snyk": "^1.359.0"
   },
   "description": "Utilities to help boot a FoundryVTT server.",
   "devDependencies": {},
@@ -26,7 +27,10 @@
     "url": "git+https://github.com/felddy/foundryvtt-docker.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "snyk": true
 }
