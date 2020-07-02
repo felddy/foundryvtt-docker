@@ -1,0 +1,9 @@
+.git
+.github
+.mypy_cache
+.pytest_cache
+.python-version
+assets
+data
+patches
+tests
