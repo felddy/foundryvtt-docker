@@ -27,10 +27,10 @@
     "url": "git+https://github.com/felddy/foundryvtt-docker.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "npm run snyk-protect",
     "snyk-protect": "snyk protect",
-    "prepublish": "npm run snyk-protect"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "0.0.1",
-  "snyk": true
+  "snyk": true,
+  "version": "0.0.1"
 }
