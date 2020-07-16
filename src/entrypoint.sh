@@ -130,6 +130,11 @@ if [ "$(id -u)" = 0 ]; then
   echo "Setting data directory permissions."
   chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
 
+  if [ "$1" = "--root-shell" ]; then
+    /bin/sh
+    exit $?
+  fi
+
   if [ "${FOUNDRY_UID:-foundry}" != 0 ]; then
     # drop privileges and restart this script as foundry user
     echo "Switching uid:gid to ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry} and restarting."

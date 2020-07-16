@@ -401,7 +401,8 @@ can pass the `--shell` option to the entrypoint:
 
 | Purpose | Command |
 |---------|---------|
-| Drop into a shell in the container | `docker-compose run foundry --shell` |
+| Drop into a shell in the container before switching uid:gid | `docker-compose run foundry --root-shell` |
+| Drop into a shell in the container after switching uid:gid | `docker-compose run foundry --shell` |
 
 ## Contributing ##
 
