@@ -14,6 +14,7 @@ services:
       - FOUNDRY_PASSWORD=<your_password>
       - FOUNDRY_USERNAME=<your_username>
       - FOUNDRY_ADMIN_KEY=atropos
+      # - FOUNDRY_LICENSE_KEY=<your_license_key>
       # - FOUNDRY_RELEASE_URL=<temporary_url>
       # - FOUNDRY_AWS_CONFIG=
       # - FOUNDRY_GID=foundry
@@ -30,6 +31,7 @@ services:
       # - FOUNDRY_VERSION=0.7.0
       # - FOUNDRY_WORLD=
       # - TIMEZONE=US/Eastern
+      # - CONTAINER_VERBOSE=true
     ports:
       - target: "30000"
         published: "30000"

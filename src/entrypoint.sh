@@ -24,10 +24,13 @@ if [ -f "${secret_file}" ]; then
   secret_username=$(jq --exit-status --raw-output .foundry_username ${secret_file}) || secret_username=""
   secret_password=$(jq --exit-status --raw-output .foundry_password ${secret_file}) || secret_password=""
   secret_admin_key=$(jq --exit-status --raw-output .foundry_admin_key ${secret_file}) || secret_admin_key=""
+  secret_license_key$(jq --exit-status --raw-output .foundry_license_key ${secret_file}) || secret_license_key=""
+  
   # Override environment variables if secrets were set
   FOUNDRY_USERNAME=${secret_username:-$FOUNDRY_USERNAME}
   FOUNDRY_PASSWORD=${secret_password:-$FOUNDRY_PASSWORD}
   FOUNDRY_ADMIN_KEY=${secret_admin_key:-$FOUNDRY_ADMIN_KEY}
+  FOUNDRY_LICENSE_KEY${secret_license_key:-$FOUNDRY_LICENSE_KEY}
 fi
 
 # Check to see if an install is required
@@ -52,9 +55,9 @@ if [ $install_required = true ]; then
   if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
     echo "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to fetch release URL and license."
     if [[ "${CONTAINER_VERBOSE:-}" ]]; then
-      s3_url=$(./authenticate.js --log-level=trace --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}")
+      s3_url=$(./authenticate.js --log-level=trace --license "${FOUNDRY_LICENSE_KEY}" --license-filename=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}")
     else
-      s3_url=$(./authenticate.js --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}")
+      s3_url=$(./authenticate.js --license "${FOUNDRY_LICENSE_KEY}" --license-filename=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}")
     fi
   elif [ "${FOUNDRY_RELEASE_URL:-}" ]; then
     echo "Using FOUNDRY_RELEASE_URL to download release."

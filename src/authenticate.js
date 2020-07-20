@@ -12,15 +12,16 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  authenticate.js [--log-level=LEVEL] [--license=filename] <username> <password> <version>
+  authenticate.js [--log-level=LEVEL] [--license=LICENSE-KEY] [--license-filename=filename] <username> <password> <version>
   authenticate.js (-h | --help)
 
 Options:
-  -h --help              Show this message.
-  --log-level=LEVEL      If specified, then the log level will be set to
-                         the specified value.  Valid values are "trace", "debug", "info",
-                         "warn", "error", and "fatal". [default: info]
-  --license=filename     Fetch a license key and save it to a JSON file.
+  -h --help                     Show this message.
+  --log-level=LEVEL             If specified, then the log level will be set to
+                                the specified value.  Valid values are "trace", "debug", "info",
+                                  "warn", "error", and "fatal". [default: info]
+  --license-filename=filename   Fetch a license key and save it to a JSON file with the given filename.
+  --license=LICENSE-KEY         Provide a license key to use
 `;
 
 // Argument parsing
@@ -112,14 +113,12 @@ async function login(csrfmiddlewaretoken, username, password) {
 
   // Check to see if we have a sessionid (logged in)
   const cookies = cookieJar.getCookiesSync(BASE_URL);
-  const session_cookie = cookies.find((cookie) => {
+  const session_cookie = cookies.find(cookie => {
     return cookie.key == "sessionid";
   });
   if (typeof session_cookie == "undefined") {
     logger.fatal(`Unable to log in as ${username}, verify your credentials...`);
-    throw new Error(
-      `Unable to log in as ${username}, verify your credentials...`
-    );
+    throw new Error(`Unable to log in as ${username}, verify your credentials...`);
   }
 
   // A user may login with an e-mail address.  Resolve it to a username now.
@@ -168,17 +167,13 @@ async function saveLicense(license, filename) {
   // remove dashes from license
   const license_no_dashes = license.replace(/-/g, "");
   logger.info(`Writing license to: ${filename}`);
-  await fs.writeFile(
-    filename,
-    JSON.stringify({ license: license_no_dashes }, null, 2),
-    function (err) {
-      if (err) {
-        logger.warn(`License could not be saved: ${err}`);
-      } else {
-        logger.info("License successfully saved.");
-      }
+  await fs.writeFile(filename, JSON.stringify({ license: license_no_dashes }, null, 2), function (err) {
+    if (err) {
+      logger.warn(`License could not be saved: ${err}`);
+    } else {
+      logger.info("License successfully saved.");
     }
-  );
+  });
 }
 
 /**
@@ -217,7 +212,8 @@ async function main() {
   const password = options["<password>"];
   const foundry_version = options["<version>"];
   const log_level = options["--log-level"].toLowerCase();
-  const license_filename = options["--license"];
+  const license_filename = options["--license-filename"];
+  let license_key = options["--license"];
 
   // Setup logging.
   logger = pino(
@@ -239,7 +235,7 @@ async function main() {
 
   if (license_filename) {
     // Attempt to fetch a license key.
-    const license_key = await fetchLicense(loggedInUsername);
+    license_key = license_key !== "" ? license_key : await fetchLicense(loggedInUsername);
     if (license_key) {
       await saveLicense(license_key, license_filename);
     } else {
