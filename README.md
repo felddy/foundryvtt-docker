@@ -122,14 +122,15 @@ environment variables.  Your secrets json file can have any name.  This example
 uses `secrets.json`.  Regardless of the name you choose it must be targeted to
 `config.json` as in the example below.
 
-1. To use secrets, create a `secrets.json` file containing the values you want
+1. To use secrets, create a `secrets.json` file containing any values you want
    set:
 
     ```json
     {
-      "foundry_username": "your_username",
+      "foundry_admin_key": "atropos",
+      "foundry_license_key": "AAAA-BBBB-CCCC-DDDD-EEEE-FFFF",
       "foundry_password": "your_password",
-      "foundry_admin_key": "atropos"
+      "foundry_username": "your_username"
     }
     ```
 
@@ -247,6 +248,7 @@ secrets](#using-secrets) instead of environment variables.
 | FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | null |
 | FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
 | FOUNDRY_HOSTNAME | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
+| FOUNDRY_LICENSE_KEY | The license key to install.  If left unset, a license will be fetched when using account authentication. e.g.; `AAAA-BBBB-CCCC-DDDD-EEEE-FFFF` | |
 | FOUNDRY_NO_UPDATE | Prevent the application from being updated from the web interface.  The application code is immutable when running in a container.  See the [Updating](#updating) section for the steps needed to update this container. | true |
 | FOUNDRY_PROXY_PORT | Inform the Foundry Server that the software is running behind a reverse proxy on some other port. This allows the invitation links created to the game to include the correct external port. | null |
 | FOUNDRY_PROXY_SSL | Indicates whether the software is running behind a reverse proxy that uses SSL. This allows invitation links and A/V functionality to work as if the Foundry Server had SSL configured directly. | false |
@@ -264,7 +266,7 @@ secrets](#using-secrets) instead of environment variables.
 
 | Filename        | Purpose |
 |-----------------|---------|
-| config.json     | Allows passing in of `foundry_username`, `foundry_password`, `foundry_admin_key`  |
+| config.json     | Allows passing in of `foundry_admin_key`, `foundry_license_key`, `foundry_password`, `foundry_username` |
 
 ## Building from source ##
 
