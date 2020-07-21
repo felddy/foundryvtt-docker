@@ -9,7 +9,8 @@
     "fetch-cookie": "^0.9.1",
     "node-fetch": "^2.6.0",
     "pino": "^6.3.2",
-    "pino-pretty": "^4.0.0"
+    "pino-pretty": "^4.0.0",
+    "tough-cookie-file-store": "^2.0.2"
   },
   "description": "Utilities to help boot a FoundryVTT server.",
   "devDependencies": {},
