@@ -55,8 +55,8 @@ if [ $install_required = true ]; then
   # Determine how we are going to get the release URL
   if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
     echo "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
-    ./authenticate.js ${CONTAINER_VERBOSE+--log-level=trace} "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
-    s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=trace} "${cookiejar_file}" "${FOUNDRY_VERSION}")
+    ./authenticate.js "${CONTAINER_VERBOSE+--log-level=trace}" "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
+    s3_url=$(./get_release_url.js "${CONTAINER_VERBOSE+--log-level=trace}" "${cookiejar_file}" "${FOUNDRY_VERSION}")
     # TODO fetch
   elif [ "${FOUNDRY_RELEASE_URL:-}" ]; then
     echo "Using FOUNDRY_RELEASE_URL to download release."
@@ -136,9 +136,9 @@ if [ ! -f /data/Config/license.json ]; then
     echo "Attempting to fetch license key from authenticated account."
     if [[ "${FOUNDRY_LICENSE_KEY:-}" ]]; then
       # FOUNDRY_LICENSE_KEY can be an index, try passing it
-      fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=trace} --select="${FOUNDRY_LICENSE_KEY}" "${cookiejar_file}")
+      fetched_license_key=$(./get_license.js "${CONTAINER_VERBOSE+--log-level=trace}" --select="${FOUNDRY_LICENSE_KEY}" "${cookiejar_file}")
     else
-      fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=trace} "${cookiejar_file}")
+      fetched_license_key=$(./get_license.js "${CONTAINER_VERBOSE+--log-level=trace}" "${cookiejar_file}")
     fi
     echo "{ \"license\": \"${fetched_license_key}\" }" > /data/Config/license.json
   else
