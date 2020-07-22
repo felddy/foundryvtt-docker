@@ -32,12 +32,11 @@ const options = docopt(doc, { version: "1.0.0" });
 
 // Imports
 const _nodeFetch = require("node-fetch");
-const { CookieJar, Cookie } = require("tough-cookie");
+const { CookieJar } = require("tough-cookie");
 const cheerio = require("cheerio");
 const CookieFileStore = require("tough-cookie-file-store").FileCookieStore;
 var cookieJar;
 var fetch;
-const fs = require("fs");
 const pino = require("pino");
 const process = require("process");
 

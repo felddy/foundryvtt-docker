@@ -30,7 +30,6 @@ const cheerio = require("cheerio");
 const CookieFileStore = require("tough-cookie-file-store").FileCookieStore;
 var cookieJar;
 var fetch;
-const fs = require("fs");
 const pino = require("pino");
 const process = require("process");
 
