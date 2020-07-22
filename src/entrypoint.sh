@@ -6,7 +6,6 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
-
 image_version=$(cat image_version.txt)
 
 if [ "$1" = "--version" ]; then
@@ -147,7 +146,6 @@ if [ ! -f /data/Config/license.json ]; then
 else
   echo "Not modifying existing installation license key."
 fi
-
 
 if [ "$(id -u)" = 0 ]; then
   # set timezone using environment
