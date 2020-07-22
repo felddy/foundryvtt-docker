@@ -70,7 +70,7 @@ async function fetchTokens() {
 
   const csrfmiddlewaretoken = $('input[name ="csrfmiddlewaretoken"]').val();
   if (typeof csrfmiddlewaretoken == "undefined") {
-    logger.fatal("Could not find the CSRF middleware token.");
+    logger.error("Could not find the CSRF middleware token.");
     throw new Error("Could not find the CSRF middleware token.");
   }
   return csrfmiddlewaretoken;
@@ -112,7 +112,7 @@ async function login(csrfmiddlewaretoken, username, password) {
     return cookie.key == "sessionid";
   });
   if (typeof session_cookie == "undefined") {
-    logger.fatal(`Unable to log in as ${username}, verify your credentials...`);
+    logger.error(`Unable to log in as ${username}, verify your credentials...`);
     throw new Error(
       `Unable to log in as ${username}, verify your credentials...`
     );
@@ -158,18 +158,29 @@ async function main() {
   cookieJar = new CookieJar(new CookieFileStore(cookiejar_filename));
   fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
 
-  // Get the tokens and cookies we'll need to login.
-  const csrfmiddlewaretoken = await fetchTokens();
+  try {
+    // Get the tokens and cookies we'll need to login.
+    const csrfmiddlewaretoken = await fetchTokens();
 
-  // Login using the credentials, tokens, and cookies.
-  const loggedInUsername = await login(csrfmiddlewaretoken, username, password);
+    // Login using the credentials, tokens, and cookies.
+    const loggedInUsername = await login(
+      csrfmiddlewaretoken,
+      username,
+      password
+    );
 
-  // Store the username in a cookie for use by other utilities
-  const username_cookie = Cookie.parse(
-    `username=${loggedInUsername}; Domain=${LOCAL_DOMAIN}; Path=/`
-  );
-  cookieJar.setCookieSync(username_cookie, `http://${LOCAL_DOMAIN}`);
+    // Store the username in a cookie for use by other utilities
+    const username_cookie = Cookie.parse(
+      `username=${loggedInUsername}; Domain=${LOCAL_DOMAIN}; Path=/`
+    );
+    cookieJar.setCookieSync(username_cookie, `http://${LOCAL_DOMAIN}`);
+  } catch (err) {
+    logger.error(`Unable to authenticate: ${err.message}`);
+    return -1;
+  }
   return 0;
 }
 
-return main();
+(async () => {
+  process.exitCode = await main();
+})();

@@ -113,4 +113,6 @@ async function main() {
   }
 }
 
-return main();
+(async () => {
+  process.exitCode = await main();
+})();
