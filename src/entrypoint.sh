@@ -57,7 +57,6 @@ if [ $install_required = true ]; then
     echo "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
     ./authenticate.js "${CONTAINER_VERBOSE+--log-level=trace}" "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
     s3_url=$(./get_release_url.js "${CONTAINER_VERBOSE+--log-level=trace}" "${cookiejar_file}" "${FOUNDRY_VERSION}")
-    # TODO fetch
   elif [ "${FOUNDRY_RELEASE_URL:-}" ]; then
     echo "Using FOUNDRY_RELEASE_URL to download release."
     s3_url="${FOUNDRY_RELEASE_URL}"
@@ -142,7 +141,7 @@ if [ ! -f /data/Config/license.json ]; then
     fi
     echo "{ \"license\": \"${fetched_license_key}\" }" > /data/Config/license.json
   else
-    echo "Unable to apply a license key.  It will need to be entered in the browser."
+    echo "Unable to apply a license key since niether a license key nor credentials were provided.  The license key will need to be entered in the browser."
   fi
   set -o nounset
 else
