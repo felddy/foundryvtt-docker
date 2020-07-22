@@ -16,12 +16,13 @@ ARG FOUNDRY_VERSION
 ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
 
 WORKDIR /root
-COPY src/package.json src/authenticate.js ./
+COPY src/package.json src/authenticate.js src/get_release_url.js ./
 # .placeholder file to mitigate https://github.com/moby/moby/issues/37965
 RUN mkdir dist && touch dist/.placeholder
 RUN if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
       npm install && \
-      s3_url=$(./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}") && \
+      ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
+      s3_url=$(./get_release_url.js cookiejar.json "${FOUNDRY_VERSION}") && \
       wget -O ${ARCHIVE} "${s3_url}" && \
       unzip -d dist ${ARCHIVE} 'resources/*'; \
     elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
@@ -60,7 +61,7 @@ RUN apk --update --no-cache add curl jq sed su-exec
 WORKDIR ${FOUNDRY_HOME}
 
 COPY --from=optional-release-stage /root/dist/ .
-COPY src/entrypoint.sh src/package.json src/set_password.js src/authenticate.js ./
+COPY src/entrypoint.sh src/package.json src/set_password.js src/authenticate.js src/get_release_url.js src/get_license.js ./
 RUN npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]

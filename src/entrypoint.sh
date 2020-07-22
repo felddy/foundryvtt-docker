@@ -16,20 +16,22 @@ fi
 
 echo "Starting felddy/foundryvtt container v${image_version}"
 
+cookiejar_file="cookiejar.json"
+license_min_length=24
 secret_file="/run/secrets/config.json"
 
 # Check for raft secrets
 if [ -f "${secret_file}" ]; then
   echo "Reading configured secrets from: ${secret_file}"
   secret_admin_key=$(jq --exit-status --raw-output .foundry_admin_key ${secret_file}) || secret_admin_key=""
-  secret_license_key=$(jq --exit-status --raw-output .foundry_admin_key ${secret_file}) || secret_license_key=""
+  secret_license_key=$(jq --exit-status --raw-output .foundry_license_key ${secret_file}) || secret_license_key=""
   secret_password=$(jq --exit-status --raw-output .foundry_password ${secret_file}) || secret_password=""
   secret_username=$(jq --exit-status --raw-output .foundry_username ${secret_file}) || secret_username=""
   # Override environment variables if secrets were set
-  FOUNDRY_ADMIN_KEY=${secret_admin_key:-$FOUNDRY_ADMIN_KEY}
-  FOUNDRY_LICENSE_KEY=${secret_license_key:-$FOUNDRY_LICENSE_KEY}
-  FOUNDRY_PASSWORD=${secret_password:-$FOUNDRY_PASSWORD}
-  FOUNDRY_USERNAME=${secret_username:-$FOUNDRY_USERNAME}
+  FOUNDRY_ADMIN_KEY=${secret_admin_key:-${FOUNDRY_ADMIN_KEY:-}}
+  FOUNDRY_LICENSE_KEY=${secret_license_key:-${FOUNDRY_LICENSE_KEY:-}}
+  FOUNDRY_PASSWORD=${secret_password:-${FOUNDRY_PASSWORD:-}}
+  FOUNDRY_USERNAME=${secret_username:-${FOUNDRY_USERNAME:-}}
 fi
 
 # Check to see if an install is required
@@ -52,20 +54,13 @@ fi
 if [ $install_required = true ]; then
   # Determine how we are going to get the release URL
   if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
-    echo "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to fetch release URL and license."
-    if [[ "${CONTAINER_VERBOSE:-}" ]]; then
-      s3_url=$(./authenticate.js --log-level=trace --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}")
-    else
-      s3_url=$(./authenticate.js --license=license.json "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}")
-    fi
+    echo "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
+    ./authenticate.js ${CONTAINER_VERBOSE+--log-level=trace} "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
+    s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=trace} "${cookiejar_file}" "${FOUNDRY_VERSION}")
+    # TODO fetch
   elif [ "${FOUNDRY_RELEASE_URL:-}" ]; then
     echo "Using FOUNDRY_RELEASE_URL to download release."
     s3_url="${FOUNDRY_RELEASE_URL}"
-  else
-    echo "Unable to install Foundry: No credentials or release URL provided."
-    echo "Either set FOUNDRY_USERNAME and FOUNDRY_PASSWORD."
-    echo "Or set FOUNDRY_RELEASE_URL."
-    exit 1
   fi
 
   if [[ "${CONTAINER_CACHE:-}" ]]; then
@@ -78,31 +73,35 @@ if [ $install_required = true ]; then
   release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
   set -o nounset
 
-  echo "Downloading Foundry release."
-  # Download release if newer than cached version.
-  # Filter out warnings about bad date formats if the file is missing.
-  curl --fail --time-cond "${release_filename}" \
-       --output "${downloading_filename}" "${s3_url}" 2>&1 | \
-       tr "\r" "\n" | \
-       sed --unbuffered '/^Warning: .* date/d'
+  if [[ "${s3_url:-}" ]]; then
+    echo "Downloading Foundry Virtual Tabletop release."
+    # Download release if newer than cached version.
+    # Filter out warnings about bad date formats if the file is missing.
+    curl --fail --time-cond "${release_filename}" \
+         --output "${downloading_filename}" "${s3_url}" 2>&1 | \
+         tr "\r" "\n" | \
+         sed --unbuffered '/^Warning: .* date/d'
 
-  # Rename the download now that it is completed.
-  # If we had a cache hit, the file is already renamed.
-  mv "${downloading_filename}" "${release_filename}" > /dev/null 2>&1 || true
+    # Rename the download now that it is completed.
+    # If we had a cache hit, the file is already renamed.
+    mv "${downloading_filename}" "${release_filename}" > /dev/null 2>&1 || true
+  fi
 
-  echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
-  unzip -q "${release_filename}" 'resources/*'
+  if [ -f "${release_filename}" ]; then
+    echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
+    unzip -q "${release_filename}" 'resources/*'
+  else
+    echo "Unable to install Foundry Virtual Tabletop!"
+    echo "Either set FOUNDRY_USERNAME and FOUNDRY_PASSWORD."
+    echo "Or set FOUNDRY_RELEASE_URL."
+    echo "Or set CONTAINER_CACHE to a directory containing foundryvtt-${FOUNDRY_VERSION}.zip"
+    exit 1
+  fi
 
   if [[ "${CONTAINER_CACHE:-}" ]]; then
     echo "Preserving release archive file in cache."
   else
     rm "${release_filename}"
-  fi
-
-  if [ -f license.json ] && [ ! -f /data/Config/license.json ]; then
-    echo "Applying license key."
-    mkdir -p /data/Config
-    mv license.json /data/Config
   fi
 
   # apply patches if requested and the directory exists
@@ -123,6 +122,33 @@ if [ $install_required = true ]; then
     fi
   fi
 fi
+
+if [ ! -f /data/Config/license.json ]; then
+  echo "Installation not yet licensed."
+  mkdir -p /data/Config
+  set +o nounset # length check will fail
+  if [[ ${#FOUNDRY_LICENSE_KEY} -ge ${license_min_length} ]]; then
+    set -o nounset
+    echo "Applying license key passed via FOUNDRY_LICENSE_KEY."
+    # FOUNDRY_LICENSE_KEY is long enough to be a key
+    echo "{ \"license\": \"${FOUNDRY_LICENSE_KEY}\" }" | tr -d '-' > /data/Config/license.json
+  elif [ -f ${cookiejar_file} ]; then
+    echo "Attempting to fetch license key from authenticated account."
+    if [[ "${FOUNDRY_LICENSE_KEY:-}" ]]; then
+      # FOUNDRY_LICENSE_KEY can be an index, try passing it
+      fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=trace} --select="${FOUNDRY_LICENSE_KEY}" "${cookiejar_file}")
+    else
+      fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=trace} "${cookiejar_file}")
+    fi
+    echo "{ \"license\": \"${fetched_license_key}\" }" > /data/Config/license.json
+  else
+    echo "Unable to apply a license key.  It will need to be entered in the browser."
+  fi
+  set -o nounset
+else
+  echo "Not modifying existing installation license key."
+fi
+
 
 if [ "$(id -u)" = 0 ]; then
   # set timezone using environment
