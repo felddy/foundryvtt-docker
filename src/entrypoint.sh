@@ -1,6 +1,6 @@
 #!/bin/sh
 # shellcheck disable=SC2039
-# busybox supports more features that POSIX /bin/sh
+# busybox supports more features than POSIX /bin/sh
 
 set -o nounset
 set -o errexit
