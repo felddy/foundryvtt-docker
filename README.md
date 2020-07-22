@@ -114,21 +114,19 @@ If all goes well you should be prompted with the license agreement, and then
 
 ## Using secrets ##
 
-This container also supports passing `foundry_username`, `foundry_passord`, and
-`foundry_admin_key` via [Docker
+This container also supports passing sensitive values via [Docker
 secrets](https://docs.docker.com/engine/swarm/secrets/).  Passing sensitive
 values like your credentials can be more secure using secrets than using
 environment variables.  Your secrets json file can have any name.  This example
 uses `secrets.json`.  Regardless of the name you choose it must be targeted to
-`config.json` as in the example below.
+`config.json` within the container as in the example below.  See the
+[secrets](#secrets) section below for a table of all supported secret keys.
 
-1. To use secrets, create a `secrets.json` file containing any values you want
-   set:
+1. To use secrets, create a `secrets.json` file containing the values you want set:
 
     ```json
     {
       "foundry_admin_key": "atropos",
-      "foundry_license_key": "AAAA-BBBB-CCCC-DDDD-EEEE-FFFF",
       "foundry_password": "your_password",
       "foundry_username": "your_username"
     }
@@ -221,34 +219,50 @@ Hub for a list of all the supported tags.
 |-------------|----------------|
 | /data    | configuration, data, and log storage |
 
-## Environment Variables ##
+## Environment variables ##
 
-### Required ###
+### Required combinations ###
 
-Either (`FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD`) or `FOUNDRY_RELEASE_URL` must
-be provided.
+There are three combinations of environment variables that are required to start
+the container.  Either (`FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD`), or
+`FOUNDRY_RELEASE_URL`, or `CONTAINER_CACHE` must be provided.
 
-`FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD` may be set [using
+#### Credentials variables ####
+
+***Note:*** `FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD` may be set [using
 secrets](#using-secrets) instead of environment variables.
 
 | Name             | Purpose  |
 |------------------|----------|
-| FOUNDRY_USERNAME | Account username or email address for foundryvtt.com.  Required for downloading an application release. |
 | FOUNDRY_PASSWORD | Account password for foundryvtt.com.  Required for downloading an application release. |
+| FOUNDRY_USERNAME | Account username or email address for foundryvtt.com.  Required for downloading an application release. |
+
+#### Pre-signed URL variable ####
+
+| Name             | Purpose  |
+|------------------|----------|
 | FOUNDRY_RELEASE_URL | S3 pre-signed URL generate from the user's profile.  Required for downloading an application release. |
+
+#### Pre-cached release variable ####
+
+A release can be downloaded and placed into a cache directory.  It's name should
+be of the form: `foundryvtt-0.7.0.zip`
+
+| Name             | Purpose  |
+|------------------|----------|
+| CONTAINER_CACHE | Set a path to cache downloads of the Foundry release archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_cache`| |
 
 ### Optional ###
 
 | Name  | Purpose | Default |
 |-------|---------|---------|
-| CONTAINER_CACHE | Set a path to cache downloads of the Foundry release archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_cache`| |
 | CONTAINER_PATCHES | Set a path to a directory of shell scripts to be sourced after Foundry is installed but before it is started.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_patches`| |
 | CONTAINER_VERBOSE | Set to `true` to enable verbose logging for the container utility scripts. | |
-| FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared. | |
+| FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared.  May be set [using secrets](#using-secrets). | |
 | FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | null |
 | FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
 | FOUNDRY_HOSTNAME | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
-| FOUNDRY_LICENSE_KEY | The license key to install. e.g.; `AAAA-BBBB-CCCC-DDDD-EEEE-FFFF`  If left unset, a license key will be fetched when using account authentication.   If multiple license keys are associated with an account, one will be chosen at random.  Specific licenses can be selected by passing in an integer index.  The first license key being `1`. | |
+| FOUNDRY_LICENSE_KEY | The license key to install. e.g.; `AAAA-BBBB-CCCC-DDDD-EEEE-FFFF`  If left unset, a license key will be fetched when using account authentication.   If multiple license keys are associated with an account, one will be chosen at random.  Specific licenses can be selected by passing in an integer index.  The first license key being `1`.  May be set [using secrets](#using-secrets). | |
 | FOUNDRY_NO_UPDATE | Prevent the application from being updated from the web interface.  The application code is immutable when running in a container.  See the [Updating](#updating) section for the steps needed to update this container. | true |
 | FOUNDRY_PROXY_PORT | Inform the Foundry Server that the software is running behind a reverse proxy on some other port. This allows the invitation links created to the game to include the correct external port. | null |
 | FOUNDRY_PROXY_SSL | Indicates whether the software is running behind a reverse proxy that uses SSL. This allows invitation links and A/V functionality to work as if the Foundry Server had SSL configured directly. | false |
@@ -264,9 +278,12 @@ secrets](#using-secrets) instead of environment variables.
 
 ## Secrets ##
 
-| Filename        | Purpose |
-|-----------------|---------|
-| config.json     | Allows passing in of `foundry_admin_key`, `foundry_license_key`, `foundry_password`, `foundry_username` |
+| Filename     | Key | Purpose |
+|--------------|-----|---------|
+| `config.json` | `foundry_admin_key` | Overrides `FOUNDRY_ADMIN_KEY` environment variable. |
+| `config.json` | `foundry_license_key` | Overrides `FOUNDRY_LICENSE_KEY` environment variable. |
+| `config.json` | `foundry_password` | Overrides `FOUNDRY_PASSWORD` environment variable. |
+| `config.json` | `foundry_username` | Overrides `FOUNDRY_USERNAME` environment variable. |
 
 ## Building from source ##
 
