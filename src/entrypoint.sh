@@ -6,6 +6,25 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
+# Define terminal colors for use in logger functions
+GREEN="\e[32m"
+RED="\e[31m"
+RESET="\e[0m"
+YELLOW="\e[33m"
+
+# Mimic the winston logging used in logging.js
+log(){
+  echo -e "Entrypoint | $(date +%Y-%m-%d\ %H:%M:%S) | [${GREEN}info${RESET}] $*"
+}
+
+log_warn(){
+  echo -e "Entrypoint | $(date +%Y-%m-%d\ %H:%M:%S) | [${YELLOW}warn${RESET}] $*"
+}
+
+log_error(){
+  echo -e "Entrypoint | $(date +%Y-%m-%d\ %H:%M:%S) | [${RED}error${RESET}] $*"
+}
+
 image_version=$(cat image_version.txt)
 
 if [ "$1" = "--version" ]; then
@@ -13,7 +32,7 @@ if [ "$1" = "--version" ]; then
   exit 0
 fi
 
-echo "Starting felddy/foundryvtt container v${image_version}"
+log "Starting felddy/foundryvtt container v${image_version}"
 
 cookiejar_file="cookiejar.json"
 license_min_length=24
@@ -21,7 +40,7 @@ secret_file="/run/secrets/config.json"
 
 # Check for raft secrets
 if [ -f "${secret_file}" ]; then
-  echo "Reading configured secrets from: ${secret_file}"
+  log "Reading configured secrets from: ${secret_file}"
   secret_admin_key=$(jq --exit-status --raw-output .foundry_admin_key ${secret_file}) || secret_admin_key=""
   secret_license_key=$(jq --exit-status --raw-output .foundry_license_key ${secret_file}) || secret_license_key=""
   secret_password=$(jq --exit-status --raw-output .foundry_password ${secret_file}) || secret_password=""
@@ -37,15 +56,15 @@ fi
 install_required=false
 if [ -f "resources/app/package.json" ]; then
   installed_version=$(jq --raw-output .version resources/app/package.json)
-  echo "Foundry Virtual Tabletop ${installed_version} is installed."
+  log "Foundry Virtual Tabletop ${installed_version} is installed."
   if [ "${FOUNDRY_VERSION}" != "${installed_version}" ]; then
-    echo "Requested version (${FOUNDRY_VERSION}) from FOUNDRY_VERSION differs."
-    echo "Uninstalling version ${FOUNDRY_VERSION}."
+    log "Requested version (${FOUNDRY_VERSION}) from FOUNDRY_VERSION differs."
+    log "Uninstalling version ${FOUNDRY_VERSION}."
     rm -r resources
     install_required=true
   fi
 else
-  echo "No Foundry Virtual Tabletop installation detected."
+  log "No Foundry Virtual Tabletop installation detected."
   install_required=true
 fi
 
@@ -53,16 +72,16 @@ fi
 if [ $install_required = true ]; then
   # Determine how we are going to get the release URL
   if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
-    echo "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
+    log "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
     ./authenticate.js "${CONTAINER_VERBOSE+--log-level=debug}" "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
     s3_url=$(./get_release_url.js "${CONTAINER_VERBOSE+--log-level=debug}" "${cookiejar_file}" "${FOUNDRY_VERSION}")
   elif [ "${FOUNDRY_RELEASE_URL:-}" ]; then
-    echo "Using FOUNDRY_RELEASE_URL to download release."
+    log "Using FOUNDRY_RELEASE_URL to download release."
     s3_url="${FOUNDRY_RELEASE_URL}"
   fi
 
   if [[ "${CONTAINER_CACHE:-}" ]]; then
-    echo "Using CONTAINER_CACHE: ${CONTAINER_CACHE}"
+    log "Using CONTAINER_CACHE: ${CONTAINER_CACHE}"
     mkdir -p "${CONTAINER_CACHE}"
   fi
 
@@ -72,7 +91,7 @@ if [ $install_required = true ]; then
   set -o nounset
 
   if [[ "${s3_url:-}" ]]; then
-    echo "Downloading Foundry Virtual Tabletop release."
+    log "Downloading Foundry Virtual Tabletop release."
     # Download release if newer than cached version.
     # Filter out warnings about bad date formats if the file is missing.
     curl --fail --time-cond "${release_filename}" \
@@ -86,52 +105,52 @@ if [ $install_required = true ]; then
   fi
 
   if [ -f "${release_filename}" ]; then
-    echo "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
+    log "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
     unzip -q "${release_filename}" 'resources/*'
   else
-    echo "Unable to install Foundry Virtual Tabletop!"
-    echo "Either set FOUNDRY_USERNAME and FOUNDRY_PASSWORD."
-    echo "Or set FOUNDRY_RELEASE_URL."
-    echo "Or set CONTAINER_CACHE to a directory containing foundryvtt-${FOUNDRY_VERSION}.zip"
+    log_error "Unable to install Foundry Virtual Tabletop!"
+    log_error "Either set FOUNDRY_USERNAME and FOUNDRY_PASSWORD."
+    log_error "Or set FOUNDRY_RELEASE_URL."
+    log_error "Or set CONTAINER_CACHE to a directory containing foundryvtt-${FOUNDRY_VERSION}.zip"
     exit 1
   fi
 
   if [[ "${CONTAINER_CACHE:-}" ]]; then
-    echo "Preserving release archive file in cache."
+    log "Preserving release archive file in cache."
   else
     rm "${release_filename}"
   fi
 
   # apply patches if requested and the directory exists
   if [[ "${CONTAINER_PATCHES:-}" ]]; then
-    echo "Using CONTAINER_PATCHES: ${CONTAINER_PATCHES}"
+    log "Using CONTAINER_PATCHES: ${CONTAINER_PATCHES}"
     if [ -d "${CONTAINER_PATCHES}" ]; then
-      echo "Container patches directory detected.  Starting patching..."
+      log "Container patches directory detected.  Starting patching..."
       for f in "${CONTAINER_PATCHES}"/*
       do
         [ -f "$f" ] || continue # we can't set nullglob in busybox
-        echo "Sourcing patch from file: $f"
+        log "Sourcing patch from file: $f"
         # shellcheck disable=SC1090
         source "$f"
       done
-      echo "Completed patching."
+      log "Completed patching."
     else
-      echo "Container patches directory not found."
+      log_warn "Container patches directory not found."
     fi
   fi
 fi
 
 if [ ! -f /data/Config/license.json ]; then
-  echo "Installation not yet licensed."
+  log "Installation not yet licensed."
   mkdir -p /data/Config
   set +o nounset # length check will fail
   if [[ ${#FOUNDRY_LICENSE_KEY} -ge ${license_min_length} ]]; then
     set -o nounset
-    echo "Applying license key passed via FOUNDRY_LICENSE_KEY."
+    log "Applying license key passed via FOUNDRY_LICENSE_KEY."
     # FOUNDRY_LICENSE_KEY is long enough to be a key
     echo "{ \"license\": \"${FOUNDRY_LICENSE_KEY}\" }" | tr -d '-' > /data/Config/license.json
   elif [ -f ${cookiejar_file} ]; then
-    echo "Attempting to fetch license key from authenticated account."
+    log "Attempting to fetch license key from authenticated account."
     if [[ "${FOUNDRY_LICENSE_KEY:-}" ]]; then
       # FOUNDRY_LICENSE_KEY can be an index, try passing it
       fetched_license_key=$(./get_license.js "${CONTAINER_VERBOSE+--log-level=debug}" --select="${FOUNDRY_LICENSE_KEY}" "${cookiejar_file}")
@@ -140,11 +159,11 @@ if [ ! -f /data/Config/license.json ]; then
     fi
     echo "{ \"license\": \"${fetched_license_key}\" }" > /data/Config/license.json
   else
-    echo "Unable to apply a license key since niether a license key nor credentials were provided.  The license key will need to be entered in the browser."
+    log_warn "Unable to apply a license key since niether a license key nor credentials were provided.  The license key will need to be entered in the browser."
   fi
   set -o nounset
 else
-  echo "Not modifying existing installation license key."
+  log "Not modifying existing installation license key."
 fi
 
 if [ "$(id -u)" = 0 ]; then
@@ -152,7 +171,7 @@ if [ "$(id -u)" = 0 ]; then
   ln -snf /usr/share/zoneinfo/"${TIMEZONE:-UTC}" /etc/localtime
 
   # ensure the permissions are set correctly
-  echo "Setting data directory permissions."
+  log "Setting data directory permissions."
   chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
 
   if [ "$1" = "--root-shell" ]; then
@@ -162,7 +181,7 @@ if [ "$(id -u)" = 0 ]; then
 
   if [ "${FOUNDRY_UID:-foundry}" != 0 ]; then
     # drop privileges and restart this script as foundry user
-    echo "Switching uid:gid to ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry} and restarting."
+    log "Switching uid:gid to ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry} and restarting."
     su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" "$(readlink -f "$0")" "$@"
     exit 0
   fi
@@ -204,7 +223,7 @@ fi
 
 # Update configuration file
 mkdir -p /data/Config >& /dev/null
-echo "Generating options.json file."
+log "Generating options.json file."
 cat <<EOF > /data/Config/options.json
 {
   "awsConfig": ${FOUNDRY_AWS_CONFIG:-null},
@@ -226,13 +245,13 @@ EOF
 
 # Save Admin Access Key if it is set
 if [[ "${FOUNDRY_ADMIN_KEY:-}" ]]; then
-  echo "Setting 'Admin Access Key'."
+  log "Setting 'Admin Access Key'."
   echo "${FOUNDRY_ADMIN_KEY}" | ./set_password.js > /data/Config/admin.txt
 else
-  echo "Warning: No 'Admin Access Key' has been configured."
+  log_warn "Warning: No 'Admin Access Key' has been configured."
   rm /data/Config/admin.txt >& /dev/null || true
 fi
 
 # Spawn node with clean environment to prevent credential leaks
-echo "Starting Foundry Virtual Tabletop."
+log "Starting Foundry Virtual Tabletop."
 env -i HOME="$HOME" node "$@"
