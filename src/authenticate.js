@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+"use strict";
+
 const doc = `
 Log into Foundry Virtual Tabletop website, and save cookies to file.
 
@@ -15,8 +17,8 @@ Usage:
 Options:
   -h --help              Show this message.
   --log-level=LEVEL      If specified, then the log level will be set to
-                         the specified value.  Valid values are "trace", "debug", "info",
-                         "warn", "error", and "fatal". [default: info]
+                         the specified value.  Valid values are "debug", "info",
+                         "warn", and "error". [default: info]
 `;
 
 // Argument parsing
@@ -28,13 +30,13 @@ const _nodeFetch = require("node-fetch");
 const { CookieJar, Cookie } = require("tough-cookie");
 const cheerio = require("cheerio");
 const CookieFileStore = require("tough-cookie-file-store").FileCookieStore;
-var cookieJar;
-var fetch;
-const pino = require("pino");
+const createLogger = require("./logging").createLogger;
 const process = require("process");
 
-// Setup logger global, configure in main()
-let logger = null;
+// Setup globals, to be configured in main()
+var cookieJar;
+var fetch;
+var logger;
 
 // Constants
 const BASE_URL = "https://foundryvtt.com";
@@ -142,16 +144,7 @@ async function main() {
   const username = options["<username>"].toLowerCase();
 
   // Setup logging.
-  logger = pino(
-    {
-      level: log_level,
-      prettyPrint: {
-        translateTime: true,
-        ignore: "pid,hostname",
-      },
-    },
-    pino.destination(process.stderr.fd)
-  );
+  logger = createLogger("Authenticate", log_level);
 
   // Setup global cookie jar, storage, and fetch library
   logger.debug(`Saving cookies to: ${cookiejar_filename}`);

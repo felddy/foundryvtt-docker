@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+"use strict";
+
 const doc = `
 Retrieve a Foundrty Virtual Tabletop license key from a user's account using
 cookies from authenticate.js.
@@ -18,8 +20,8 @@ Usage:
 Options:
   -h --help              Show this message.
   --log-level=LEVEL      If specified, then the log level will be set to
-                         the specified value.  Valid values are "trace", "debug",
-                         "info", "warn", "error", and "fatal". [default: info]
+                         the specified value.  Valid values are "debug", "info",
+                         "warn", and "error". [default: info]
   --select=INDEX         If more than one license key is associated with an
                          account return the one specified by index.  In
                          unspecified, a random license will be returned.  Index
@@ -35,13 +37,13 @@ const _nodeFetch = require("node-fetch");
 const { CookieJar } = require("tough-cookie");
 const cheerio = require("cheerio");
 const CookieFileStore = require("tough-cookie-file-store").FileCookieStore;
-var cookieJar;
-var fetch;
-const pino = require("pino");
+const createLogger = require("./logging").createLogger;
 const process = require("process");
 
-// Setup logger global, configure in main()
-let logger = null;
+// Setup globals, to be configured in main()
+var cookieJar;
+var fetch;
+var logger;
 
 // Constants
 const BASE_URL = "https://foundryvtt.com";
@@ -94,16 +96,7 @@ async function main() {
   const select_mode = options["--select"];
 
   // Setup logging.
-  logger = pino(
-    {
-      level: log_level,
-      prettyPrint: {
-        translateTime: true,
-        ignore: "pid,hostname",
-      },
-    },
-    pino.destination(process.stderr.fd)
-  );
+  logger = createLogger("License", log_level);
 
   // Setup global cookie jar, storage, and fetch library
   logger.debug(`Reading cookies from: ${cookiejar_filename}`);

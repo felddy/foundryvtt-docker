@@ -16,7 +16,7 @@ ARG FOUNDRY_VERSION
 ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
 
 WORKDIR /root
-COPY src/package.json src/authenticate.js src/get_release_url.js ./
+COPY src/package.json src/authenticate.js src/get_release_url.js src/logging.js ./
 # .placeholder file to mitigate https://github.com/moby/moby/issues/37965
 RUN mkdir dist && touch dist/.placeholder
 RUN if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
@@ -61,7 +61,8 @@ RUN apk --update --no-cache add curl jq sed su-exec
 WORKDIR ${FOUNDRY_HOME}
 
 COPY --from=optional-release-stage /root/dist/ .
-COPY src/entrypoint.sh src/package.json src/set_password.js src/authenticate.js src/get_release_url.js src/get_license.js ./
+COPY src/entrypoint.sh src/package.json src/set_password.js src/authenticate.js \
+     src/get_release_url.js src/get_license.js src/logging.js ./
 RUN npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+"use strict";
+
 const doc = `
 Generate a Foundry Virtual Tabletop pre-signed release URL using cookies from
 authenticate.js.
@@ -18,8 +20,8 @@ Usage:
 Options:
   -h --help              Show this message.
   --log-level=LEVEL      If specified, then the log level will be set to
-                         the specified value.  Valid values are "trace", "debug", "info",
-                         "warn", "error", and "fatal". [default: info]
+                         the specified value.  Valid values are "debug", "info",
+                         "warn", and "error". [default: info]
 `;
 
 // Argument parsing
@@ -30,13 +32,13 @@ const options = docopt(doc, { version: "1.0.0" });
 const _nodeFetch = require("node-fetch");
 const { CookieJar } = require("tough-cookie");
 const CookieFileStore = require("tough-cookie-file-store").FileCookieStore;
-var cookieJar;
-var fetch;
-const pino = require("pino");
+const createLogger = require("./logging").createLogger;
 const process = require("process");
 
-// Setup logger global, configure in main()
-let logger = null;
+// Setup globals, to be configured in main()
+var cookieJar;
+var fetch;
+var logger;
 
 // Constants
 const BASE_URL = "https://foundryvtt.com";
@@ -85,16 +87,7 @@ async function main() {
   const log_level = options["--log-level"].toLowerCase();
 
   // Setup logging.
-  logger = pino(
-    {
-      level: log_level,
-      prettyPrint: {
-        translateTime: true,
-        ignore: "pid,hostname",
-      },
-    },
-    pino.destination(process.stderr.fd)
-  );
+  logger = createLogger("ReleaseURL", log_level);
 
   // Setup global cookie jar, storage, and fetch library
   logger.debug(`Loading cookies from: ${cookiejar_filename}`);

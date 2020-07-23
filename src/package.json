@@ -8,9 +8,8 @@
     "docopt": "^0.6.2",
     "fetch-cookie": "^0.9.1",
     "node-fetch": "^2.6.0",
-    "pino": "^6.3.2",
-    "pino-pretty": "^4.0.0",
-    "tough-cookie-file-store": "^2.0.2"
+    "tough-cookie-file-store": "^2.0.2",
+    "winston": "^3.3.3"
   },
   "description": "Utilities to help boot a FoundryVTT server.",
   "devDependencies": {},
