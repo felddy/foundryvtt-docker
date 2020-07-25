@@ -43,7 +43,7 @@ ARG VERSION
 LABEL com.foundryvtt.version=${FOUNDRY_VERSION}
 LABEL org.opencontainers.image.authors="markf+github@geekpad.com"
 LABEL org.opencontainers.image.created=${CREATED_TIMESTAMP}
-LABEL org.opencontainers.image.licenses="CC0-1.0"
+LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.revision=${GIT_COMMIT}
 LABEL org.opencontainers.image.source=${GIT_REMOTE}
 LABEL org.opencontainers.image.title="Foundry Virtual Tabletop"

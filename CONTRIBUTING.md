@@ -129,13 +129,10 @@ At this point the pre-commit checks will run against any files that
 you attempt to commit.  If you want to run the checks against the
 entire repo, just execute `pre-commit run --all-files`.
 
-## Public domain ##
+## License ##
 
-This project is in the public domain within the United States, and
-copyright and related rights in the work worldwide are waived through
-the [CC0 1.0 Universal public domain
-dedication](https://creativecommons.org/publicdomain/zero/1.0/).
+This project is released as open source under the [MIT license](LICENSE).
 
-All contributions to this project will be released under the CC0
-dedication. By submitting a pull request, you are agreeing to comply
-with this waiver of copyright interest.
+All contributions to this project will be released under the same MIT license.
+By submitting a pull request, you are agreeing to comply with this waiver of
+copyright interest.

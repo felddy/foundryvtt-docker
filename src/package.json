@@ -18,7 +18,7 @@
     "foundryvtt",
     "docker"
   ],
-  "license": "CC0-1.0",
+  "license": "MIT",
   "main": "authenticate.js",
   "name": "foundryvtt-utils",
   "repository": {
