@@ -73,7 +73,7 @@ if [ $install_required = true ]; then
   # Determine how we are going to get the release URL
   if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
     log "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
-    # CONTAINER_VERBOSE default value should not be quoted
+    # CONTAINER_VERBOSE default value should not be quoted.
     # shellcheck disable=SC2086
     ./authenticate.js ${CONTAINER_VERBOSE+--log-level=debug} "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
     # shellcheck disable=SC2086
@@ -155,8 +155,8 @@ if [ ! -f /data/Config/license.json ]; then
   elif [ -f ${cookiejar_file} ]; then
     log "Attempting to fetch license key from authenticated account."
     if [[ "${FOUNDRY_LICENSE_KEY:-}" ]]; then
-      # FOUNDRY_LICENSE_KEY can be an index, try passing it
-      # CONTAINER_VERBOSE default value should not be quoted
+      # FOUNDRY_LICENSE_KEY can be an index, try passing it.
+      # CONTAINER_VERBOSE default value should not be quoted.
       # shellcheck disable=SC2086
       fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=debug} --select="${FOUNDRY_LICENSE_KEY}" "${cookiejar_file}")
     else
