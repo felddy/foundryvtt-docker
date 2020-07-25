@@ -56,7 +56,7 @@ ENV FOUNDRY_VERSION=${FOUNDRY_VERSION}
 RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   && adduser --system --uid ${FOUNDRY_UID} --ingroup foundry foundry
 
-RUN apk --update --no-cache add curl jq sed su-exec
+RUN apk --update --no-cache add curl jq sed su-exec tzdata
 
 WORKDIR ${FOUNDRY_HOME}
 

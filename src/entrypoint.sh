@@ -32,6 +32,12 @@ if [ "$1" = "--version" ]; then
   exit 0
 fi
 
+# Set the timezone before we start logging dates
+if [ "$(id -u)" = 0 ]; then
+  # set timezone using environment
+  ln -snf /usr/share/zoneinfo/"${TIMEZONE:-UTC}" /etc/localtime
+fi
+
 log "Starting felddy/foundryvtt container v${image_version}"
 
 cookiejar_file="cookiejar.json"
@@ -173,9 +179,6 @@ else
 fi
 
 if [ "$(id -u)" = 0 ]; then
-  # set timezone using environment
-  ln -snf /usr/share/zoneinfo/"${TIMEZONE:-UTC}" /etc/localtime
-
   # ensure the permissions are set correctly
   log "Setting data directory permissions."
   chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
