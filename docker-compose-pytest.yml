@@ -5,7 +5,7 @@ version: "3.8"
 services:
   foundry:
     # Run the container normally
-    image: felddy/foundryvtt:0.7.0
+    image: felddy/foundryvtt:0.6.5
     hostname: felddy_foundryvtt
     init: true
     restart: "no"
@@ -15,23 +15,12 @@ services:
         target: /data
     environment:
       - CONTAINER_VERBOSE=true
+      - FOUNDRY_ADMIN_KEY=atropos
+      - FOUNDRY_GID=foundry
       - FOUNDRY_PASSWORD # pass through
+      - FOUNDRY_UID=foundry
       - FOUNDRY_USERNAME # pass through
       - TIMEZONE=US/Eastern
-      - FOUNDRY_ADMIN_KEY=atropos
-      - FOUNDRY_AWS_CONFIG=
-      - FOUNDRY_GID=foundry
-      - FOUNDRY_HOSTNAME=
-      - FOUNDRY_NO_UPDATE=true
-      - FOUNDRY_PROXY_PORT=
-      - FOUNDRY_PROXY_SSL=false
-      - FOUNDRY_ROUTE_PREFIX=
-      - FOUNDRY_SSL_CERT=
-      - FOUNDRY_SSL_KEY=
-      - FOUNDRY_UID=foundry
-      - FOUNDRY_UPDATE_CHANNEL=release
-      - FOUNDRY_UPNP=false
-      - FOUNDRY_WORLD=
     ports:
       - target: "30000"
         published: "30000"
@@ -40,7 +29,7 @@ services:
 
   foundry-version:
     # Run the container to collect version information
-    image: felddy/foundryvtt:0.7.0
+    image: felddy/foundryvtt:0.6.5
     init: true
     restart: "no"
     command: --version
