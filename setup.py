@@ -43,13 +43,13 @@ setup(
     # Author details
     author="Mark Feldhousen",
     author_email="markf@geekpad.com",
-    license="License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
+    license="License :: OSI Approved :: MIT License",
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
         "Intended Audience :: System Administrators",
-        "License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
+        "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",

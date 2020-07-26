@@ -1,48 +1,46 @@
 #!/usr/bin/env node
 
-const doc = `
-Generate a Foundry Virtual Tabletop pre-signed release URL and optionally fetch
-license key using valid credentials.
+"use strict";
 
-The utility will print the release URL to standard out.
+const doc = `
+Log into Foundry Virtual Tabletop website, and save cookies to file.
 
 EXIT STATUS
     This utility exits with one of the following values:
-    0   Download completed successfully.
+    0   Login completed successfully.
     >0  An error occurred.
 
 Usage:
-  authenticate.js [--log-level=LEVEL] [--license=filename] <username> <password> <version>
+  authenticate.js [--log-level=LEVEL] <username> <password> <cookiejar>
   authenticate.js (-h | --help)
 
 Options:
   -h --help              Show this message.
   --log-level=LEVEL      If specified, then the log level will be set to
-                         the specified value.  Valid values are "trace", "debug", "info",
-                         "warn", "error", and "fatal". [default: info]
-  --license=filename     Fetch a license key and save it to a JSON file.
+                         the specified value.  Valid values are "debug", "info",
+                         "warn", and "error". [default: info]
 `;
 
 // Argument parsing
 const { docopt } = require("docopt");
-const options = docopt(doc, { version: "0.0.1" });
+const options = docopt(doc, { version: "1.0.0" });
 
 // Imports
 const _nodeFetch = require("node-fetch");
-const _tough = require("tough-cookie");
-const _util = require("util");
+const { CookieJar, Cookie } = require("tough-cookie");
 const cheerio = require("cheerio");
-const cookieJar = new _tough.CookieJar();
-const fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
-const fs = require("fs");
-const pino = require("pino");
+const CookieFileStore = require("tough-cookie-file-store").FileCookieStore;
+const createLogger = require("./logging").createLogger;
 const process = require("process");
 
-// Setup logger global, configure in main()
-let logger = null;
+// Setup globals, to be configured in main()
+var cookieJar;
+var fetch;
+var logger;
 
 // Constants
 const BASE_URL = "https://foundryvtt.com";
+const LOCAL_DOMAIN = "felddy.com";
 const LOGIN_URL = BASE_URL + "/auth/login/";
 const USERNAME_RE = /\/community\/(?<username>.+)/;
 
@@ -74,7 +72,7 @@ async function fetchTokens() {
 
   const csrfmiddlewaretoken = $('input[name ="csrfmiddlewaretoken"]').val();
   if (typeof csrfmiddlewaretoken == "undefined") {
-    logger.fatal("Could not find the CSRF middleware token.");
+    logger.error("Could not find the CSRF middleware token.");
     throw new Error("Could not find the CSRF middleware token.");
   }
   return csrfmiddlewaretoken;
@@ -116,7 +114,7 @@ async function login(csrfmiddlewaretoken, username, password) {
     return cookie.key == "sessionid";
   });
   if (typeof session_cookie == "undefined") {
-    logger.fatal(`Unable to log in as ${username}, verify your credentials...`);
+    logger.error(`Unable to log in as ${username}, verify your credentials...`);
     throw new Error(
       `Unable to log in as ${username}, verify your credentials...`
     );
@@ -134,129 +132,48 @@ async function login(csrfmiddlewaretoken, username, password) {
 }
 
 /**
- * fetchLicense - Fetch a license key for a user.
- *
- * @param  {string} username Username (not e-mail address) of license owner.
- * @return {string}          License key formatted with dashes.
- */
-async function fetchLicense(username) {
-  logger.info("Fetching license.");
-  const LICENSE_URL = `${BASE_URL}/community/${username}/licenses`;
-  logger.debug(`Fetching: ${LICENSE_URL}`);
-  const response = await fetch(LICENSE_URL, {
-    method: "GET",
-    headers: HEADERS,
-  });
-  if (!response.ok) {
-    throw new Error(`Unexpected response ${response.statusText}`);
-  }
-  const body = await response.text();
-  const $ = await cheerio.load(body);
-
-  const license_with_dashes = $("pre.license-key code").text();
-  return license_with_dashes;
-}
-
-/**
- * saveLicense - Write a license to a json file.
- *
- * @param  {string} license  License key.
- * @param  {string} filename Filesystem path to write.
- * @return {undefined}
- */
-async function saveLicense(license, filename) {
-  // remove dashes from license
-  const license_no_dashes = license.replace(/-/g, "");
-  logger.info(`Writing license to: ${filename}`);
-  await fs.writeFile(
-    filename,
-    JSON.stringify({ license: license_no_dashes }, null, 2),
-    function (err) {
-      if (err) {
-        logger.warn(`License could not be saved: ${err}`);
-      } else {
-        logger.info("License successfully saved.");
-      }
-    }
-  );
-}
-
-/**
- * fetchReleaseURL - Fetch the pre-signed S3 URL.
- *
- * @param  {string} version Semantic version to download.
- * @return {string} The URL of the requested release version.
- */
-async function fetchReleaseURL(version) {
-  logger.info(`Fetching S3 pre-signed release URL for ${version}...`);
-  const release_url = `${BASE_URL}/releases/download?version=${version}&platform=linux`;
-  logger.debug(`Fetching: ${release_url}`);
-  const response = await fetch(release_url, {
-    method: "GET",
-    headers: HEADERS,
-    redirect: "manual",
-  });
-  // Expect a redirect status
-  if (!(response.status >= 300 && response.status < 400)) {
-    throw new Error(`Unexpected response ${response.statusText}`);
-  }
-  const s3_url = response.headers.get("location");
-  logger.debug(`S3 presigned URL: ${s3_url}`);
-
-  return s3_url;
-}
-
-/**
  * main - Parse command line args, setup logging, do work.
  *
  * @return {number}  exit code
  */
 async function main() {
   // Extract values from CLI options.
-  const username = options["<username>"].toLowerCase();
-  const password = options["<password>"];
-  const foundry_version = options["<version>"];
+  const cookiejar_filename = options["<cookiejar>"];
   const log_level = options["--log-level"].toLowerCase();
-  const license_filename = options["--license"];
+  const password = options["<password>"];
+  const username = options["<username>"].toLowerCase();
 
   // Setup logging.
-  logger = pino(
-    {
-      level: log_level,
-      prettyPrint: {
-        translateTime: true,
-        ignore: "pid,hostname",
-      },
-    },
-    pino.destination(process.stderr.fd)
-  );
+  logger = createLogger("Authenticate", log_level);
 
-  // Get the tokens and cookies we'll need to login.
-  const csrfmiddlewaretoken = await fetchTokens();
+  // Setup global cookie jar, storage, and fetch library
+  logger.debug(`Saving cookies to: ${cookiejar_filename}`);
+  cookieJar = new CookieJar(new CookieFileStore(cookiejar_filename));
+  fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
 
-  // Login using the credentials, tokens, and cookies.
-  const loggedInUsername = await login(csrfmiddlewaretoken, username, password);
+  try {
+    // Get the tokens and cookies we'll need to login.
+    const csrfmiddlewaretoken = await fetchTokens();
 
-  if (license_filename) {
-    // Attempt to fetch a license key.
-    const license_key = await fetchLicense(loggedInUsername);
-    if (license_key) {
-      await saveLicense(license_key, license_filename);
-    } else {
-      logger.warn("Could not find license key.");
-    }
-  }
+    // Login using the credentials, tokens, and cookies.
+    const loggedInUsername = await login(
+      csrfmiddlewaretoken,
+      username,
+      password
+    );
 
-  // Generate an S3 pre-signed URL and print it to stdout.
-  const releaseURL = await fetchReleaseURL(foundry_version);
-
-  if (releaseURL) {
-    process.stdout.write(releaseURL);
-    return 0;
-  } else {
-    logger.error("Could not fetch a release URL.");
+    // Store the username in a cookie for use by other utilities
+    const username_cookie = Cookie.parse(
+      `username=${loggedInUsername}; Domain=${LOCAL_DOMAIN}; Path=/`
+    );
+    cookieJar.setCookieSync(username_cookie, `http://${LOCAL_DOMAIN}`);
+  } catch (err) {
+    logger.error(`Unable to authenticate: ${err.message}`);
     return -1;
   }
+  return 0;
 }
 
-return main();
+(async () => {
+  process.exitCode = await main();
+})();

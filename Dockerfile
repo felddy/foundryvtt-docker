@@ -16,12 +16,13 @@ ARG FOUNDRY_VERSION
 ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
 
 WORKDIR /root
-COPY src/package.json src/authenticate.js ./
+COPY src/package.json src/authenticate.js src/get_release_url.js src/logging.js ./
 # .placeholder file to mitigate https://github.com/moby/moby/issues/37965
 RUN mkdir dist && touch dist/.placeholder
 RUN if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
       npm install && \
-      s3_url=$(./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${FOUNDRY_VERSION}") && \
+      ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
+      s3_url=$(./get_release_url.js cookiejar.json "${FOUNDRY_VERSION}") && \
       wget -O ${ARCHIVE} "${s3_url}" && \
       unzip -d dist ${ARCHIVE} 'resources/*'; \
     elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
@@ -42,7 +43,7 @@ ARG VERSION
 LABEL com.foundryvtt.version=${FOUNDRY_VERSION}
 LABEL org.opencontainers.image.authors="markf+github@geekpad.com"
 LABEL org.opencontainers.image.created=${CREATED_TIMESTAMP}
-LABEL org.opencontainers.image.licenses="CC0-1.0"
+LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.revision=${GIT_COMMIT}
 LABEL org.opencontainers.image.source=${GIT_REMOTE}
 LABEL org.opencontainers.image.title="Foundry Virtual Tabletop"
@@ -55,12 +56,13 @@ ENV FOUNDRY_VERSION=${FOUNDRY_VERSION}
 RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   && adduser --system --uid ${FOUNDRY_UID} --ingroup foundry foundry
 
-RUN apk --update --no-cache add curl jq sed su-exec
+RUN apk --update --no-cache add curl jq sed su-exec tzdata
 
 WORKDIR ${FOUNDRY_HOME}
 
 COPY --from=optional-release-stage /root/dist/ .
-COPY src/entrypoint.sh src/package.json src/set_password.js src/authenticate.js ./
+COPY src/entrypoint.sh src/package.json src/set_password.js src/authenticate.js \
+     src/get_release_url.js src/get_license.js src/logging.js ./
 RUN npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]
