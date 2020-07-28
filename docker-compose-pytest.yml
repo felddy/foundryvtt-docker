@@ -17,9 +17,9 @@ services:
       - CONTAINER_VERBOSE=true
       - FOUNDRY_ADMIN_KEY=atropos
       - FOUNDRY_GID=foundry
-      - FOUNDRY_PASSWORD # pass through
+      - FOUNDRY_PASSWORD  # pass through
       - FOUNDRY_UID=foundry
-      - FOUNDRY_USERNAME # pass through
+      - FOUNDRY_USERNAME  # pass through
       - TIMEZONE=US/Eastern
     ports:
       - target: "30000"
