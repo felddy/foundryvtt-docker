@@ -61,8 +61,9 @@ RUN apk --update --no-cache add curl jq sed su-exec tzdata
 WORKDIR ${FOUNDRY_HOME}
 
 COPY --from=optional-release-stage /root/dist/ .
-COPY src/entrypoint.sh src/package.json src/set_password.js src/authenticate.js \
-     src/get_release_url.js src/get_license.js src/logging.js ./
+COPY src/entrypoint.sh src/launcher.sh src/logging.sh src/package.json \
+     src/set_password.js src/authenticate.js src/get_release_url.js \
+     src/get_license.js src/logging.js ./
 RUN npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]
