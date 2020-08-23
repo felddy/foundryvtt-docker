@@ -21,9 +21,8 @@ def test_container_count(dockerc):
     ), "Wrong number of containers were started."
 
 
-@pytest.mark.slow
-def test_wait_for_ready(main_container):
-    """Wait for container to be ready."""
+def test_environment_credentials(main_container):
+    """Verify enironment is set correctly."""
     # Check for required environment varaibles.
     assert (
         "FOUNDRY_USERNAME" in os.environ
@@ -32,6 +31,10 @@ def test_wait_for_ready(main_container):
         "FOUNDRY_PASSWORD" in os.environ
     ), "FOUNDRY_PASSWORD was not in the environment"
 
+
+@pytest.mark.slow
+def test_wait_for_ready(main_container):
+    """Wait for container to be ready."""
     # This could take a while, as we download the application.
     TIMEOUT = 180
     for i in range(TIMEOUT):
@@ -44,6 +47,24 @@ def test_wait_for_ready(main_container):
             f"Container does not seem ready.  "
             f'Expected "{READY_MESSAGE}" in the log within {TIMEOUT} seconds.'
             f"\nLog output follows:\n{logs}"
+        )
+
+
+@pytest.mark.slow
+def test_wait_for_healthy(main_container):
+    """Wait for container to be healthy."""
+    # This could take a while
+    TIMEOUT = 180
+    for i in range(TIMEOUT):
+        inspect = main_container.inspect()
+        status = inspect["State"]["Health"]["Status"]
+        assert status != "unhealthy", "The container became unhealthy."
+        if status == "healthy":
+            break
+        time.sleep(1)
+    else:
+        raise Exception(
+            f"Container status did transition to 'healthy' within {TIMEOUT} seconds."
         )
 
 
