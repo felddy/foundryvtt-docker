@@ -21,10 +21,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.8
-      - name: Extract branch name from GITHUB_REF
-        id: extract_branch
-        run: |
-          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       - name: Determine image version
         id: get_ver
         run: |
@@ -48,7 +44,7 @@ jobs:
             --file Dockerfile-x \
             --platform $PLATFORMS \
             --output "type=image,push=true" \
-            --tag "$IMAGE_NAME:${{ steps.extract_branch.outputs.branch }}" \
+            --tag "$IMAGE_NAME:${{ github.event.release.target_commitish }}" \
             --tag "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}" \
             --tag "${IMAGE_NAME}:${v_major}.${v_minor}" \
             --tag "${IMAGE_NAME}:${v_major}" \
