@@ -44,7 +44,7 @@ jobs:
             --file Dockerfile-x \
             --platform $PLATFORMS \
             --output "type=image,push=true" \
-            --tag "$IMAGE_NAME:latest" \
+            --tag "$IMAGE_NAME:${{ github.event.release.target_commitish }}" \
             --tag "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}" \
             --tag "${IMAGE_NAME}:${v_major}.${v_minor}" \
             --tag "${IMAGE_NAME}:${v_major}" \
@@ -53,8 +53,6 @@ jobs:
             --build-arg GIT_REMOTE=$(git remote get-url origin) \
             --build-arg VERSION=${{ steps.get_ver.outputs.version }} \
             .
-      - name: Publish README.md to Docker Hub
-        run: ./push_readme.sh
       - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@v1
         if: env.RUN_TMATE
