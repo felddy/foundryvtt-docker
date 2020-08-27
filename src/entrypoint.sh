@@ -54,7 +54,7 @@ if [ -f "resources/app/package.json" ]; then
   log "Foundry Virtual Tabletop ${installed_version} is installed."
   if [ "${FOUNDRY_VERSION}" != "${installed_version}" ]; then
     log "Requested version (${FOUNDRY_VERSION}) from FOUNDRY_VERSION differs."
-    log "Uninstalling version ${FOUNDRY_VERSION}."
+    log "Uninstalling version ${installed_version}."
     rm -r resources
     install_required=true
   fi
