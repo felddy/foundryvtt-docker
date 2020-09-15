@@ -97,7 +97,6 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
           - target: "30000"
             published: "30000"
             protocol: tcp
-            mode: host
     ```
 
 1. Start the container and detach:
@@ -156,7 +155,6 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
           - target: "30000"
             published: "30000"
             protocol: tcp
-            mode: host
         secrets:
           - source: config_json
             target: config.json
