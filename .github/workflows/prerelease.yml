@@ -27,7 +27,7 @@ jobs:
           echo "##[set-output name=version;]$(./bump_version.sh show)"
       - name: Set up Docker Buildx
         id: buildx
-        uses: crazy-max/ghaction-docker-buildx@v1
+        uses: docker/setup-buildx-action@v1
         with:
           version: latest
       - name: Log into docker registry
