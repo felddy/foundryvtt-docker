@@ -70,7 +70,7 @@ jobs:
           version=${{ steps.get_ver.outputs.version }}
           docker save $IMAGE_NAME:$version | gzip > dist/image.tar.gz
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2.2.0
         with:
           name: dist-normal
           path: dist
@@ -99,7 +99,7 @@ jobs:
           version=${{ steps.get_ver.outputs.version }}
           docker save $IMAGE_NAME:$version | gzip > dist/image.tar.gz
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2.2.0
         with:
           name: dist-pre-install
           path: dist
@@ -139,7 +139,7 @@ jobs:
         run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2.2.0
         with:
           name: data-normal
           path: data
@@ -178,7 +178,7 @@ jobs:
         run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2.2.0
         with:
           name: data-pre-install
           path: data
