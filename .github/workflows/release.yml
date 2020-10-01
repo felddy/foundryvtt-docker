@@ -44,8 +44,8 @@ jobs:
             --file Dockerfile-x \
             --platform $PLATFORMS \
             --output "type=image,push=true" \
-            --tag "$IMAGE_NAME:${{ github.event.release.target_commitish }}" \
-            --tag "$IMAGE_NAME:latest" \
+            --tag "${IMAGE_NAME}:${{ github.event.release.target_commitish }}" \
+            --tag "${IMAGE_NAME}:latest" \
             --tag "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}" \
             --tag "${IMAGE_NAME}:${v_major}.${v_minor}" \
             --tag "${IMAGE_NAME}:${v_major}" \
