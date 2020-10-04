@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  foundry:
+    image: felddy/foundryvtt:release
+    hostname: your.hostname.com
+    init: true
+    restart: "unless-stopped"
+    volumes:
+      - type: bind
+        source: /path/to/your/data
+        target: /data
+    environment:
+      - FOUNDRY_HOSTNAME=your.hostname.com
+      - FOUNDRY_PASSWORD=<your_password>
+      - FOUNDRY_USERNAME=<your_username>
+      - FOUNDRY_ADMIN_KEY=atropos
+      - FOUNDRY_PROXY_PORT=443
+      - FOUNDRY_PROXY_SSL=true
+      # - CONTAINER_CACHE=/data/container_cache
+      # - CONTAINER_PATCHES=/data/container_patches
+      # - CONTAINER_VERBOSE=true
+      # - FOUNDRY_AWS_CONFIG=
+      # - FOUNDRY_GID=foundry
+      # - FOUNDRY_HOSTNAME=
+      # - FOUNDRY_LICENSE_KEY=
+      # - FOUNDRY_NO_UPDATE=true
+      # - FOUNDRY_RELEASE_URL=
+      # - FOUNDRY_ROUTE_PREFIX=
+      # - FOUNDRY_SSL_CERT=
+      # - FOUNDRY_SSL_KEY=
+      # - FOUNDRY_UID=foundry
+      # - FOUNDRY_UPDATE_CHANNEL=release
+      # - FOUNDRY_UPNP=false
+      # - FOUNDRY_VERSION=0.6.6
+      # - FOUNDRY_WORLD=
+      # - TIMEZONE=US/Eastern
+    labels: 
+      - traefik.enable: "true"
+      - traefik.docker.network: "proxy"
+      - traefik.http.middlewares.foundryvtt-https-redirect.redirectscheme.scheme: "https"
+      - traefik.http.routers.foundryvtt-secure.entrypoints: "https"
+      - traefik.http.routers.foundryvtt-secure.rule: "Host(`your.hostname.com`)"
+      - traefik.http.routers.foundryvtt-secure.service: "foundryvtt"
+      - traefik.http.routers.foundryvtt-secure.tls: "true"
+      - traefik.http.routers.foundryvtt-secure.tls.certresolver: "http"
+      - traefik.http.routers.foundryvtt.entrypoints: "http"
+      - traefik.http.routers.foundryvtt.middlewares: "foundryvtt-https-redirect"
+      - traefik.http.routers.foundryvtt.rule: "Host(`your.hostname.com`)"
+      - traefik.http.services.foundryvtt.loadbalancer.server.port: "30000"
