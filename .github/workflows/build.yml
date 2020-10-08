@@ -97,6 +97,7 @@ jobs:
         uses: actions/download-artifact@v2.0.5
         with:
           name: dist
+          path: dist
       - name: Load docker image
         run: docker load < dist/image.tar.gz
       - name: Run tests
