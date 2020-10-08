@@ -69,7 +69,7 @@ jobs:
           version=$(./bump_version.sh show)
           docker save $IMAGE_NAME:latest | gzip > dist/image.tar.gz
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2.2.0
+        uses: actions/upload-artifact@v2
         with:
           name: dist
           path: dist
