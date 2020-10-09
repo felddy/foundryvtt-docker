@@ -100,7 +100,7 @@ jobs:
           version=${{ steps.get_ver.outputs.version }}
           docker save $IMAGE_NAME:$version | gzip > dist/image.tar.gz
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2.2.0
+        uses: actions/upload-artifact@v2
         with:
           name: dist-pre-install
           path: dist
@@ -111,7 +111,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: 3.8
+          python-version: 3.9
       - name: Cache pip test requirements
         uses: actions/cache@v1
         with:
@@ -126,7 +126,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade --requirement requirements-test.txt
       - name: Download docker image artifact
-        uses: actions/download-artifact@v2.0.5
+        uses: actions/download-artifact@v2
         with:
           name: dist-normal
           path: dist-normal
@@ -141,7 +141,7 @@ jobs:
         run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2.2.0
+        uses: actions/upload-artifact@v2
         with:
           name: data-normal
           path: data
@@ -167,7 +167,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade --requirement requirements-test.txt
       - name: Download docker image artifact
-        uses: actions/download-artifact@v2.0.5
+        uses: actions/download-artifact@v2
         with:
           name: dist-pre-install
           path: dist-pre-install
@@ -182,7 +182,7 @@ jobs:
         run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2.2.0
+        uses: actions/upload-artifact@v2
         with:
           name: data-pre-install
           path: data
