@@ -87,8 +87,7 @@ jobs:
           path: ${{ env.PIP_CACHE_DIR }}
           key: "test-${{ runner.os }}-\
             ${{ hashFiles('**/requirements-test.txt') }}-\
-            ${{ hashFiles('**/requirements.txt') }}-\
-            ${{ hashFiles('**/.pre-commit-config.yaml') }}"
+            ${{ hashFiles('**/requirements.txt') }}"
           restore-keys: |
             test-${{ runner.os }}-
       - name: Install dependencies
