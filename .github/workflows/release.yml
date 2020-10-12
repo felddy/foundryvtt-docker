@@ -19,34 +19,33 @@ jobs:
         with:
           python-version: 3.9
       - name: Determine image version
-        id: get_ver
-        run: |
-          echo "##[set-output name=version;]$(./bump_version.sh show)"
+        run: echo IMAGE_VERSION=$(./bump_version.sh show) >> $GITHUB_ENV
       - name: Build Docker image
         run: |
+          version=${{ env.IMAGE_VERSION }}
           docker build \
             --tag "$IMAGE_NAME" \
             --build-arg GIT_COMMIT=$(git log -1 --format=%H) \
             --build-arg GIT_REMOTE=$(git remote get-url origin) \
-            --build-arg VERSION=${{ steps.get_ver.outputs.version }} \
+            --build-arg VERSION=${{ env.IMAGE_VERSION }} \
             .
       - name: Tag Docker image
         run: |
           IFS='.' read -r -a version_array \
-            <<< "${{ steps.get_ver.outputs.version }}"
+            <<< "${{ env.IMAGE_VERSION }}"
           docker login --username "$DOCKER_USER" --password "$DOCKER_PW"
           docker tag "$IMAGE_NAME" "${IMAGE_NAME}:latest"
           docker tag "$IMAGE_NAME" \
-            "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}"
+            "${IMAGE_NAME}:${{ env.IMAGE_VERSION }}"
           docker tag "$IMAGE_NAME" \
             "${IMAGE_NAME}:${version_array[0]}.${version_array[1]}"
           docker tag "$IMAGE_NAME" "${IMAGE_NAME}:${version_array[0]}"
       - name: Publish image to Docker Hub
         run: |
           IFS='.' read -r -a version_array \
-            <<< "${{ steps.get_ver.outputs.version }}"
+            <<< "${{ env.IMAGE_VERSION }}"
           docker push "${IMAGE_NAME}:latest"
-          docker push "${IMAGE_NAME}:${{ steps.get_ver.outputs.version }}"
+          docker push "${IMAGE_NAME}:${{ env.IMAGE_VERSION }}"
           docker push "${IMAGE_NAME}:${version_array[0]}.${version_array[1]}"
           docker push "${IMAGE_NAME}:${version_array[0]}"
       - name: Publish README.md to Docker Hub
