@@ -255,6 +255,7 @@ jobs:
           name: dist-pre-install
           path: dist
   test-normal:
+    name: "Test normal image"
     runs-on: ubuntu-latest
     needs: [build-normal]
     steps:
@@ -298,6 +299,7 @@ jobs:
           name: data-normal
           path: data
   test-pre-install:
+    name: "Test pre-installed image"
     runs-on: ubuntu-latest
     needs: [build-pre-install]
     steps:
