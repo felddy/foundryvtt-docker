@@ -181,7 +181,7 @@ jobs:
 
             org.opencontainers.image.version=${{
               needs.prepare.outputs.source_version }}"
-      - name: Compressing image
+      - name: Compress image
         run: gzip dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
@@ -247,7 +247,7 @@ jobs:
 
             org.opencontainers.image.version=${{
               needs.prepare.outputs.source_version }}"
-      - name: Compressing image
+      - name: Compress image
         run: gzip dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
