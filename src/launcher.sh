@@ -53,7 +53,6 @@ cat <<EOF > /data/Config/options.json
   "dataPath": "/data",
   "fullscreen": false,
   "hostname": ${FOUNDRY_HOSTNAME:-null},
-  "noUpdate": ${FOUNDRY_NO_UPDATE:-true},
   "port": 30000,
   "proxyPort": ${FOUNDRY_PROXY_PORT:-null},
   "proxySSL": ${FOUNDRY_PROXY_SSL:-false},

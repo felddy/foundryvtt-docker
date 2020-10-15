@@ -64,6 +64,7 @@ WORKDIR ${FOUNDRY_HOME}
 COPY --from=optional-release-stage /root/dist/ .
 COPY \
   src/authenticate.js \
+  src/check_health.sh \
   src/entrypoint.sh \
   src/get_license.js \
   src/get_release_url.js \
@@ -87,8 +88,6 @@ VOLUME ["/data"]
 EXPOSE 30000/TCP
 
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["resources/app/main.js", "--port=30000", "--headless", "--dataPath=/data"]
-HEALTHCHECK --start-period=3m --interval=30s --timeout=5s \
-  CMD /usr/bin/curl --cookie-jar healthcheck-cookiejar.txt \
-  --cookie healthcheck-cookiejar.txt --fail --silent \
-  http://localhost:30000/api/status || exit 1
+CMD ["resources/app/main.js", "--port=30000", "--headless", "--noupdate",\
+  "--dataPath=/data"]
+HEALTHCHECK --start-period=3m --interval=30s --timeout=5s CMD ./check_health.sh
