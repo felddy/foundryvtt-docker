@@ -146,7 +146,7 @@ jobs:
             ${{ runner.os }}-buildx-
       - name: Create dist directory
         run: mkdir -p dist
-      - name: Build images
+      - name: Build image
         id: docker_build
         uses: docker/build-push-action@v2
         with:
@@ -210,7 +210,7 @@ jobs:
             ${{ runner.os }}-buildx-
       - name: Create dist directory
         run: mkdir -p dist
-      - name: Build images
+      - name: Build image
         id: docker_build
         uses: docker/build-push-action@v2
         with:
