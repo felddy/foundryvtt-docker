@@ -406,6 +406,6 @@ jobs:
               needs.prepare.outputs.source_version }}"
       - name: Publish README.md to Docker Hub
         env:
-          DOCKER_PW: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_USER: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: ./push_readme.sh
