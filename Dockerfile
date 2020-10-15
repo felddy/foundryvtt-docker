@@ -1,10 +1,7 @@
-ARG CREATED_TIMESTAMP=unspecified
 ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION=0.6.6
-ARG GIT_COMMIT=unspecified
-ARG GIT_REMOTE=unspecified
 ARG VERSION
 
 FROM node:12-alpine as optional-release-stage
@@ -38,23 +35,14 @@ RUN \
 
 FROM node:12-alpine as final-stage
 
-ARG CREATED_TIMESTAMP=unspecified
 ARG FOUNDRY_UID=421
 ARG FOUNDRY_VERSION
-ARG GIT_COMMIT
-ARG GIT_REMOTE
 ARG TARGETPLATFORM
 ARG VERSION
 
 LABEL com.foundryvtt.version=${FOUNDRY_VERSION}
 LABEL org.opencontainers.image.authors="markf+github@geekpad.com"
-LABEL org.opencontainers.image.created=${CREATED_TIMESTAMP}
-LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.revision=${GIT_COMMIT}
-LABEL org.opencontainers.image.source=${GIT_REMOTE}
-LABEL org.opencontainers.image.title="Foundry Virtual Tabletop"
 LABEL org.opencontainers.image.vendor="Geekpad"
-LABEL org.opencontainers.image.version=${VERSION}
 
 ENV FOUNDRY_HOME="/home/foundry"
 ENV FOUNDRY_VERSION=${FOUNDRY_VERSION}
