@@ -22,7 +22,6 @@ services:
       # - FOUNDRY_GID=foundry
       # - FOUNDRY_HOSTNAME=
       # - FOUNDRY_LICENSE_KEY=
-      # - FOUNDRY_NO_UPDATE=true
       # - FOUNDRY_PROXY_PORT=
       # - FOUNDRY_PROXY_SSL=false
       # - FOUNDRY_RELEASE_URL=
