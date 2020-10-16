@@ -14,9 +14,9 @@ PATCH_URL="https://cdn.discordapp.com/attachments/725021759144984646/72685872995
 TARGET_FOUNDRY_VERSION="0.6.4"
 
 if [ "$FOUNDRY_VERSION" = "$TARGET_FOUNDRY_VERSION" ]; then
-  echo "Applying \"${PATCH_NAME}\""
-  echo "See: ${PATCH_DOC_URL}"
+  log "Applying \"${PATCH_NAME}\""
+  log "See: ${PATCH_DOC_URL}"
   curl --output "${PATCH_DEST}" "${PATCH_URL}" 2>&1 | tr "\r" "\n"
 else
-  echo "Not applying \"${PATCH_NAME}\".  This patch is targeted for Foundry Virtual Tabletop ${TARGET_FOUNDRY_VERSION}"
+  log_warn "Not applying \"${PATCH_NAME}\".  This patch is targeted for Foundry Virtual Tabletop ${TARGET_FOUNDRY_VERSION}"
 fi

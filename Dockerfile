@@ -1,10 +1,7 @@
-ARG CREATED_TIMESTAMP=unspecified
 ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION=0.6.6
-ARG GIT_COMMIT=unspecified
-ARG GIT_REMOTE=unspecified
 ARG VERSION
 
 FROM node:12-alpine as optional-release-stage
@@ -38,23 +35,14 @@ RUN \
 
 FROM node:12-alpine as final-stage
 
-ARG CREATED_TIMESTAMP=unspecified
 ARG FOUNDRY_UID=421
 ARG FOUNDRY_VERSION
-ARG GIT_COMMIT
-ARG GIT_REMOTE
 ARG TARGETPLATFORM
 ARG VERSION
 
 LABEL com.foundryvtt.version=${FOUNDRY_VERSION}
 LABEL org.opencontainers.image.authors="markf+github@geekpad.com"
-LABEL org.opencontainers.image.created=${CREATED_TIMESTAMP}
-LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.revision=${GIT_COMMIT}
-LABEL org.opencontainers.image.source=${GIT_REMOTE}
-LABEL org.opencontainers.image.title="Foundry Virtual Tabletop"
 LABEL org.opencontainers.image.vendor="Geekpad"
-LABEL org.opencontainers.image.version=${VERSION}
 
 ENV FOUNDRY_HOME="/home/foundry"
 ENV FOUNDRY_VERSION=${FOUNDRY_VERSION}
@@ -64,6 +52,7 @@ WORKDIR ${FOUNDRY_HOME}
 COPY --from=optional-release-stage /root/dist/ .
 COPY \
   src/authenticate.js \
+  src/check_health.sh \
   src/entrypoint.sh \
   src/get_license.js \
   src/get_release_url.js \
@@ -87,8 +76,6 @@ VOLUME ["/data"]
 EXPOSE 30000/TCP
 
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["resources/app/main.js", "--port=30000", "--headless", "--dataPath=/data"]
-HEALTHCHECK --start-period=3m --interval=30s --timeout=5s \
-  CMD /usr/bin/curl --cookie-jar healthcheck-cookiejar.txt \
-  --cookie healthcheck-cookiejar.txt --fail --silent \
-  http://localhost:30000/api/status || exit 1
+CMD ["resources/app/main.js", "--port=30000", "--headless", "--noupdate",\
+  "--dataPath=/data"]
+HEALTHCHECK --start-period=3m --interval=30s --timeout=5s CMD ./check_health.sh

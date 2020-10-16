@@ -21,9 +21,11 @@ def test_container_count(dockerc):
     ), "Wrong number of containers were started."
 
 
+@pytest.mark.xfail
 def test_environment_credentials(main_container):
     """Verify enironment is set correctly."""
-    # Check for required environment varaibles.
+    # Check for credential variables.
+    # These are not required for pre-built images.
     assert (
         "FOUNDRY_USERNAME" in os.environ
     ), "FOUNDRY_USERNAME was not in the environment"
