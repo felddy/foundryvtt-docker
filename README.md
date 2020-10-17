@@ -258,7 +258,7 @@ be of the form: `foundryvtt-0.6.6.zip`
 | Name  | Purpose | Default |
 |-------|---------|---------|
 | `CONTAINER_PATCHES` | Set a path to a directory of shell scripts to be sourced after Foundry is installed but before it is started.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_patches`  Patch files are sourced in lexicographic order.  `CONTAINER_PATCHES` are processed after `CONTAINER_PATCH_URLS`.| |
-| `CONTAINER_PATCH_URLS` | Set to a space-delimited list of URLs to be sourced after Foundry is installed but before it is started.  Patch URLs are sourced in the order specified.  `CONTAINER_PATCH_URLS` are processed before `CONTAINER_PATCHES`.  **Only use patch URLs from trusted sources!** | |
+| `CONTAINER_PATCH_URLS` | Set to a space-delimited list of URLs to be sourced after Foundry is installed but before it is started.  Patch URLs are sourced in the order specified.  `CONTAINER_PATCH_URLS` are processed before `CONTAINER_PATCHES`.  ⚠️ **Only use patch URLs from trusted sources!** | |
 | `CONTAINER_VERBOSE` | Set to `true` to enable verbose logging for the container utility scripts. | |
 | `FOUNDRY_ADMIN_KEY` | Admin password to be applied at startup.  If omitted the admin password will be cleared.  May be set [using secrets](#using-secrets). | |
 | `FOUNDRY_AWS_CONFIG` | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | null |
