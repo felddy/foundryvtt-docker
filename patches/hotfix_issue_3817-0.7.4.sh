@@ -5,9 +5,6 @@
 # Corrects routePrefix problem detailed in issue 3817
 # https://gitlab.com/foundrynet/foundryvtt/-/issues/3817
 
-# s/const view = url\.pathname\.replace(`\/\${ROUTE_PREFIX}`, "");\
-# /const view = url.pathname.split("\/").pop();/g
-
 PATCH_DEST="$FOUNDRY_HOME/resources/app/public/scripts/foundry.js"
 PATCH_DOC_URL="https://gitlab.com/foundrynet/foundryvtt/-/issues/3817#note_430588341"
 PATCH_NAME="Issue 3817 Hotfix for 0.7.4"
