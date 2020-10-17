@@ -119,11 +119,25 @@ if [ $install_required = true ]; then
     rm "${release_filename}"
   fi
 
+  # apply URL patches if requested
+  if [[ "${CONTAINER_PATCH_URLS:-}" ]]; then
+    log_warn "CONTAINER_PATCH_URLS is set:  Only use patch URLs from trusted sources!"
+      for url in ${CONTAINER_PATCH_URLS}
+      do
+        log "Sourcing patch from URL: $url"
+        patch_file=$(mktemp -t patch_url.sh.XXXXXX)
+        curl --silent --output "${patch_file}" "${url}"
+        # shellcheck disable=SC1090
+        source "${patch_file}"
+      done
+      log "Completed URL patching."
+  fi
+
   # apply patches if requested and the directory exists
   if [[ "${CONTAINER_PATCHES:-}" ]]; then
     log "Using CONTAINER_PATCHES: ${CONTAINER_PATCHES}"
     if [ -d "${CONTAINER_PATCHES}" ]; then
-      log "Container patches directory detected.  Starting patching..."
+      log "Container patches directory detected.  Starting patch application..."
       for f in "${CONTAINER_PATCHES}"/*
       do
         [ -f "$f" ] || continue # we can't set nullglob in busybox
@@ -131,12 +145,12 @@ if [ $install_required = true ]; then
         # shellcheck disable=SC1090
         source "$f"
       done
-      log "Completed patching."
+      log "Completed file patching."
     else
       log_warn "Container patches directory not found."
     fi
   fi
-fi
+fi  # install required
 
 if [ ! -f /data/Config/license.json ]; then
   log "Installation not yet licensed."

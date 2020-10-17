@@ -197,17 +197,19 @@ upgrade to a new version of Foundry pull an updated image version.
 
 ## Image tags ##
 
-The images of this container are tagged to add additional flexibility during
-deployment.  It is recommended that most users use the `:release` tag.  This tag
-will only be applied to images that support versions from the Foundry "release"
-channel.
+The images of this container are tagged with both the [semantic
+versions](https://semver.org) of Foundry Virtual Tabletop that they support as
+well as the update channel associated with the release.  It is recommended that
+most users use the `:release` tag.
 
 | Image:tag | Description |
 |-----------|-------------|
-|`felddy/foundryvtt:release` | The most recent image from the release channel.  These images are **considered stable**, and well-tested.  Most users will use this tag. |
+|`felddy/foundryvtt:release` | The most recent image from the release channel.  These images are **considered stable**, and well-tested.  Most users will use this tag.  The `latest` tag always points to the same version as `release`.|
 |`felddy/foundryvtt:beta` | Beta channel releases **should be stable** for all users, but may impose some module conflicts or compatibility issues. It is only recommended for users to update to this version if they are comfortable with accepting some minor risks. Users are discouraged from updating to this version if it is immediately before a game session. _Please take care to periodically back up your critical user data in case you experience any issues._ |
 |`felddy/foundryvtt:alpha` | Alpha channel releases are **VERY LIKELY to introduce breaking bugs** that will be disruptive to play. Do not install this update unless you are using for the specific purposes of testing. The intention of Alpha builds are to allow for previewing new features and to help developers to begin updating modules which are impacted by the changes. If you choose to update to this version for a live game you do so entirely at your own risk of having a bad experience. _Please back up your critical user data before installing this update._ |
-|`felddy/foundryvtt:0.6.6`| A specific version. |
+|`felddy/foundryvtt:0.6.6`| An exact version. |
+|`felddy/foundryvtt:0.6`| The most recent release matching the major and minor version numbers. |
+|`felddy/foundryvtt:latest`| See the `release` tag.  [Why does `latest` == `release`?](https://vsupalov.com/docker-latest-tag/) |
 
 See the [tags tab](https://hub.docker.com/r/felddy/foundryvtt/tags) on Docker
 Hub for a list of all the supported tags.
@@ -216,31 +218,31 @@ Hub for a list of all the supported tags.
 
 | Mount point | Purpose        |
 |-------------|----------------|
-| /data    | configuration, data, and log storage |
+| `/data`    | configuration, data, and log storage |
 
 ## Environment variables ##
 
 ### Required combinations ###
 
-There are three combinations of environment variables that are required to start
+One of three combinations of environment variables must be set to start
 the container.  Either (`FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD`), or
 `FOUNDRY_RELEASE_URL`, or `CONTAINER_CACHE` must be provided.
 
 #### Credentials variables ####
 
-***Note:*** `FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD` may be set [using
-secrets](#using-secrets) instead of environment variables.
-
 | Name             | Purpose  |
 |------------------|----------|
-| FOUNDRY_PASSWORD | Account password for foundryvtt.com.  Required for downloading an application release. |
-| FOUNDRY_USERNAME | Account username or email address for foundryvtt.com.  Required for downloading an application release. |
+| `FOUNDRY_PASSWORD` | Account password for foundryvtt.com.  Required for downloading an application release. |
+| `FOUNDRY_USERNAME` | Account username or email address for foundryvtt.com.  Required for downloading an application release. |
+
+***Note:*** `FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD` may be set [using
+secrets](#using-secrets) instead of environment variables.
 
 #### Pre-signed URL variable ####
 
 | Name             | Purpose  |
 |------------------|----------|
-| FOUNDRY_RELEASE_URL | S3 pre-signed URL generate from the user's profile.  Required for downloading an application release. |
+| `FOUNDRY_RELEASE_URL` | S3 pre-signed URL generate from the user's profile.  Required for downloading an application release. |
 
 #### Pre-cached release variable ####
 
@@ -249,30 +251,31 @@ be of the form: `foundryvtt-0.6.6.zip`
 
 | Name             | Purpose  |
 |------------------|----------|
-| CONTAINER_CACHE | Set a path to cache downloads of the Foundry release archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_cache`| |
+| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry release archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_cache`| |
 
 ### Optional ###
 
 | Name  | Purpose | Default |
 |-------|---------|---------|
-| CONTAINER_PATCHES | Set a path to a directory of shell scripts to be sourced after Foundry is installed but before it is started.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_patches`| |
-| CONTAINER_VERBOSE | Set to `true` to enable verbose logging for the container utility scripts. | |
-| FOUNDRY_ADMIN_KEY | Admin password to be applied at startup.  If omitted the admin password will be cleared.  May be set [using secrets](#using-secrets). | |
-| FOUNDRY_AWS_CONFIG | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | null |
-| FOUNDRY_GID    | `gid` the deamon will be run under. | foundry |
-| FOUNDRY_HOSTNAME | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
-| FOUNDRY_LICENSE_KEY | The license key to install. e.g.; `AAAA-BBBB-CCCC-DDDD-EEEE-FFFF`  If left unset, a license key will be fetched when using account authentication.   If multiple license keys are associated with an account, one will be chosen at random.  Specific licenses can be selected by passing in an integer index.  The first license key being `1`.  May be set [using secrets](#using-secrets). | |
-| FOUNDRY_PROXY_PORT | Inform the Foundry Server that the software is running behind a reverse proxy on some other port. This allows the invitation links created to the game to include the correct external port. | null |
-| FOUNDRY_PROXY_SSL | Indicates whether the software is running behind a reverse proxy that uses SSL. This allows invitation links and A/V functionality to work as if the Foundry Server had SSL configured directly. | false |
-| FOUNDRY_ROUTE_PREFIX | A string path which is appended to the base hostname to serve Foundry VTT content from a specific namespace. For example setting this to `demo` will result in data being served from `http://x.x.x.x:30000/demo/`. | null |
-| FOUNDRY_SSL_CERT | An absolute or relative path that points towards a SSL certificate file which is used jointly with the sslKey option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | null |
-| FOUNDRY_SSL_KEY | An absolute or relative path that points towards a SSL key file which is used jointly with the sslCert option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | null |
-| FOUNDRY_UID    | `uid` the daemon will be run under. | foundry |
-| FOUNDRY_UPDATE_CHANNEL | The update channel to subscribe to.  "alpha", "beta", or "release". | "release" |
-| FOUNDRY_UPNP | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | false |
-| FOUNDRY_VERSION | Version of Foundry Virtual Tabletop to install. | 0.6.6 |
-| FOUNDRY_WORLD | The world to startup at system start. | null |
-| TIMEZONE     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | UTC |
+| `CONTAINER_PATCHES` | Set a path to a directory of shell scripts to be sourced after Foundry is installed but before it is started.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_patches`  Patch files are sourced in lexicographic order.  `CONTAINER_PATCHES` are processed after `CONTAINER_PATCH_URLS`.| |
+| `CONTAINER_PATCH_URLS` | Set to a space-delimited list of URLs to be sourced after Foundry is installed but before it is started.  Patch URLs are sourced in the order specified.  `CONTAINER_PATCH_URLS` are processed before `CONTAINER_PATCHES`.  **Only use patch URLs from trusted sources!** | |
+| `CONTAINER_VERBOSE` | Set to `true` to enable verbose logging for the container utility scripts. | |
+| `FOUNDRY_ADMIN_KEY` | Admin password to be applied at startup.  If omitted the admin password will be cleared.  May be set [using secrets](#using-secrets). | |
+| `FOUNDRY_AWS_CONFIG` | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | null |
+| `FOUNDRY_GID`    | `gid` the deamon will be run under. | foundry |
+| `FOUNDRY_HOSTNAME` | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | null |
+| `FOUNDRY_LICENSE_KEY` | The license key to install. e.g.; `AAAA-BBBB-CCCC-DDDD-EEEE-FFFF`  If left unset, a license key will be fetched when using account authentication.   If multiple license keys are associated with an account, one will be chosen at random.  Specific licenses can be selected by passing in an integer index.  The first license key being `1`.  May be set [using secrets](#using-secrets). | |
+| `FOUNDRY_PROXY_PORT` | Inform the Foundry Server that the software is running behind a reverse proxy on some other port. This allows the invitation links created to the game to include the correct external port. | null |
+| `FOUNDRY_PROXY_SSL` | Indicates whether the software is running behind a reverse proxy that uses SSL. This allows invitation links and A/V functionality to work as if the Foundry Server had SSL configured directly. | false |
+| `FOUNDRY_ROUTE_PREFIX` | A string path which is appended to the base hostname to serve Foundry VTT content from a specific namespace. For example setting this to `demo` will result in data being served from `http://x.x.x.x:30000/demo/`. | null |
+| `FOUNDRY_SSL_CERT` | An absolute or relative path that points towards a SSL certificate file which is used jointly with the sslKey option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | null |
+| `FOUNDRY_SSL_KEY` | An absolute or relative path that points towards a SSL key file which is used jointly with the sslCert option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | null |
+| `FOUNDRY_UID`    | `uid` the daemon will be run under. | foundry |
+| `FOUNDRY_UPDATE_CHANNEL` | The update channel to subscribe to.  "alpha", "beta", or "release". | "release" |
+| `FOUNDRY_UPNP` | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | false |
+| `FOUNDRY_VERSION` | Version of Foundry Virtual Tabletop to install. | 0.6.6 |
+| `FOUNDRY_WORLD` | The world to startup at system start. | null |
+| `TIMEZONE`     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | UTC |
 
 ## Secrets ##
 
