@@ -150,6 +150,15 @@ if [ $install_required = true ]; then
       log_warn "Container patches directory not found."
     fi
   fi
+
+  # Replace --noupdate error message with a container-specific one.
+  update_js="$FOUNDRY_HOME/resources/app/dist/update.js"
+  sed --file=- --in-place=.orig "${update_js}" << SED_SCRIPT
+s/'You[^']*--noupdate\\\\x20mode.'\
+/'This instance of Foundry Virtual Tabletop is running in a Docker container.  \
+To update, please pull a new Docker image and restart the container.'/g
+SED_SCRIPT
+
 fi  # install required
 
 if [ ! -f /data/Config/license.json ]; then
