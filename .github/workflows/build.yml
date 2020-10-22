@@ -135,8 +135,6 @@ jobs:
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-        with:
-          driver-opts: image=moby/buildkit:buildx-stable-1
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
@@ -199,8 +197,6 @@ jobs:
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-        with:
-          driver-opts: image=moby/buildkit:buildx-stable-1
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
@@ -357,8 +353,6 @@ jobs:
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-        with:
-          driver-opts: image=moby/buildkit:buildx-stable-1
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
