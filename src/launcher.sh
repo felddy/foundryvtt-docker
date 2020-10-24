@@ -44,6 +44,39 @@ if [[ "${FOUNDRY_WORLD:-}" ]]; then
   FOUNDRY_WORLD=\"${FOUNDRY_WORLD}\"
 fi
 
+# make sure the minimum are set
+TURN_CONFIGS=1
+
+if [[ "${FOUNDRY_TURN_CONFIGS_URL:-}" ]]; then
+  FOUNDRY_TURN_CONFIGS_URL=\"${FOUNDRY_TURN_CONFIGS_URL}\"
+else
+  TURN_CONFIGS=0
+fi
+
+if [[ "${FOUNDRY_TURN_CONFIGS_USERNAME:-}" ]]; then
+  FOUNDRY_TURN_CONFIGS_USERNAME=\"${FOUNDRY_TURN_CONFIGS_USERNAME}\"
+else
+  TURN_CONFIGS=0
+fi
+
+if [[ "${FOUNDRY_TURN_CONFIGS_CREDENTIAL:-}" ]]; then
+  FOUNDRY_TURN_CONFIGS_CREDENTIAL=\"${FOUNDRY_TURN_CONFIGS_CREDENTIAL}\"
+else
+  TURN_CONFIGS=0
+fi
+
+if [[ $TURN_CONFIGS -eq 1 ]]; then
+read -r -d '' FOUNDRY_TURN_CONFIGS <<EOM
+[{
+    "url": ${FOUNDRY_TURN_CONFIGS_URL:-},
+    "username": ${FOUNDRY_TURN_CONFIGS_USERNAME:-},
+    "credential": ${FOUNDRY_TURN_CONFIGS_CREDENTIAL:-}
+  }
+]
+EOM
+log "Using turnsConfig: ${FOUNDRY_TURN_CONFIGS}"
+fi
+
 # Update configuration file
 mkdir -p /data/Config >& /dev/null
 log "Generating options.json file."
@@ -61,7 +94,8 @@ cat <<EOF > /data/Config/options.json
   "sslKey": ${FOUNDRY_SSL_KEY:-null},
   "updateChannel": ${FOUNDRY_UPDATE_CHANNEL:-\"release\"},
   "upnp": ${FOUNDRY_UPNP:-false},
-  "world": ${FOUNDRY_WORLD:-null}
+  "world": ${FOUNDRY_WORLD:-null},
+  "turnConfigs": ${FOUNDRY_TURN_CONFIGS:-[]}
 }
 EOF
 
@@ -77,3 +111,4 @@ fi
 # Spawn node with clean environment to prevent credential leaks
 log "Starting Foundry Virtual Tabletop."
 env -i HOME="$HOME" node "$@"
+
