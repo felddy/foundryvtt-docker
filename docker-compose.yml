@@ -17,6 +17,7 @@ services:
       - FOUNDRY_ADMIN_KEY=atropos
       # - CONTAINER_CACHE=/data/container_cache
       # - CONTAINER_PATCHES=/data/container_patches
+      # - CONTAINER_PRESERVE_CONFIG=false
       # - CONTAINER_VERBOSE=true
       # - FOUNDRY_AWS_CONFIG=
       # - FOUNDRY_GID=foundry
