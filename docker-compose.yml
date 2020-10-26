@@ -25,8 +25,9 @@ services:
       # - FOUNDRY_AWS_CONFIG=
       # - FOUNDRY_GID=foundry
       # - FOUNDRY_HOSTNAME=
-      # - FOUNDRY_MINIFY_STATIC_FILES=
+      # - FOUNDRY_LANGUAGE=
       # - FOUNDRY_LICENSE_KEY=
+      # - FOUNDRY_MINIFY_STATIC_FILES=
       # - FOUNDRY_PROXY_PORT=
       # - FOUNDRY_PROXY_SSL=false
       # - FOUNDRY_RELEASE_URL=
