@@ -2,6 +2,10 @@
 # shellcheck disable=SC2039
 # busybox supports more features than POSIX /bin/sh
 
+set -o nounset
+set -o errexit
+set -o pipefail
+
 # setup logging
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
@@ -15,7 +19,7 @@ if [ "$1" = "--shell" ]; then
   exit $?
 fi
 
-if [[ $CONTAINER_PRESERVE_CONFIG == "true" ]]; then
+if [[ "${CONTAINER_PRESERVE_CONFIG:-}" == "true" ]]; then
   log_warn "CONTAINER_PRESERVE_CONFIG set to true."
   log_warn "options.json and admin.txt will not be modified."
 else
