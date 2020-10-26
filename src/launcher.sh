@@ -15,19 +15,25 @@ if [ "$1" = "--shell" ]; then
   exit $?
 fi
 
-# Update configuration file
-mkdir -p /data/Config >& /dev/null
-log "Generating options.json file."
-./set_options.js > /data/Config/options.json
-
-# Save Admin Access Key if it is set
-if [[ "${FOUNDRY_ADMIN_KEY:-}" ]]; then
-  log "Setting 'Admin Access Key'."
-  echo "${FOUNDRY_ADMIN_KEY}" | ./set_password.js > /data/Config/admin.txt
+if [[ $CONTAINER_PRESERVE_CONFIG == "true" ]]; then
+  log_warn "CONTAINER_PRESERVE_CONFIG set to true."
+  log_warn "options.json and admin.txt will not be modified."
 else
-  log_warn "No 'Admin Access Key' has been configured."
-  rm /data/Config/admin.txt >& /dev/null || true
-fi
+  # Update configuration file
+  mkdir -p /data/Config >& /dev/null
+  log "Generating options.json file."
+  ./set_options.js > /data/Config/options.json
+
+  # Save admin access key to file if set.  Delete file if unset.
+  if [[ "${FOUNDRY_ADMIN_KEY:-}" ]]; then
+    log "Setting 'Admin Access Key'."
+    echo "${FOUNDRY_ADMIN_KEY}" | ./set_password.js > /data/Config/admin.txt
+  else
+    log_warn "No 'Admin Access Key' has been configured."
+    rm /data/Config/admin.txt >& /dev/null || true
+  fi
+
+fi #CONTAINER_PRESERVE_CONFIG
 
 # Spawn node with clean environment to prevent credential leaks
 log "Starting Foundry Virtual Tabletop."
