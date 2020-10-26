@@ -15,55 +15,10 @@ if [ "$1" = "--shell" ]; then
   exit $?
 fi
 
-# Quote all strings for insertion into json
-# busybox does not implement ${VAR@Q} substitution to quote variables
-
-if [[ "${FOUNDRY_AWS_CONFIG:-}" ]]; then
-  if [[ $FOUNDRY_AWS_CONFIG == "true" ]];then
-    FOUNDRY_AWS_CONFIG=true
-  else
-    FOUNDRY_AWS_CONFIG=\"${FOUNDRY_AWS_CONFIG}\"
-  fi
-fi
-if [[ "${FOUNDRY_HOSTNAME:-}" ]]; then
-  FOUNDRY_HOSTNAME=\"${FOUNDRY_HOSTNAME}\"
-fi
-if [[ "${FOUNDRY_ROUTE_PREFIX:-}" ]]; then
-  FOUNDRY_ROUTE_PREFIX=\"${FOUNDRY_ROUTE_PREFIX}\"
-fi
-if [[ "${FOUNDRY_SSL_CERT:-}" ]]; then
-  FOUNDRY_SSL_CERT=\"${FOUNDRY_SSL_CERT}\"
-fi
-if [[ "${FOUNDRY_SSL_KEY:-}" ]]; then
-  FOUNDRY_SSL_KEY=\"${FOUNDRY_SSL_KEY}\"
-fi
-if [[ "${FOUNDRY_UPDATE_CHANNEL:-}" ]]; then
-  FOUNDRY_UPDATE_CHANNEL=\"${FOUNDRY_UPDATE_CHANNEL}\"
-fi
-if [[ "${FOUNDRY_WORLD:-}" ]]; then
-  FOUNDRY_WORLD=\"${FOUNDRY_WORLD}\"
-fi
-
 # Update configuration file
 mkdir -p /data/Config >& /dev/null
 log "Generating options.json file."
-cat <<EOF > /data/Config/options.json
-{
-  "awsConfig": ${FOUNDRY_AWS_CONFIG:-null},
-  "dataPath": "/data",
-  "fullscreen": false,
-  "hostname": ${FOUNDRY_HOSTNAME:-null},
-  "port": 30000,
-  "proxyPort": ${FOUNDRY_PROXY_PORT:-null},
-  "proxySSL": ${FOUNDRY_PROXY_SSL:-false},
-  "routePrefix": ${FOUNDRY_ROUTE_PREFIX:-null},
-  "sslCert": ${FOUNDRY_SSL_CERT:-null},
-  "sslKey": ${FOUNDRY_SSL_KEY:-null},
-  "updateChannel": ${FOUNDRY_UPDATE_CHANNEL:-\"release\"},
-  "upnp": ${FOUNDRY_UPNP:-false},
-  "world": ${FOUNDRY_WORLD:-null}
-}
-EOF
+./set_options.js > /data/Config/options.json
 
 # Save Admin Access Key if it is set
 if [[ "${FOUNDRY_ADMIN_KEY:-}" ]]; then

@@ -60,6 +60,7 @@ COPY \
   src/logging.js \
   src/logging.sh \
   src/package.json \
+  src/set_options.js \
   src/set_password.js \
   ./
 RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
