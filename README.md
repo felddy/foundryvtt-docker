@@ -271,6 +271,7 @@ be of the form: `foundryvtt-0.7.5.zip`
 | `FOUNDRY_ROUTE_PREFIX` | A string path which is appended to the base hostname to serve Foundry VTT content from a specific namespace. For example setting this to `demo` will result in data being served from `http://x.x.x.x:30000/demo/`. | `null` |
 | `FOUNDRY_SSL_CERT` | An absolute or relative path that points towards a SSL certificate file which is used jointly with the sslKey option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | `null` |
 | `FOUNDRY_SSL_KEY` | An absolute or relative path that points towards a SSL key file which is used jointly with the sslCert option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | `null` |
+| `FOUNDRY_TURN_CONFIGS` | An array of TURN configurations in JSON format.  See: [Using a Custom Relay Server](https://foundryvtt.com/article/audio-video/#custom).  To disable the internal relay server provide an empty list. e.g; `"[]"`. |  |
 | `FOUNDRY_UID`    | `uid` the daemon will be run under. | `foundry` |
 | `FOUNDRY_UPNP` | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | `false` |
 | `FOUNDRY_VERSION` | Version of Foundry Virtual Tabletop to install. | `0.7.5` |
