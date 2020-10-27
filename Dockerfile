@@ -60,6 +60,7 @@ COPY \
   src/logging.js \
   src/logging.sh \
   src/package.json \
+  src/set_options.js \
   src/set_password.js \
   ./
 RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
@@ -73,7 +74,11 @@ RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   && npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]
+# HTTP Server
 EXPOSE 30000/TCP
+# TURN Server
+EXPOSE 33478/UDP
+EXPOSE 49152-65535/UDP
 
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["resources/app/main.js", "--port=30000", "--headless", "--noupdate",\
