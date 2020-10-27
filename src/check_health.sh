@@ -16,4 +16,5 @@ else
 fi
 
 /usr/bin/curl --cookie-jar healthcheck-cookiejar.txt \
-  --cookie healthcheck-cookiejar.txt --fail --silent "${STATUS_URL}" || exit 1
+  --cookie healthcheck-cookiejar.txt --insecure --fail --silent \
+  "${STATUS_URL}" || exit 1
