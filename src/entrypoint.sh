@@ -195,6 +195,7 @@ log "Setting data directory permissions."
 chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
 
 if [ "$1" = "--root-shell" ]; then
+  log_warn "Starting a shell as requested by argument --root-shell"
   /bin/sh
   exit $?
 fi
