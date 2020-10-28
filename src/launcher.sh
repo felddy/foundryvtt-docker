@@ -16,11 +16,6 @@ LOG_NAME="Launcher"
 # disable following
 source logging.sh
 
-if [ "$1" = "--shell" ]; then
-  /bin/sh
-  exit $?
-fi
-
 # ensure the config directory exists
 mkdir -p "${CONFIG_DIR}" >& /dev/null
 
@@ -44,6 +39,12 @@ else
     log_warn "No 'Admin Access Key' has been configured."
     rm "${ADMIN_KEY_FILE}" >& /dev/null || true
   fi
+fi
+
+if [ "$1" = "--shell" ]; then
+  log_warn "Starting a shell as requested by argument --shell"
+  /bin/sh
+  exit $?
 fi
 
 # Spawn node with clean environment to prevent credential leaks
