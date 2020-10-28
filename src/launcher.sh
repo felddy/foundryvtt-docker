@@ -6,8 +6,9 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
-ADMIN_KEY_FILE="/data/Config/admin.txt"
-CONFIG_FILE="/data/Config/options.json"
+CONFIG_DIR="/data/Config"
+ADMIN_KEY_FILE="${CONFIG_DIR}/admin.txt"
+CONFIG_FILE="${CONFIG_DIR}/options.json"
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
 LOG_NAME="Launcher"
@@ -21,10 +22,10 @@ if [ "$1" = "--shell" ]; then
 fi
 
 # ensure the config directory exists
-mkdir -p /data/Config >& /dev/null
+mkdir -p "${CONFIG_DIR}" >& /dev/null
 
 if [[ "${CONTAINER_PRESERVE_CONFIG:-}" == "true" && -f "${CONFIG_FILE}" ]]; then
-  log_warn "CONTAINER_PRESERVE_CONFIG is set: preserving existing options.json"
+  log_warn "CONTAINER_PRESERVE_CONFIG is set: Not updating options.json"
 else
   # Update configuration file
   log "Generating options.json file."
@@ -33,7 +34,7 @@ fi
 
 if [[ "${CONTAINER_PRESERVE_CONFIG:-}" == "true" && -f "${ADMIN_KEY_FILE}" ]];
 then
-  log_warn "CONTAINER_PRESERVE_CONFIG is set: preserving existing admin.txt"
+  log_warn "CONTAINER_PRESERVE_CONFIG is set: Not updating admin.txt"
 else
   # Save admin access key to file if set.  Delete file if unset.
   if [[ "${FOUNDRY_ADMIN_KEY:-}" ]]; then
