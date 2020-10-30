@@ -3,7 +3,7 @@
 # Push the README.md file to the docker hub repository
 
 # Requires the following environment variables to be set:
-# DOCKER_PW, DOCKER_USER, IMAGE_NAME
+# DOCKER_PASSWORD, DOCKER_USERNAME, IMAGE_NAME
 
 set -o nounset
 set -o errexit
@@ -11,7 +11,7 @@ set -o pipefail
 
 token=$(curl -s -X POST \
   -H "Content-Type: application/json" \
-  -d '{"username": "'"$DOCKER_USER"'", "password": "'"$DOCKER_PW"'"}' \
+  -d '{"username": "'"$DOCKER_USERNAME"'", "password": "'"$DOCKER_PASSWORD"'"}' \
   https://hub.docker.com/v2/users/login/ | jq -r .token)
 
 code=$(jq -n --arg msg "$(<README.md)" \
