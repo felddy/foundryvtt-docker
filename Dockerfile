@@ -1,18 +1,11 @@
-ARG GIT_COMMIT=unspecified
-ARG GIT_REMOTE=unspecified
 ARG VERSION=unspecified
 
 FROM python:3.9-alpine
 
-ARG GIT_COMMIT
-ARG GIT_REMOTE
 ARG VERSION
 
-LABEL git_commit=${GIT_COMMIT}
-LABEL git_remote=${GIT_REMOTE}
-LABEL maintainer="mark.feldhousen@trio.dhs.gov"
-LABEL vendor="Cyber and Infrastructure Security Agency"
-LABEL version=${VERSION}
+LABEL org.opencontainers.image.authors="mark.feldhousen@cisa.dhs.gov"
+LABEL org.opencontainers.image.vendor="Cyber and Infrastructure Security Agency"
 
 ARG CISA_UID=421
 ENV CISA_HOME="/home/cisa"
