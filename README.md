@@ -19,7 +19,7 @@ You can get a [Foundry Virtual Tabletop](https://foundryvtt.com) instance up and
 running in minutes using this container.  This Docker container is designed to
 be secure, reliable, compact, and simple to use.  It only requires that you
 provide the credentials or URL needed to download a Foundry Virtual Tabletop
-release.
+distribution.
 
 ## Prerequisites ##
 
@@ -199,7 +199,7 @@ upgrade to a new version of Foundry pull an updated image version.
 
 The images of this container are tagged with both the [semantic
 versions](https://semver.org) of Foundry Virtual Tabletop that they support as
-well as the update channel associated with the release.  It is recommended that
+well as the update channel associated with the version.  It is recommended that
 most users use the `:release` tag.
 
 | Image:tag | Description |
@@ -218,7 +218,7 @@ Hub for a list of all the supported tags.
 
 | Mount point | Purpose        |
 |-------------|----------------|
-| `/data`    | configuration, data, and log storage |
+| `/data`    | Configuration, data, and log storage. |
 
 ## Environment variables ##
 
@@ -237,8 +237,8 @@ evaluated in the following order of precedence:
 
 | Name             | Purpose  |
 |------------------|----------|
-| `FOUNDRY_PASSWORD` | Account password for foundryvtt.com.  Required for downloading an application release. |
-| `FOUNDRY_USERNAME` | Account username or email address for foundryvtt.com.  Required for downloading an application release. |
+| `FOUNDRY_PASSWORD` | Account password for foundryvtt.com.  Required for downloading an application distribution. |
+| `FOUNDRY_USERNAME` | Account username or email address for foundryvtt.com.  Required for downloading an application distribution. |
 
 ***Note:*** `FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD` may be set [using
 secrets](#using-secrets) instead of environment variables.
@@ -247,16 +247,16 @@ secrets](#using-secrets) instead of environment variables.
 
 | Name             | Purpose  |
 |------------------|----------|
-| `FOUNDRY_RELEASE_URL` | S3 pre-signed URL generate from the user's profile.  Required for downloading an application release. |
+| `FOUNDRY_RELEASE_URL` | S3 pre-signed URL generate from the user's profile.  Required for downloading an application distribution. |
 
-#### Pre-cached release variable ####
+#### Pre-cached distribution variable ####
 
-A release can be downloaded and placed into a cache directory.  It's name should
-be of the form: `foundryvtt-0.7.5.zip`
+A distribution can be downloaded and placed into a cache directory.  The
+distribution's name must be of the form: `foundryvtt-0.7.5.zip`
 
 | Name             | Purpose  |
 |------------------|----------|
-| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry release archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_cache`| |
+| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry distribution archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_cache`| |
 
 ### Optional ###
 
@@ -336,14 +336,14 @@ Docker:
       --tag felddy/foundryvtt:0.7.5 .
     ```
 
-## Pre-installed release builds ##
+## Pre-installed distribution builds ##
 
-It is possible to install a Foundry Virtual Tabletop release into the Docker
-image at build-time.  This results in a significantly larger Docker image, but
-removes the need to install a release at container startup, resulting in a
-faster startup.  It also moves the user authentication to build-time instead of
-start-time.  **Note**: Credentials are only used to fetch a release, and are not
-stored in the resulting image.
+It is possible to install a Foundry Virtual Tabletop distribution into the
+Docker image at build-time.  This results in a significantly larger Docker
+image, but removes the need to install a distribution at container startup,
+resulting in a faster startup.  It also moves the user authentication to
+build-time instead of start-time.  **Note**: Credentials are only used to fetch
+a distribution, and are not stored in the resulting image.
 
 Build the image with credentials:
 
@@ -424,8 +424,8 @@ going on during container startup.  When reporting an issue, verbose output is
 always more helpful.  Simply set the `CONTAINER_VERBOSE` environment variable to
 `true` to generate more detailed logging.
 
-To drop into a shell after release installation but before it is started, you
-can pass the `--shell` option to the entrypoint:
+To drop into a shell after distribution installation but before it is started,
+you can pass the `--shell` option to the service:
 
 | Purpose | Command |
 |---------|---------|
