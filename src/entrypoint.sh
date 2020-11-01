@@ -92,7 +92,7 @@ if [ $install_required = true ]; then
     log "Downloading Foundry Virtual Tabletop release."
     # Download release if newer than cached version.
     # Filter out warnings about bad date formats if the file is missing.
-    curl --fail --time-cond "${release_filename}" \
+    curl --fail --location --time-cond "${release_filename}" \
          --output "${downloading_filename}" "${s3_url}" 2>&1 | \
          tr "\r" "\n" | \
          sed --unbuffered '/^Warning: .* date/d'
