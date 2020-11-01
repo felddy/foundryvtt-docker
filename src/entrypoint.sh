@@ -66,16 +66,16 @@ fi
 # Install FoundryVTT if needed
 if [ $install_required = true ]; then
   # Determine how we are going to get the release URL
-  if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
+  if [ "${FOUNDRY_RELEASE_URL:-}" ]; then
+    log "Using FOUNDRY_RELEASE_URL to download release."
+    s3_url="${FOUNDRY_RELEASE_URL}"
+  elif [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
     log "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
     # CONTAINER_VERBOSE default value should not be quoted.
     # shellcheck disable=SC2086
     ./authenticate.js ${CONTAINER_VERBOSE+--log-level=debug} "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
     # shellcheck disable=SC2086
     s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}" "${FOUNDRY_VERSION}")
-  elif [ "${FOUNDRY_RELEASE_URL:-}" ]; then
-    log "Using FOUNDRY_RELEASE_URL to download release."
-    s3_url="${FOUNDRY_RELEASE_URL}"
   fi
 
   if [[ "${CONTAINER_CACHE:-}" ]]; then
@@ -92,7 +92,7 @@ if [ $install_required = true ]; then
     log "Downloading Foundry Virtual Tabletop release."
     # Download release if newer than cached version.
     # Filter out warnings about bad date formats if the file is missing.
-    curl --fail --time-cond "${release_filename}" \
+    curl --fail --location --time-cond "${release_filename}" \
          --output "${downloading_filename}" "${s3_url}" 2>&1 | \
          tr "\r" "\n" | \
          sed --unbuffered '/^Warning: .* date/d'
@@ -107,8 +107,8 @@ if [ $install_required = true ]; then
     unzip -q "${release_filename}" 'resources/*'
   else
     log_error "Unable to install Foundry Virtual Tabletop!"
-    log_error "Either set FOUNDRY_USERNAME and FOUNDRY_PASSWORD."
-    log_error "Or set FOUNDRY_RELEASE_URL."
+    log_error "Either set set FOUNDRY_RELEASE_URL."
+    log_error "Or set FOUNDRY_USERNAME and FOUNDRY_PASSWORD."
     log_error "Or set CONTAINER_CACHE to a directory containing foundryvtt-${FOUNDRY_VERSION}.zip"
     exit 1
   fi
