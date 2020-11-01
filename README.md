@@ -224,9 +224,14 @@ Hub for a list of all the supported tags.
 
 ### Required combinations ###
 
-One of three combinations of environment variables must be set to start
-the container.  Either (`FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD`), or
-`FOUNDRY_RELEASE_URL`, or `CONTAINER_CACHE` must be provided.
+One of the three combinations of environment variables listed below must be set
+in order for the container to locate and install a Foundry Virtual Tabletop
+distribution.  Although all variables may be specified together, they are
+evaluated in the following order of precedence:
+
+ 1. `FOUNDRY_RELEASE_URL`, *or*
+ 1. `FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD`, *or*
+ 1. `CONTAINER_CACHE`
 
 #### Credentials variables ####
 
