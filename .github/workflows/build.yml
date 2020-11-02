@@ -339,7 +339,7 @@ jobs:
   build-push-all:
     name: "Build and push all platforms"
     runs-on: ubuntu-latest
-    needs: [prepare, test-normal, test-pre-install]
+    needs: [lint, prepare, test-normal, test-pre-install]
     if: github.event_name != 'pull_request'
     steps:
       - name: Login to DockerHub
