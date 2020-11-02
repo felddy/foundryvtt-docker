@@ -69,13 +69,21 @@ if [ $install_required = true ]; then
   if [ "${FOUNDRY_RELEASE_URL:-}" ]; then
     log "Using FOUNDRY_RELEASE_URL to download release."
     s3_url="${FOUNDRY_RELEASE_URL}"
-  elif [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
+  fi
+  if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
     log "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
+    # If credentials are provided attempt authentication.
+    # The resulting cookiejar is used to get a release URL or license.
     # CONTAINER_VERBOSE default value should not be quoted.
     # shellcheck disable=SC2086
     ./authenticate.js ${CONTAINER_VERBOSE+--log-level=debug} "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
-    # shellcheck disable=SC2086
-    s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}" "${FOUNDRY_VERSION}")
+    if [[ ! "${s3_url:-}" ]]; then
+      # If the s3_url wasn't set by FOUNDRY_RELEASE_URL generate one now.
+      log "Using authenticated credentials to download release."
+      # CONTAINER_VERBOSE default value should not be quoted.
+      # shellcheck disable=SC2086
+      s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}" "${FOUNDRY_VERSION}")
+    fi
   fi
 
   if [[ "${CONTAINER_CACHE:-}" ]]; then
