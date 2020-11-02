@@ -137,9 +137,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.BUILDX_CACHE_DIR }}
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          key: buildx-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-
+            buildx-${{ runner.os }}-
       - name: Create dist directory
         run: mkdir -p dist
       - name: Build image
@@ -194,14 +194,14 @@ jobs:
         with:
           python-version: 3.9
       - name: Cache pip test requirements
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ env.PIP_CACHE_DIR }}
-          key: "${{ runner.os }}-pip-test-\
-            ${{ hashFiles('**/requirements-test.txt') }}"
+          key: "test-${{ runner.os }}-\
+            ${{ hashFiles('**/requirements-test.txt') }}-\
+            ${{ hashFiles('**/requirements.txt') }}"
           restore-keys: |
-            ${{ runner.os }}-pip-test-
-            ${{ runner.os }}-pip-
+            test-${{ runner.os }}-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -238,9 +238,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.BUILDX_CACHE_DIR }}
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          key: buildx-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-
+            buildx-${{ runner.os }}-
       - name: Create cross-platform support Dockerfile-x
         run: ./buildx-dockerfile.sh
       - name: Build and push platform images to Docker Hub
