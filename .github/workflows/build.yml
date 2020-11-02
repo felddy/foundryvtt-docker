@@ -11,6 +11,7 @@ on:
   schedule:
     - cron: '0 10 * * *'  # everyday at 10am
   repository_dispatch:
+    # Respond to rebuild requests. See: https://github.com/cisagov/action-apb/
     types: [apb]
   workflow_dispatch:
     inputs:
@@ -33,6 +34,8 @@ env:
 
 jobs:
   lint:
+    # Checks out the source and runs pre-commit hooks.  Detects coding errors
+    # and style deviations.
     name: "Lint sources"
     runs-on: ubuntu-latest
     steps:
@@ -66,7 +69,45 @@ jobs:
         run: pre-commit install-hooks
       - name: Run pre-commit on all files
         run: pre-commit run --all-files
+
   prepare:
+    # Calculates and publishes outputs that are used by other jobs.
+    #
+    # Outputs:
+    #   created:
+    #     The current date-time in RFC3339 format.
+    #   repometa:
+    #     The json metadata describing this repository.
+    #   source_version:
+    #     The source version as reported by the `bump_version.sh show` command.
+    #   tags:
+    #     A comma separated list of Docker tags to be applied to the images on
+    #     DockerHub.  The tags will vary depending on:
+    #     - The event that triggered the build.
+    #     - The branch the build is based upon.
+    #     - The git tag the build is based upon.
+    #
+    #     When a build is based on a git tag of the form `v*.*.*` the image will
+    #     be tagged on DockerHub with multiple levels of version specificity.
+    #     For example, a git tag of `v1.2.3+a` will generate Docker tags of
+    #     `:1.2.3_a`, `:1.2.3`, `:1.2`, `:1`, and `:latest`.
+    #
+    #     Builds targeting the default branch will be tagged with `:edge`.
+    #
+    #     Builds from other branches will be tagged with the branch name.
+    #     Solidi `/` in branch names are replaced with hyphens `-` in the Docker
+    #     tag.
+    #
+    #     Builds triggered by a push event are tagged with a short hash in the
+    #     form: sha-12345678
+    #
+    #     Builds triggered by a pull request are tagged with the pull request
+    #     number in the form pr-123.
+    #
+    #     Builds triggered using the GitHub GUI (workflow_dispatch) are tagged
+    #     with the value specified by the user.
+    #
+    #     Scheduled builds are tagged with `:nightly`.
     name: "Prepare build variables"
     runs-on: ubuntu-latest
     outputs:
@@ -122,7 +163,10 @@ jobs:
       - name: Setup debug session remote shell
         uses: mxschmitt/action-tmate@v3
         if: github.event.inputs.remote-shell == 'true'
+
   build:
+    # Builds a single test image for the native platform.  This image is saved
+    # as an artifact and loaded by the test job.
     name: "Build test image"
     runs-on: ubuntu-latest
     needs: [prepare]
@@ -154,6 +198,8 @@ jobs:
           file: ./Dockerfile
           outputs: type=docker,dest=dist/image.tar
           tags: ${{ env.IMAGE_NAME }}:latest  # not to be pushed
+          # For a list of pre-defined annotation keys and value types see:
+          # https://github.com/opencontainers/image-spec/blob/master/annotations.md
           labels: "\
             org.opencontainers.image.created=${{
               needs.prepare.outputs.created }}
@@ -184,7 +230,9 @@ jobs:
         with:
           name: dist
           path: dist
+
   test:
+    # Executes tests on the single-platform image created in the "build" job.
     name: "Test image"
     runs-on: ubuntu-latest
     needs: [build]
@@ -217,7 +265,13 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: pytest --runslow
+
   build-push-all:
+    # Builds the final set of images for each of the platforms listed in
+    # PLATFORMS environment variable.  These images are tagged with the Docker
+    # tags calculated in the "prepare" job and pushed to DockerHub.  The
+    # contents of README.md is pushed as the image's description.  This job is
+    # skipped when the triggering event is a pull request.
     name: "Build and push all platforms"
     runs-on: ubuntu-latest
     needs: [lint, prepare, test]
