@@ -183,7 +183,7 @@ if [ ! -f /data/Config/license.json ]; then
     fi
     echo "{ \"license\": \"${fetched_license_key}\" }" > /data/Config/license.json
   else
-    log_warn "Unable to apply a license key since niether a license key nor credentials were provided.  The license key will need to be entered in the browser."
+    log_warn "Unable to apply a license key since neither a license key nor credentials were provided.  The license key will need to be entered in the browser."
   fi
   set -o nounset
 else
