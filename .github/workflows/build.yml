@@ -256,6 +256,8 @@ jobs:
           platforms: ${{ env.PLATFORMS }}
           push: true
           tags: ${{ needs.prepare.outputs.tags }}
+          # For a list of pre-defined annotation keys and value types see:
+          # https://github.com/opencontainers/image-spec/blob/master/annotations.md
           labels: "\
             org.opencontainers.image.created=${{
               needs.prepare.outputs.created }}
