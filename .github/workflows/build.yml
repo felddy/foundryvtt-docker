@@ -94,8 +94,8 @@ jobs:
     #
     #     Builds targeting the default branch will be tagged with `:edge`.
     #
-    #     Builds from other branches will be tagged with the branch name.
-    #     Solidi `/` in branch names are replaced with hyphens `-` in the Docker
+    #     Builds from other branches will be tagged with the branch name. Solidi
+    #     `/` in branch names are replaced with hyphen-minuses `-` in the Docker
     #     tag.
     #
     #     Builds triggered by a push event are tagged with a short hash in the
