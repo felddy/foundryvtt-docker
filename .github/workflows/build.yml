@@ -3,17 +3,40 @@ name: build
 
 on:
   push:
+    branches:
+      - '**'
+    tags:
+      - 'v*.*.*'
   pull_request:
+  schedule:
+    - cron: '0 10 * * *'  # everyday at 10am
   repository_dispatch:
+    # Respond to rebuild requests. See: https://github.com/cisagov/action-apb/
     types: [apb]
+  workflow_dispatch:
+    inputs:
+      remote-shell:
+        description: "Debug with remote shell"
+        required: true
+        default: false
+      image-tag:
+        description: "Tag to apply to pushed images"
+        required: true
+        default: dispatch
 
 env:
+  BUILDX_CACHE_DIR: ~/.cache/buildx
   IMAGE_NAME: cisagov/example
   PIP_CACHE_DIR: ~/.cache/pip
+  PLATFORMS: "linux/amd64,linux/arm/v6,linux/arm/v7,\
+  linux/arm64,linux/ppc64le,linux/s390x"
   PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
 
 jobs:
   lint:
+    # Checks out the source and runs pre-commit hooks.  Detects coding errors
+    # and style deviations.
+    name: "Lint sources"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -46,32 +69,174 @@ jobs:
         run: pre-commit install-hooks
       - name: Run pre-commit on all files
         run: pre-commit run --all-files
-  build:
+
+  prepare:
+    # Calculates and publishes outputs that are used by other jobs.
+    #
+    # Outputs:
+    #   created:
+    #     The current date-time in RFC3339 format.
+    #   repometa:
+    #     The json metadata describing this repository.
+    #   source_version:
+    #     The source version as reported by the `bump_version.sh show` command.
+    #   tags:
+    #     A comma separated list of Docker tags to be applied to the images on
+    #     DockerHub.  The tags will vary depending on:
+    #     - The event that triggered the build.
+    #     - The branch the build is based upon.
+    #     - The git tag the build is based upon.
+    #
+    #     When a build is based on a git tag of the form `v*.*.*` the image will
+    #     be tagged on DockerHub with multiple levels of version specificity.
+    #     For example, a git tag of `v1.2.3+a` will generate Docker tags of
+    #     `:1.2.3_a`, `:1.2.3`, `:1.2`, `:1`, and `:latest`.
+    #
+    #     Builds targeting the default branch will be tagged with `:edge`.
+    #
+    #     Builds from other branches will be tagged with the branch name. Solidi
+    #     (`/` characters - commonly known as slashes) in branch names are
+    #     replaced with hyphen-minuses (`-` characters) in the Docker tag.  For
+    #     more information about the solidus see these links:
+    #       * https://www.compart.com/en/unicode/U+002F
+    #       * https://en.wikipedia.org/wiki/Slash_(punctuation)#Encoding
+    #
+    #     Builds triggered by a push event are tagged with a short hash in the
+    #     form: sha-12345678
+    #
+    #     Builds triggered by a pull request are tagged with the pull request
+    #     number in the form pr-123.
+    #
+    #     Builds triggered using the GitHub GUI (workflow_dispatch) are tagged
+    #     with the value specified by the user.
+    #
+    #     Scheduled builds are tagged with `:nightly`.
+    name: "Prepare build variables"
     runs-on: ubuntu-latest
+    outputs:
+      created: ${{ steps.prep.outputs.created }}
+      repometa: ${{ steps.repo.outputs.result }}
+      source_version: ${{ steps.prep.outputs.source_version }}
+      tags: ${{ steps.prep.outputs.tags }}
     steps:
       - uses: actions/checkout@v2
-      - name: Determine image version
-        run: echo IMAGE_VERSION=$(./bump_version.sh show) >> $GITHUB_ENV
-      - name: Build docker image
+      - name: Gather repository metadata
+        id: repo
+        uses: actions/github-script@v3
+        with:
+          script: |
+            const repo = await github.repos.get(context.repo)
+            return repo.data
+      - name: Calculate output values
+        id: prep
         run: |
-          version=${{ env.IMAGE_VERSION }}
-          docker build \
-            --tag "$IMAGE_NAME" \
-            --build-arg GIT_COMMIT=$(git log -1 --format=%H) \
-            --build-arg GIT_REMOTE=$(git remote get-url origin) \
-            --build-arg VERSION=${{ env.IMAGE_VERSION }} \
-            .
-      - name: Save docker image artifact
-        run: |
-          mkdir dist
-          version=${{ env.IMAGE_VERSION }}
-          docker save $IMAGE_NAME:latest | gzip > dist/image.tar.gz
+          VERSION=noop
+          SEMVER="^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            VERSION=nightly
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION=${{ github.event.inputs.image-tag }}
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF == refs/heads/* ]]; then
+            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
+            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ];
+              then
+              VERSION=edge
+            fi
+          elif [[ $GITHUB_REF == refs/pull/* ]]; then
+            VERSION=pr-${{ github.event.number }}
+          fi
+          if [[ $VERSION =~ $SEMVER ]]; then
+            VERSION_NO_V=${VERSION#v}
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            TAGS="${IMAGE_NAME}:${VERSION_NO_V//+/_},${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH},${IMAGE_NAME}:${MAJOR}.${MINOR},${IMAGE_NAME}:${MAJOR},${IMAGE_NAME}:latest"
+          else
+            TAGS="${IMAGE_NAME}:${VERSION}"
+          fi
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAGS="${TAGS},${IMAGE_NAME}:sha-${GITHUB_SHA::8}"
+          fi
+          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          echo ::set-output name=source_version::$(./bump_version.sh show)
+          echo ::set-output name=tags::${TAGS}
+          echo tags=${TAGS}
+      - name: Setup debug session remote shell
+        uses: mxschmitt/action-tmate@v3
+        if: github.event.inputs.remote-shell == 'true'
+
+  build:
+    # Builds a single test image for the native platform.  This image is saved
+    # as an artifact and loaded by the test job.
+    name: "Build test image"
+    runs-on: ubuntu-latest
+    needs: [prepare]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.BUILDX_CACHE_DIR }}
+          key: buildx-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            buildx-${{ runner.os }}-
+      - name: Create dist directory
+        run: mkdir -p dist
+      - name: Build image
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          build-args: |
+            VERSION=${{ needs.prepare.outputs.source_version }}
+          cache-from: type=local,src=${{ env.BUILDX_CACHE_DIR }}
+          cache-to: type=local,dest=${{ env.BUILDX_CACHE_DIR }}
+          context: .
+          file: ./Dockerfile
+          outputs: type=docker,dest=dist/image.tar
+          tags: ${{ env.IMAGE_NAME }}:latest  # not to be pushed
+          # For a list of pre-defined annotation keys and value types see:
+          # https://github.com/opencontainers/image-spec/blob/master/annotations.md
+          labels: "\
+            org.opencontainers.image.created=${{
+              needs.prepare.outputs.created }}
+
+            org.opencontainers.image.description=${{
+              fromJson(needs.prepare.outputs.repometa).description }}
+
+            org.opencontainers.image.licenses=${{
+              fromJson(needs.prepare.outputs.repometa).license.spdx_id }}
+
+            org.opencontainers.image.revision=${{ github.sha }}
+
+            org.opencontainers.image.source=${{
+              fromJson(needs.prepare.outputs.repometa).clone_url }}
+
+            org.opencontainers.image.title=${{
+              fromJson(needs.prepare.outputs.repometa).name }}
+
+            org.opencontainers.image.url=${{
+              fromJson(needs.prepare.outputs.repometa).html_url }}
+
+            org.opencontainers.image.version=${{
+              needs.prepare.outputs.source_version }}"
+      - name: Compress image
+        run: gzip dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: dist
           path: dist
+
   test:
+    # Executes tests on the single-platform image created in the "build" job.
+    name: "Test image"
     runs-on: ubuntu-latest
     needs: [build]
     steps:
@@ -79,7 +244,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Cache testing environments
+      - name: Cache pip test requirements
         uses: actions/cache@v2
         with:
           path: ${{ env.PIP_CACHE_DIR }}
@@ -93,7 +258,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade --requirement requirements-test.txt
       - name: Download docker image artifact
-        uses: actions/download-artifact@v2.0.5
+        uses: actions/download-artifact@v2
         with:
           name: dist
           path: dist
@@ -102,4 +267,79 @@ jobs:
       - name: Run tests
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: pytest
+        run: pytest --runslow
+
+  build-push-all:
+    # Builds the final set of images for each of the platforms listed in
+    # PLATFORMS environment variable.  These images are tagged with the Docker
+    # tags calculated in the "prepare" job and pushed to DockerHub.  The
+    # contents of README.md is pushed as the image's description.  This job is
+    # skipped when the triggering event is a pull request.
+    name: "Build and push all platforms"
+    runs-on: ubuntu-latest
+    needs: [lint, prepare, test]
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.BUILDX_CACHE_DIR }}
+          key: buildx-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            buildx-${{ runner.os }}-
+      - name: Create cross-platform support Dockerfile-x
+        run: ./buildx-dockerfile.sh
+      - name: Build and push platform images to Docker Hub
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          build-args: |
+            VERSION=${{ needs.prepare.outputs.source_version }}
+          cache-from: type=local,src=${{ env.BUILDX_CACHE_DIR }}
+          cache-to: type=local,dest=${{ env.BUILDX_CACHE_DIR }}
+          context: .
+          file: ./Dockerfile-x
+          platforms: ${{ env.PLATFORMS }}
+          push: true
+          tags: ${{ needs.prepare.outputs.tags }}
+          # For a list of pre-defined annotation keys and value types see:
+          # https://github.com/opencontainers/image-spec/blob/master/annotations.md
+          labels: "\
+            org.opencontainers.image.created=${{
+              needs.prepare.outputs.created }}
+
+            org.opencontainers.image.description=${{
+              fromJson(needs.prepare.outputs.repometa).description }}
+
+            org.opencontainers.image.licenses=${{
+              fromJson(needs.prepare.outputs.repometa).license.spdx_id }}
+
+            org.opencontainers.image.revision=${{ github.sha }}
+
+            org.opencontainers.image.source=${{
+              fromJson(needs.prepare.outputs.repometa).clone_url }}
+
+            org.opencontainers.image.title=${{
+              fromJson(needs.prepare.outputs.repometa).name }}
+
+            org.opencontainers.image.url=${{
+              fromJson(needs.prepare.outputs.repometa).html_url }}
+
+            org.opencontainers.image.version=${{
+              needs.prepare.outputs.source_version }}"
+      - name: Publish README.md to Docker Hub
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: ./push_readme.sh
