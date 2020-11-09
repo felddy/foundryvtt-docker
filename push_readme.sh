@@ -10,19 +10,20 @@ set -o errexit
 set -o pipefail
 
 echo "Logging in and requesting JWT..."
-token=$(curl -s -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"username": "'"$DOCKER_USERNAME"'", "password": "'"$DOCKER_PASSWORD"'"}' \
-  https://hub.docker.com/v2/users/login/ | jq -r .token)
+token=$(curl --silent --request POST \
+  --header "Content-Type: application/json" \
+  --data \
+  '{"username": "'"$DOCKER_USERNAME"'", "password": "'"$DOCKER_PASSWORD"'"}' \
+  https://hub.docker.com/v2/users/login/ | jq --raw-output .token)
 
 echo "Pushing README file..."
-code=$(jq -n --arg msg "$(<README.md)" \
+code=$(jq --null-input --arg msg "$(<README.md)" \
   '{"registry":"registry-1.docker.io","full_description": $msg }' | \
-      curl -s -o /dev/null -L -w "%{http_code}" \
+      curl --silent --output /dev/null --location --write-out "%{http_code}" \
          https://hub.docker.com/v2/repositories/"${IMAGE_NAME}"/ \
-         -d @- -X PATCH \
-         -H "Content-Type: application/json" \
-         -H "Authorization: JWT ${token}")
+         --data @- --request PATCH \
+         --header "Content-Type: application/json" \
+         --header "Authorization: JWT ${token}")
 
 if [[ "${code}" = "200" ]]; then
   printf "Successfully pushed README to Docker Hub"
