@@ -241,17 +241,21 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - id: setup-python
+        uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Cache pip test requirements
+      - name: Cache testing environments
         uses: actions/cache@v2
         with:
           path: ${{ env.PIP_CACHE_DIR }}
           key: "test-${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-\
             ${{ hashFiles('**/requirements-test.txt') }}-\
             ${{ hashFiles('**/requirements.txt') }}"
           restore-keys: |
+            test-${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-
             test-${{ runner.os }}-
       - name: Install dependencies
         run: |
