@@ -179,11 +179,13 @@ jobs:
         uses: docker/setup-buildx-action@v1
       - name: Cache Docker layers
         uses: actions/cache@v2
+        env:
+          BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
           path: ${{ env.BUILDX_CACHE_DIR }}
-          key: buildx-${{ runner.os }}-${{ github.sha }}
+          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
           restore-keys: |
-            buildx-${{ runner.os }}-
+            ${{ env.BASE_CACHE_KEY }}
       - name: Create dist directory
         run: mkdir -p dist
       - name: Build image
@@ -244,16 +246,16 @@ jobs:
           python-version: 3.9
       - name: Cache testing environments
         uses: actions/cache@v2
+        env:
+          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-"
         with:
           path: ${{ env.PIP_CACHE_DIR }}
-          key: "test-${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-\
+          key: "${{ env.BASE_CACHE_KEY }}\
             ${{ hashFiles('**/requirements-test.txt') }}-\
             ${{ hashFiles('**/requirements.txt') }}"
           restore-keys: |
-            test-${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-
-            test-${{ runner.os }}-
+            ${{ env.BASE_CACHE_KEY }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -294,11 +296,13 @@ jobs:
         uses: docker/setup-buildx-action@v1
       - name: Cache Docker layers
         uses: actions/cache@v2
+        env:
+          BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
           path: ${{ env.BUILDX_CACHE_DIR }}
-          key: buildx-${{ runner.os }}-${{ github.sha }}
+          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
           restore-keys: |
-            buildx-${{ runner.os }}-
+            ${{ env.BASE_CACHE_KEY }}
       - name: Create cross-platform support Dockerfile-x
         run: ./buildx-dockerfile.sh
       - name: Build and push platform images to Docker Hub
