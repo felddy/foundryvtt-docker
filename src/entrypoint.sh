@@ -6,6 +6,8 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
+CONFIG_DIR="/data/Config"
+LICENSE_FILE="${CONFIG_DIR}/license.json"
 # setup logging
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
@@ -25,9 +27,11 @@ fi
 if [ "$(id -u)" = 0 ]; then
   # set timezone using environment
   ln -snf /usr/share/zoneinfo/"${TIMEZONE:-UTC}" /etc/localtime
+  log_debug "Timezone set to: ${TIMEZONE:-UTC}"
 fi
 
 log "Starting felddy/foundryvtt container v${image_version}"
+log_debug "CONTAINER_VERBOSE set.  Debug logging enabled."
 
 cookiejar_file="cookiejar.json"
 license_min_length=24
@@ -113,6 +117,7 @@ if [ $install_required = true ]; then
   if [ -f "${release_filename}" ]; then
     log "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
     unzip -q "${release_filename}" 'resources/*'
+    log_debug "Installation completed."
   else
     log_error "Unable to install Foundry Virtual Tabletop!"
     log_error "Either set set FOUNDRY_RELEASE_URL."
@@ -124,6 +129,7 @@ if [ $install_required = true ]; then
   if [[ "${CONTAINER_CACHE:-}" ]]; then
     log "Preserving release archive file in cache."
   else
+    log "Deleting release archive file."
     rm "${release_filename}"
   fi
 
@@ -132,9 +138,10 @@ if [ $install_required = true ]; then
     log_warn "CONTAINER_PATCH_URLS is set:  Only use patch URLs from trusted sources!"
       for url in ${CONTAINER_PATCH_URLS}
       do
-        log "Sourcing patch from URL: $url"
+        log "Downloading patch from URL: $url"
         patch_file=$(mktemp -t patch_url.sh.XXXXXX)
         curl --silent --output "${patch_file}" "${url}"
+        log_debug "Sourcing patch file: ${patch_file}"
         # shellcheck disable=SC1090
         source "${patch_file}"
       done
@@ -160,6 +167,7 @@ if [ $install_required = true ]; then
   fi
 
   # Replace --noupdate error message with a container-specific one.
+  log_debug "Editing server update error message."
   update_js="$FOUNDRY_HOME/resources/app/dist/update.js"
   sed --file=- --in-place=.orig "${update_js}" << SED_SCRIPT
 s/'You[^']*--noupdate\\\\x20mode.'\
@@ -169,15 +177,16 @@ SED_SCRIPT
 
 fi  # install required
 
-if [ ! -f /data/Config/license.json ]; then
+if [ ! -f "${LICENSE_FILE}" ]; then
   log "Installation not yet licensed."
-  mkdir -p /data/Config
+  log_debug "Ensuring ${CONFIG_DIR} directory exists."
+  mkdir -p "${CONFIG_DIR}"
   set +o nounset # length check will fail
   if [[ ${#FOUNDRY_LICENSE_KEY} -ge ${license_min_length} ]]; then
     set -o nounset
     log "Applying license key passed via FOUNDRY_LICENSE_KEY."
     # FOUNDRY_LICENSE_KEY is long enough to be a key
-    echo "{ \"license\": \"${FOUNDRY_LICENSE_KEY}\" }" | tr -d '-' > /data/Config/license.json
+    echo "{ \"license\": \"${FOUNDRY_LICENSE_KEY}\" }" | tr -d '-' > "${LICENSE_FILE}"
   elif [ -f ${cookiejar_file} ]; then
     log "Attempting to fetch license key from authenticated account."
     if [[ "${FOUNDRY_LICENSE_KEY:-}" ]]; then
@@ -189,7 +198,7 @@ if [ ! -f /data/Config/license.json ]; then
       # shellcheck disable=SC2086
       fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}")
     fi
-    echo "{ \"license\": \"${fetched_license_key}\" }" > /data/Config/license.json
+    echo "{ \"license\": \"${fetched_license_key}\" }" > "${LICENSE_FILE}"
   else
     log_warn "Unable to apply a license key since neither a license key nor credentials were provided.  The license key will need to be entered in the browser."
   fi
@@ -201,6 +210,7 @@ fi
 # ensure the permissions are set correctly
 log "Setting data directory permissions."
 chown -R "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" /data
+log_debug "Completed setting directory permissions."
 
 if [ "$1" = "--root-shell" ]; then
   log_warn "Starting a shell as requested by argument --root-shell"
