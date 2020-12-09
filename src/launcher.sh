@@ -17,7 +17,8 @@ LOG_NAME="Launcher"
 source logging.sh
 
 # ensure the config directory exists
-mkdir -p "${CONFIG_DIR}" >& /dev/null
+log_debug "Ensuring ${CONFIG_DIR} directory exists."
+mkdir -p "${CONFIG_DIR}"
 
 if [[ "${CONTAINER_PRESERVE_CONFIG:-}" == "true" && -f "${CONFIG_FILE}" ]]; then
   log_warn "CONTAINER_PRESERVE_CONFIG is set: Not updating options.json"
