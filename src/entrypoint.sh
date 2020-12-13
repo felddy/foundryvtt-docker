@@ -209,7 +209,7 @@ fi
 
 # ensure the permissions are set correctly
 log "Setting data directory permissions."
-find /data -path "${CHOWN_EXCLUDE_USER_MOUNT:-}" -prune -o -exec chown "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" {} +
+find /data -regex "${CONTAINER_PRESERVE_OWNER:-}" -prune -o -exec chown "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" {} +
 log_debug "Completed setting directory permissions."
 
 if [ "$1" = "--root-shell" ]; then
