@@ -21,7 +21,7 @@ let parsedTURNConfigs = undefined;
  */
 function clampEnv(envVar, min, max, unset = undefined) {
   if (envVar) {
-    i = parseInt(envVar);
+    var i = parseInt(envVar);
     return Math.min(Math.max(i, min), max);
   } else {
     return unset;
