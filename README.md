@@ -280,7 +280,8 @@ distribution's name must be of the form: `foundryvtt-0.7.8.zip`
 | `FOUNDRY_SSL_CERT` | An absolute or relative path that points towards a SSL certificate file which is used jointly with the sslKey option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | `null` |
 | `FOUNDRY_SSL_KEY` | An absolute or relative path that points towards a SSL key file which is used jointly with the sslCert option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | `null` |
 | `FOUNDRY_TURN_CONFIGS` | An array of TURN configurations in JSON format.  See: [Using a Custom Relay Server](https://foundryvtt.com/article/audio-video/#custom).  To disable the internal relay server provide an empty list. e.g; `"[]"`. |  |
-| `FOUNDRY_UID`    | `uid` the daemon will be run under. | `foundry` |
+| `FOUNDRY_TURN_MAX_PORT` | Sets the maximum UDP port used by the internal [TURN relay server](https://foundryvtt.com/article/audio-video/).  This value must be greater than `49152`.  _Note: To use the internal relay server its ports must be published._ | |
+| `FOUNDRY_UID` | `uid` the daemon will be run under. | `foundry` |
 | `FOUNDRY_UPNP` | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | `false` |
 | `FOUNDRY_VERSION` | Version of Foundry Virtual Tabletop to install. | `0.7.8` |
 | `FOUNDRY_WORLD` | The world to startup at system start. | `null` |
