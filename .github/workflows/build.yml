@@ -41,27 +41,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - id: setup-python
+        uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Store installed Python version
-        run: |
-          echo "PY_VERSION="\
-          "$(python -c "import platform;print(platform.python_version())")" \
-          >> $GITHUB_ENV
-      - name: Cache linting environments
-        uses: actions/cache@v2
+      - uses: actions/cache@v2
+        env:
+          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-"
         with:
           path: |
             ${{ env.PIP_CACHE_DIR }}
             ${{ env.PRE_COMMIT_CACHE_DIR }}
-          key: "lint-${{ runner.os }}-py${{ env.PY_VERSION }}-\
+          key: "${{ env.BASE_CACHE_KEY }}\
             ${{ hashFiles('**/requirements-test.txt') }}-\
             ${{ hashFiles('**/requirements.txt') }}-\
             ${{ hashFiles('**/.pre-commit-config.yaml') }}"
           restore-keys: |
-            lint-${{ runner.os }}-py${{ env.PY_VERSION }}-
-            lint-${{ runner.os }}-
+            ${{ env.BASE_CACHE_KEY }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -181,11 +178,13 @@ jobs:
         uses: docker/setup-buildx-action@v1
       - name: Cache Docker layers
         uses: actions/cache@v2
+        env:
+          BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
           path: ${{ env.BUILDX_CACHE_DIR }}
-          key: buildx-${{ runner.os }}-${{ github.sha }}
+          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
           restore-keys: |
-            buildx-${{ runner.os }}-
+            ${{ env.BASE_CACHE_KEY }}
       - name: Create dist directory
         run: mkdir -p dist
       - name: Build image
@@ -305,18 +304,22 @@ jobs:
     needs: [build-normal]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - id: setup-python
+        uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Cache pip test requirements
+      - name: Cache testing environments
         uses: actions/cache@v2
+        env:
+          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-"
         with:
           path: ${{ env.PIP_CACHE_DIR }}
-          key: "test-${{ runner.os }}-\
+          key: "${{ env.BASE_CACHE_KEY }}\
             ${{ hashFiles('**/requirements-test.txt') }}-\
             ${{ hashFiles('**/requirements.txt') }}"
           restore-keys: |
-            test-${{ runner.os }}-
+            ${{ env.BASE_CACHE_KEY }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -410,11 +413,13 @@ jobs:
         uses: docker/setup-buildx-action@v1
       - name: Cache Docker layers
         uses: actions/cache@v2
+        env:
+          BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
           path: ${{ env.BUILDX_CACHE_DIR }}
-          key: buildx-${{ runner.os }}-${{ github.sha }}
+          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
           restore-keys: |
-            buildx-${{ runner.os }}-
+            ${{ env.BASE_CACHE_KEY }}
       - name: Create cross-platform support Dockerfile-x
         run: ./buildx-dockerfile.sh
       - name: Build and push platform images to Docker Hub
