@@ -27,10 +27,10 @@ RUN \
     ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
     s3_url=$(./get_release_url.js cookiejar.json "${FOUNDRY_VERSION}") && \
     wget -O ${ARCHIVE} "${s3_url}" && \
-    unzip -d dist ${ARCHIVE} 'resources/*'; \
+    unzip -d -o dist ${ARCHIVE} 'resources/*'; \
   elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
     wget -O ${ARCHIVE} "${FOUNDRY_RELEASE_URL}" && \
-    unzip -d dist ${ARCHIVE} 'resources/*'; \
+    unzip -d -o dist ${ARCHIVE} 'resources/*'; \
   fi
 
 FROM node:14-alpine as final-stage
