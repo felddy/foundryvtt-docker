@@ -8,7 +8,7 @@ ARG VERSION
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 # Note: Additional labels are added by the build workflow.
 LABEL org.opencontainers.image.authors="mark.feldhousen@cisa.dhs.gov"
-LABEL org.opencontainers.image.vendor="Cyber and Infrastructure Security Agency"
+LABEL org.opencontainers.image.vendor="Cybersecurity and Infrastructure Security Agency"
 
 ARG CISA_UID=421
 ENV CISA_HOME="/home/cisa"
