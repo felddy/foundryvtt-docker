@@ -7,11 +7,13 @@ set -o errexit
 set -o pipefail
 
 CONFIG_DIR="/data/Config"
+LANGUAGE_FILE="$FOUNDRY_HOME/resources/app/public/lang/en.json"
 LICENSE_FILE="${CONFIG_DIR}/license.json"
 # setup logging
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
 LOG_NAME="Entrypoint"
+UPDATE_WARNING="This instance of Foundry Virtual Tabletop is running in a Docker container.  To update, please pull a new Docker image and restart the container."
 # shellcheck disable=SC1091
 # disable following
 source logging.sh
@@ -166,15 +168,13 @@ if [ $install_required = true ]; then
     fi
   fi
 
-  # Replace --noupdate error message with a container-specific one.
+  # Modify update warnings to be container-specific.
   log_debug "Editing server update error message."
-  update_js="$FOUNDRY_HOME/resources/app/dist/update.js"
-  sed --file=- --in-place=.orig "${update_js}" << SED_SCRIPT
-s/'You[^']*--noupdate\\\\x20mode.'\
-/'This instance of Foundry Virtual Tabletop is running in a Docker container.  \
-To update, please pull a new Docker image and restart the container.'/g
-SED_SCRIPT
-
+  patch_lang_file=$(mktemp -t patch_lang.XXXXXX)
+  jq --arg msg "${UPDATE_WARNING}" --exit-status \
+  '."SETUP.UpdateWarning" = $msg | ."SETUP.UpdateNoUpdate" = $msg' \
+  "${LANGUAGE_FILE}" > "${patch_lang_file}"
+  mv "${patch_lang_file}" "${LANGUAGE_FILE}"
 fi  # install required
 
 if [ ! -f "${LICENSE_FILE}" ]; then
