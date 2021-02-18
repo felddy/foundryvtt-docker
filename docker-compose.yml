@@ -26,6 +26,7 @@ services:
       # - FOUNDRY_GID=foundry
       # - FOUNDRY_HOSTNAME=
       # - FOUNDRY_LANGUAGE=
+      # - FOUNDRY_LOCAL_HOSTNAME=
       # - FOUNDRY_LICENSE_KEY=
       # - FOUNDRY_MINIFY_STATIC_FILES=
       # - FOUNDRY_PROXY_PORT=
@@ -43,6 +44,7 @@ services:
       #   }]
       # - FOUNDRY_UID=foundry
       # - FOUNDRY_UPNP=false
+      # - FOUNDRY_UPNP_LEASE_DURATION=
       # - FOUNDRY_VERSION=0.8.0
       # - FOUNDRY_WORLD=
       # - TIMEZONE=US/Eastern

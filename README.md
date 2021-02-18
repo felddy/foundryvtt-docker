@@ -272,6 +272,7 @@ distribution's name must be of the form: `foundryvtt-0.8.0.zip`
 | `FOUNDRY_GID`    | `gid` the deamon will be run under. | `foundry` |
 | `FOUNDRY_HOSTNAME` | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | `null` |
 | `FOUNDRY_LANGUAGE` | The default application language and module which provides the core translation files. | `en.core` |
+| `FOUNDRY_LOCAL_HOSTNAME` | Override the local network address used for invitation links, mirroring the functionality of the `FOUNDRY_HOSTNAME` option which configures the external address. | `null` |
 | `FOUNDRY_LICENSE_KEY` | The license key to install. e.g.; `AAAA-BBBB-CCCC-DDDD-EEEE-FFFF`  If left unset, a license key will be fetched when using account authentication.   If multiple license keys are associated with an account, one will be chosen at random.  Specific licenses can be selected by passing in an integer index.  The first license key being `1`.  May be set [using secrets](#using-secrets). | |
 | `FOUNDRY_MINIFY_STATIC_FILES` | Set to `true` to reduce network traffic by serving minified static JavaScript and CSS files.  Enabling this setting is recommended for most users, but module developers may wish to disable it. | `false` |
 | `FOUNDRY_PROXY_PORT` | Inform the Foundry Server that the software is running behind a reverse proxy on some other port. This allows the invitation links created to the game to include the correct external port. | `null` |
@@ -283,6 +284,7 @@ distribution's name must be of the form: `foundryvtt-0.8.0.zip`
 | `FOUNDRY_TURN_MAX_PORT` | Sets the maximum UDP port used by the internal [TURN relay server](https://foundryvtt.com/article/audio-video/).  This value must be greater than `49152`.  _Note: To use the internal relay server its ports must be published._ | |
 | `FOUNDRY_UID` | `uid` the daemon will be run under. | `foundry` |
 | `FOUNDRY_UPNP` | Allow Universal Plug and Play to automatically request port forwarding for the Foundry VTT port to your local network address. | `false` |
+| `FOUNDRY_UPNP_LEASE_DURATION` | Sets the UPnP lease duration, allowing for the possibility of permanent leases for routers which do not support temporary leases.  To define an indefinite lease duration set the value to `0`. | `null` |
 | `FOUNDRY_VERSION` | Version of Foundry Virtual Tabletop to install. | `0.8.0` |
 | `FOUNDRY_WORLD` | The world to startup at system start. | `null` |
 | `TIMEZONE`     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | `UTC` |
