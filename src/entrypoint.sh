@@ -175,6 +175,7 @@ if [ $install_required = true ]; then
   '."SETUP.UpdateWarning" = $msg | ."SETUP.UpdateNoUpdate" = $msg' \
   "${LANGUAGE_FILE}" > "${patch_lang_file}"
   mv "${patch_lang_file}" "${LANGUAGE_FILE}"
+  chmod a+r "${LANGUAGE_FILE}"
 fi  # install required
 
 if [ ! -f "${LICENSE_FILE}" ]; then
