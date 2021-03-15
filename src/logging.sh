@@ -1,6 +1,4 @@
-#!/bin/sh
-# shellcheck disable=SC2039
-# busybox supports more features than POSIX /bin/sh
+#!/bin/bash
 
 # Define terminal colors for use in logger functions
 BLUE="\e[34m"

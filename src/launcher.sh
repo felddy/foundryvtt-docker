@@ -1,6 +1,4 @@
-#!/bin/sh
-# shellcheck disable=SC2039
-# busybox supports more features than POSIX /bin/sh
+#!/bin/bash
 
 set -o nounset
 set -o errexit
@@ -50,4 +48,4 @@ fi
 
 # Spawn node with clean environment to prevent credential leaks
 log "Starting Foundry Virtual Tabletop."
-env -i HOME="$HOME" node "$@"
+env -i HOME="$HOME" /usr/local/bin/node "$@"

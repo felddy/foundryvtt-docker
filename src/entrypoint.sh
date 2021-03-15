@@ -1,6 +1,4 @@
-#!/bin/sh
-# shellcheck disable=SC2039
-# busybox supports more features than POSIX /bin/sh
+#!/bin/bash
 
 set -o nounset
 set -o errexit
@@ -153,9 +151,12 @@ if [ $install_required = true ]; then
     log "Using CONTAINER_PATCHES: ${CONTAINER_PATCHES}"
     if [ -d "${CONTAINER_PATCHES}" ]; then
       log "Container patches directory detected.  Starting patch application..."
-      for f in "${CONTAINER_PATCHES}"/*
+      shopt -s nullglob # if the directory is empty we want an empty array
+      patch_files=("${CONTAINER_PATCHES}"/*)
+      shopt -u nullglob
+      for f in "${patch_files[@]}"
       do
-        [ -f "$f" ] || continue # we can't set nullglob in busybox
+        [ -f "$f" ] || continue # skip non-files
         log "Sourcing patch from file: $f"
         # shellcheck disable=SC1090
         source "$f"
@@ -225,5 +226,5 @@ export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
   FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT \
   FOUNDRY_SSL_KEY FOUNDRY_TURN_CONFIGS FOUNDRY_TURN_MAX_PORT FOUNDRY_UPNP \
   FOUNDRY_WORLD
-su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" ./launcher.sh "$@"
+gosu "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" ./launcher.sh "$@"
 exit 0

@@ -1,7 +1,4 @@
-#!/bin/sh
-
-# shellcheck disable=SC2039
-# busybox supports more features than POSIX /bin/sh
+#!/bin/bash
 
 if [[ "${FOUNDRY_SSL_CERT:-}" && "${FOUNDRY_SSL_KEY:-}" ]]; then
   protocol="https"
