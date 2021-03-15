@@ -29,8 +29,8 @@ env:
   BUILDX_CACHE_DIR: ~/.cache/buildx
   IMAGE_NAME: felddy/foundryvtt
   PIP_CACHE_DIR: ~/.cache/pip
-  PLATFORMS: "linux/amd64,linux/arm/v6,linux/arm/v7,\
-  linux/arm64,linux/ppc64le,linux/s390x"
+  PLATFORMS: "linux/amd64,linux/arm/v7,\
+  linux/arm64/v8"
   PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
 
 jobs:
