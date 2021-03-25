@@ -396,9 +396,10 @@ jobs:
   build-push-all:
     # Builds the final set of images for each of the platforms listed in
     # PLATFORMS environment variable.  These images are tagged with the Docker
-    # tags calculated in the "prepare" job and pushed to DockerHub.  The
-    # contents of README.md is pushed as the image's description.  This job is
-    # skipped when the triggering event is a pull request.
+    # tags calculated in the "prepare" job and pushed to DockerHub and the
+    # GitHub Container Registry.  The contents of README.md is pushed as the
+    # image's description to DockerHub.  This job is skipped when the triggering
+    # event is a pull request.
     name: "Build and push all platforms"
     runs-on: ubuntu-latest
     needs: [lint, prepare, test-normal, test-pre-install]
@@ -432,7 +433,7 @@ jobs:
             ${{ env.BASE_CACHE_KEY }}
       - name: Create cross-platform support Dockerfile-x
         run: ./buildx-dockerfile.sh
-      - name: Build and push platform images to Docker Hub
+      - name: Build and push platform images to registries
         id: docker_build
         uses: docker/build-push-action@v2
         with:
