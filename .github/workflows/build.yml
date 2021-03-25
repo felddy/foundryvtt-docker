@@ -116,7 +116,6 @@ jobs:
       repometa: ${{ steps.repo.outputs.result }}
       source_version: ${{ steps.prep.outputs.source_version }}
       tags: ${{ steps.prep.outputs.tags }}
-      ghcr_tags: ${{ steps.prep.outputs.ghcr_tags }}
     steps:
       - uses: actions/checkout@v2
       - name: Gather repository metadata
@@ -161,15 +160,12 @@ jobs:
           fi
           for i in ${TAGS//,/ }
           do
-            GHCR_TAGS="${GHCR_TAGS},ghcr.io/${i}"
+            TAGS="${TAGS},ghcr.io/${i}"
           done
-          GHCR_TAGS=${GHCR_TAGS:1}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           echo ::set-output name=source_version::$(./bump_version.sh show)
           echo ::set-output name=tags::${TAGS}
-          echo ::set-output name=ghcr_tags::${GHCR_TAGS}
           echo tags=${TAGS}
-          echo ghcr_tags=${GHCR_TAGS}
       - name: Setup debug session remote shell
         uses: mxschmitt/action-tmate@v3
         if: github.event.inputs.remote-shell == 'true'
@@ -448,8 +444,7 @@ jobs:
           file: ./Dockerfile-x
           platforms: ${{ env.PLATFORMS }}
           push: true
-          tags: "${{ needs.prepare.outputs.tags }},\
-            ${{ needs.prepare.outputs.ghcr_tags }}"
+          tags: ${{ needs.prepare.outputs.tags }}
           # For a list of pre-defined annotation keys and value types see:
           # https://github.com/opencontainers/image-spec/blob/master/annotations.md
           labels: "\
