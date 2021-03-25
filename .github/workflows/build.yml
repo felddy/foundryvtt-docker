@@ -116,6 +116,7 @@ jobs:
       repometa: ${{ steps.repo.outputs.result }}
       source_version: ${{ steps.prep.outputs.source_version }}
       tags: ${{ steps.prep.outputs.tags }}
+      ghcr_tags: ${{ steps.prep.outputs.ghcr_tags }}
     steps:
       - uses: actions/checkout@v2
       - name: Gather repository metadata
