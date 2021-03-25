@@ -158,6 +158,10 @@ jobs:
           if [ "${{ github.event_name }}" = "push" ]; then
             TAGS="${TAGS},${IMAGE_NAME}:sha-${GITHUB_SHA::8}"
           fi
+          for i in ${TAGS//,/ }
+          do
+            TAGS="${TAGS},ghcr.io/${i}"
+          done
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           echo ::set-output name=source_version::$(./bump_version.sh show)
           echo ::set-output name=tags::${TAGS}
