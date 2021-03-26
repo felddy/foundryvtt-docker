@@ -280,7 +280,7 @@ jobs:
     # Builds the final set of images for each of the platforms listed in
     # PLATFORMS environment variable.  These images are tagged with the Docker
     # tags calculated in the "prepare" job and pushed to DockerHub and the
-    # GitHub Container Registry.  The contents of README.md is pushed as the
+    # GitHub Container Registry.  The contents of README.md are pushed as the
     # image's description to DockerHub.  This job is skipped when the triggering
     # event is a pull request.
     name: "Build and push all platforms"
