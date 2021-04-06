@@ -1,8 +1,8 @@
 # skeleton-docker 💀🐳 #
 
-[![GitHub Build Status](https://github.com/cisagov/skeleton-docker/workflows/build/badge.svg)](https://github.com/cisagov/skeleton-docker/actions)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/cisagov/skeleton-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/skeleton-docker/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/cisagov/skeleton-docker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cisagov/skeleton-docker/context:python)
+[![GitHub Build Status](https://github.com/cisagov/skeleton-docker/workflows/build/badge.svg)](https://github.com/cisagov/skeleton-docker/actions/workflows/build.yml)
+[![CodeQL](https://github.com/cisagov/skeleton-docker/workflows/CodeQL/badge.svg)](https://github.com/cisagov/skeleton-docker/actions/workflows/codeql-analysis.yml)
+[![Known Vulnerabilities](https://snyk.io/test/github/cisagov/skeleton-docker/badge.svg)](https://snyk.io/test/github/cisagov/skeleton-docker)
 
 ## Docker Image ##
 
@@ -17,49 +17,205 @@ information](LICENSE), as well as [pre-commit hooks](https://pre-commit.com)
 and [GitHub Actions](https://github.com/features/actions) configurations
 appropriate for docker containers and the major languages that we use.
 
-## Usage ##
+## Running ##
 
-### Install ###
+### Using Docker ###
 
-Pull `cisagov/example` from the Docker repository:
+```console
+docker run cisagov/example:0.0.1
+```
 
-    docker pull cisagov/example
+## Using a Docker composition ###
 
-Or build `cisagov/example` from source:
+1. Create a `docker-compose.yml` file similar to the one below.
 
-    git clone https://github.com/cisagov/skeleton-docker.git
-    cd skeleton-docker
-    docker-compose build --build-arg VERSION=0.0.1
+    ```yaml
+    version: "3.8"
 
-### Run ###
+    services:
+      example:
+        image: cisagov/example:0.0.1
+        volumes:
+          - type: bind
+            source: <your_log_dir>
+            target: /var/log
+        environment:
+          - ECHO_MESSAGE="Hello from docker-compose"
+        ports:
+          - target: "8080"
+            published: "8080"
+            protocol: tcp
+    ```
 
-    docker-compose run --rm example
+1. Start the container and detach:
 
-## Ports ##
+    ```console
+    docker-compose up --detach
+    ```
 
-This container exposes the following ports:
+## Using secrets ##
 
-| Port  | Protocol | Service  |
-|-------|----------|----------|
-| 8080  | TCP      | http     |
+This container also supports passing sensitive values via [Docker
+secrets](https://docs.docker.com/engine/swarm/secrets/).  Passing sensitive
+values like your credentials can be more secure using secrets than using
+environment variables.  See the
+[secrets](#secrets) section below for a table of all supported secret files.
 
-## Environment Variables ##
+1. To use secrets, create a `quote.txt` file containing the values you want set:
 
-| Variable      | Default Value                 | Purpose      |
-|---------------|-------------------------------|--------------|
-| ECHO_MESSAGE  | `Hello World from Dockerfile` | Text to echo |
+    ```text
+    Better lock it in your pocket.
+    ```
 
-## Secrets ##
+1. Then add the secret to your `docker-compose.yml` file:
 
-| Filename      | Purpose              |
-|---------------|----------------------|
-| quote.txt     | Secret text to echo  |
+    ```yaml
+    version: "3.8"
+
+    secrets:
+      quote_txt:
+        file: quote.txt
+
+    services:
+      example:
+        image: cisagov/example:0.0.1
+        volumes:
+          - type: bind
+            source: <your_log_dir>
+            target: /var/log
+        environment:
+          - ECHO_MESSAGE="Hello from docker-compose"
+        ports:
+          - target: "8080"
+            published: "8080"
+            protocol: tcp
+        secrets:
+          - source: quote_txt
+            target: quote.txt
+    ```
+
+## Updating ##
+
+### Docker-compose ###
+
+1. Pull the new image from Docker hub:
+
+    ```console
+    docker-compose pull
+    ```
+
+1. Recreate the running container:
+
+    ```console
+    docker-compose up --detach
+    ```
+
+### Docker ###
+
+1. Stop the running container:
+
+    ```console
+    docker stop <container_id>
+    ```
+
+1. Pull the new image:
+
+    ```console
+    docker pull cisagov/example:0.0.1
+    ```
+
+1. Follow the previous instructions for [running](#running) the container above.
+
+## Image tags ##
+
+The images of this container are tagged with [semantic
+versions](https://semver.org) of the underlying example project that they
+containerize.  It is recommended that most users use a version tag.  e.g.,
+`:0.0.1`
+
+| Image:tag | Description |
+|-----------|-------------|
+|`cisagov/example:1.2.3`| An exact release version. |
+|`cisagov/example:1.2`| The most recent release matching the major and minor version numbers. |
+|`cisagov/example:1`| The most recent release matching the major version number. |
+|`cisagov/example:edge` | The most recent image built from a merge into the `develop` branch of this repository. |
+|`cisagov/example:nightly` | A nightly build of the `develop` branch of this repository. |
+|`cisagov/example:latest`| The most recent release image pushed to a container registry.  Pulling an image using the `:latest` tag [should be avoided.](https://vsupalov.com/docker-latest-tag/) |
+
+See the [tags tab](https://hub.docker.com/r/cisagov/example/tags) on Docker
+Hub for a list of all the supported tags.
 
 ## Volumes ##
 
 | Mount point | Purpose        |
 |-------------|----------------|
-| /var/log    | logging output |
+| `/var/log`  |  Log storage   |
+
+## Environment variables ##
+
+### Required ###
+
+There are no required environment variables.
+
+<!--
+| Name  | Purpose | Default |
+|-------|---------|---------|
+| `REQUIRED_VARIABLE` | Describe its purpose. | `null` |
+-->
+
+### Optional ###
+
+| Name  | Purpose | Default |
+|-------|---------|---------|
+| `ECHO_MESSAGE` | Sets the message echoed by this container.  | `Hello World from Dockerfile` |
+
+## Secrets ##
+
+| Filename     | Purpose |
+|--------------|---------|
+| `quote.txt` | Replaces the secret stored in the example library's package data. |
+
+## Building from source ##
+
+Build the image locally using this git repository as the [build context](https://docs.docker.com/engine/reference/commandline/build/#git-repositories):
+
+```console
+docker build \
+  --build-arg VERSION=0.0.1 \
+  --tag cisagov/example:0.0.1 \
+  https://github.com/cisagov/example.git#develop
+```
+
+## Cross-platform builds ##
+
+To create images that are compatible with other platforms you can use the
+[`buildx`](https://docs.docker.com/buildx/working-with-buildx/) feature of
+Docker:
+
+1. Copy the project to your machine using the `Code` button above
+   or the command line:
+
+    ```console
+    git clone https://github.com/cisagov/example.git
+    cd example
+    ```
+
+1. Create the `Dockerfile-x` file with `buildx` platform support:
+
+    ```console
+    ./buildx-dockerfile.sh
+    ```
+
+1. Build the image using `buildx`:
+
+    ```console
+    docker buildx build \
+      --file Dockerfile-x \
+      --platform linux/amd64 \
+      --build-arg VERSION=0.0.1 \
+      --output type=docker \
+      --tag cisagov/example:0.0.1 .
+    ```
 
 ## New Repositories from a Skeleton ##
 
