@@ -217,7 +217,7 @@ Docker:
       --tag cisagov/example:0.0.1 .
     ```
 
-## New Repositories from a Skeleton ##
+## New repositories from a skeleton ##
 
 Please see our [Project Setup guide](https://github.com/cisagov/development-guide/tree/develop/project_setup)
 for step-by-step instructions on how to start a new repository from
