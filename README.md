@@ -188,7 +188,7 @@ docker build \
 
 ## Cross-platform builds ##
 
-To create images that are compatible with other platforms you can use the
+To create images that are compatible with other platforms, you can use the
 [`buildx`](https://docs.docker.com/buildx/working-with-buildx/) feature of
 Docker:
 
