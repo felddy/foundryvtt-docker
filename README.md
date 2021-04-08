@@ -25,7 +25,7 @@ appropriate for docker containers and the major languages that we use.
 docker run cisagov/example:0.0.1
 ```
 
-## Using a Docker composition ###
+### Running with Docker Compose ###
 
 1. Create a `docker-compose.yml` file similar to the one below.
 
