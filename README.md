@@ -104,7 +104,7 @@ environment variables.  See the
     docker-compose pull
     ```
 
-1. Recreate the running container:
+1. Recreate the running container by following the [previous instructions](#running-with-docker-compose):
 
     ```console
     docker-compose up --detach
