@@ -94,7 +94,7 @@ environment variables.  See the
             target: quote.txt
     ```
 
-## Updating ##
+## Updating your container ##
 
 ### Docker Compose ###
 
