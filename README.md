@@ -19,7 +19,7 @@ appropriate for docker containers and the major languages that we use.
 
 ## Running ##
 
-### Using Docker ###
+### Running with Docker ###
 
 ```console
 docker run cisagov/example:0.0.1
