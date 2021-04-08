@@ -124,7 +124,7 @@ environment variables.  See the
     docker pull cisagov/example:0.0.1
     ```
 
-1. Follow the previous instructions for [running](#running) the container above.
+1. Recreate and run the container by following the [previous instructions](#running-with-docker).
 
 ## Image tags ##
 
