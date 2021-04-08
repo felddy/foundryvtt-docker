@@ -96,7 +96,7 @@ environment variables.  See the
 
 ## Updating ##
 
-### Docker-compose ###
+### Docker Compose ###
 
 1. Pull the new image from Docker hub:
 
