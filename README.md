@@ -27,7 +27,7 @@ distribution.
 
 ## Running ##
 
-### Using Docker with credentials ###
+### Running with Docker and credentials ###
 
 You can use the following command to start up a Foundry Virtual Tabletop server.
 Your [foundryvtt.com](https://foundryvtt.com) credentials are required so the
@@ -47,7 +47,7 @@ command with a space to prevent your credentials from being committed to the
 shell history list.  See:
 [`HISTCONTROL`](https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html#index-HISTCONTROL)
 
-### Using Docker with a temporary URL ###
+### Running with Docker and a temporary URL ###
 
 Alternatively, you may acquire a temporary download token from your user profile
 page on the Foundry website.  On the "Purchased Licenses" page, click the [🔗]
@@ -62,7 +62,7 @@ docker run \
   felddy/foundryvtt:release
 ```
 
-## Using a Docker composition ###
+### Running with a Docker composition ###
 
 Using [`docker compose`](https://docs.docker.com/compose/) to manage your
 server is highly recommended.  A `docker-compose.yml` file is a more reliable
@@ -158,12 +158,12 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
             target: config.json
     ```
 
-## Updating ##
+## Updating your container ##
 
 The Foundry "Update Software" tab is disabled by default in this container.  To
 upgrade to a new version of Foundry pull an updated image version.
 
-### Docker compose ###
+### Updating with Docker Compose ###
 
 1. Pull the new image from Docker hub:
 
@@ -177,7 +177,7 @@ upgrade to a new version of Foundry pull an updated image version.
     docker compose up --detach
     ```
 
-### Docker ###
+### Updating with Docker ###
 
 1. Stop the running container:
 
