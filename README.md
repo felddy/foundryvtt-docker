@@ -64,7 +64,7 @@ docker run \
 
 ## Using a Docker composition ###
 
-Using [`docker-compose`](https://docs.docker.com/compose/install/) to manage your
+Using [`docker compose`](https://docs.docker.com/compose/) to manage your
 server is highly recommended.  A `docker-compose.yml` file is a more reliable
 way to start and maintain a container while capturing its configurations.  All
 of Foundry's [configuration
@@ -92,15 +92,15 @@ options](https://foundryvtt.com/article/configuration/) can be specified using
           - FOUNDRY_USERNAME=<your_username>
           - FOUNDRY_ADMIN_KEY=atropos
         ports:
-          - target: "30000"
-            published: "30000"
+          - target: 30000
+            published: 30000
             protocol: tcp
     ```
 
 1. Start the container and detach:
 
     ```console
-    docker-compose up --detach
+    docker compose up --detach
     ```
 
 1. Access the web application at:
@@ -150,8 +150,8 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
             target: /data
         environment:
         ports:
-          - target: "30000"
-            published: "30000"
+          - target: 30000
+            published: 30000
             protocol: tcp
         secrets:
           - source: config_json
@@ -163,18 +163,18 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
 The Foundry "Update Software" tab is disabled by default in this container.  To
 upgrade to a new version of Foundry pull an updated image version.
 
-### Docker-compose ###
+### Docker compose ###
 
 1. Pull the new image from Docker hub:
 
     ```console
-    docker-compose pull
+    docker compose pull
     ```
 
 1. Recreate the running container:
 
     ```console
-    docker-compose up --detach
+    docker compose up --detach
     ```
 
 ### Docker ###
@@ -429,8 +429,8 @@ you can pass the `--shell` option to the service:
 
 | Purpose | Command |
 |---------|---------|
-| Drop into a shell in the container before switching uid:gid | `docker-compose run foundry --root-shell` |
-| Drop into a shell in the container after switching uid:gid | `docker-compose run foundry --shell` |
+| Drop into a shell in the container before switching uid:gid | `docker compose run foundry --root-shell` |
+| Drop into a shell in the container after switching uid:gid | `docker compose run foundry --shell` |
 
 ## Contributing ##
 
