@@ -56,7 +56,7 @@ docker run cisagov/example:0.0.1
     docker-compose up --detach
     ```
 
-## Using secrets ##
+## Using secrets with your container ##
 
 This container also supports passing sensitive values via [Docker
 secrets](https://docs.docker.com/engine/swarm/secrets/).  Passing sensitive
