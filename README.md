@@ -21,6 +21,8 @@ appropriate for docker containers and the major languages that we use.
 
 ### Running with Docker ###
 
+To run the `cisagov/example` image via Docker:
+
 ```console
 docker run cisagov/example:0.0.1
 ```
