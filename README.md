@@ -42,8 +42,8 @@ docker run cisagov/example:0.0.1
         environment:
           - ECHO_MESSAGE="Hello from docker-compose"
         ports:
-          - target: "8080"
-            published: "8080"
+          - target: 8080
+            published: 8080
             protocol: tcp
     ```
 
@@ -86,8 +86,8 @@ environment variables.  See the
         environment:
           - ECHO_MESSAGE="Hello from docker-compose"
         ports:
-          - target: "8080"
-            published: "8080"
+          - target: 8080
+            published: 8080
             protocol: tcp
         secrets:
           - source: quote_txt
