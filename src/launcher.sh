@@ -17,6 +17,7 @@ CONFIG_FILE="${CONFIG_DIR}/options.json"
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
 LOG_NAME="Launcher"
+
 # shellcheck source=src/logging.sh
 source logging.sh
 

@@ -17,6 +17,7 @@ LICENSE_FILE="${CONFIG_DIR}/license.json"
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
 LOG_NAME="Entrypoint"
+
 # shellcheck source=src/logging.sh
 source logging.sh
 
