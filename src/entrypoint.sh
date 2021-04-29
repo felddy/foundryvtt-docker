@@ -1,10 +1,15 @@
 #!/bin/sh
-# shellcheck disable=SC2039
-# busybox supports more features than POSIX /bin/sh
+# shellcheck disable=SC3010,SC3046,SC3051
+# SC3010 - busybox supports [[ ]]
+# SC3046 - busybox supports source command
+# SC3051 - busybox supports source command
 
 set -o nounset
 set -o errexit
+# shellcheck disable=SC3040
+# pipefail is supported by busybox
 set -o pipefail
+
 
 CONFIG_DIR="/data/Config"
 LANGUAGE_FILE="$FOUNDRY_HOME/resources/app/public/lang/en.json"
@@ -14,8 +19,8 @@ LICENSE_FILE="${CONFIG_DIR}/license.json"
 # LOG_NAME used in sourced file
 LOG_NAME="Entrypoint"
 UPDATE_WARNING="This instance of Foundry Virtual Tabletop is running in a Docker container.  To update, please pull a new Docker image and restart the container."
-# shellcheck disable=SC1091
-# disable following
+
+# shellcheck source=src/logging.sh
 source logging.sh
 
 image_version=$(cat image_version.txt)
