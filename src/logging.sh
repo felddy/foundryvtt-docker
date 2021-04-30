@@ -1,6 +1,7 @@
 #!/bin/sh
-# shellcheck disable=SC2039
-# busybox supports more features than POSIX /bin/sh
+# shellcheck disable=SC3010,SC3037
+# SC3010 - busybox supports [[ ]]
+# SC3037 - busybox echo supports flags
 
 # Define terminal colors for use in logger functions
 BLUE="\e[34m"
