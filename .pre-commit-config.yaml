@@ -53,6 +53,9 @@ repos:
     rev: 1.0.5
     hooks:
       - id: shell-lint
+        # SC2039 is retired in 0.7.2 but not 0.7.0.  Local checks will pass
+        # but they will currently fail in GitHub Actions which uses 0.7.0
+        args: [-x, --exclude=SC2039]
 
   # Python hooks
   - repo: https://github.com/PyCQA/bandit
