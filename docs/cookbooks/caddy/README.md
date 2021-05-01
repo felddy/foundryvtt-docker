@@ -23,9 +23,7 @@
     ```
 
 1. Edit `docker-compose.yml` and replace all the placeholder values that are
-contained within `< >`.  For example, the text `SITE_ADDRESS=<vtt.example.com>`
-would be replaced with your server's hostname
-`SITE_ADDRESS=vtt.minsclovesboo.net`
+contained within `< >`.  For example, modifying the placeholders for the Caddy service:
 
     ```diff
           environment:
