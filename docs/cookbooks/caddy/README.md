@@ -29,10 +29,10 @@ would be replaced with your server's hostname
 
     ```diff
           environment:
-      -      - LETSENCRYPT_EMAIL=<your_email@example.com>
-      +      - LETSENCRYPT_EMAIL=super_dm@minsclovesboo.net
-      -      - SITE_ADDRESS=<vtt.example.com>
-      +      - SITE_ADDRESS=vtt.minsclovesboo.net
+    -        - LETSENCRYPT_EMAIL=<your_email@example.com>
+    +        - LETSENCRYPT_EMAIL=super_dm@minsclovesboo.net
+    -        - SITE_ADDRESS=<vtt.example.com>
+    +        - SITE_ADDRESS=vtt.minsclovesboo.net
           ports:
             - target: "443"
     ```
