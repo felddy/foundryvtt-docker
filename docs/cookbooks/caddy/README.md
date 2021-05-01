@@ -1,0 +1,42 @@
+# Foundry VTT running behind Caddy #
+
+## Notable features of this setup ##
+
+- Two services running in [Docker] containers
+- TLS provided by [Caddy] proxy
+- Free certificates from [LetsEncrypt]
+- Certificates automatically updated
+
+## How to create this setup ##
+
+1. Create the following directory structure using the [`Caddyfile`](Caddyfile) and
+[`docker-compose.yml`](docker-compose.yml) files from this section.
+
+    ```console
+    .
+    ├── Caddyfile
+    ├── docker-compose.yml
+    └── volumes
+        ├── caddy_config
+        ├── caddy_data
+        └── foundry_data
+    ```
+
+1. Edit `docker-compose.yml` and replace all the placeholder values that are
+contained within `< >`.  For example, the text `SITE_ADDRESS=<vtt.example.com>`
+would be replaced with your server's hostname
+`SITE_ADDRESS=vtt.minsclovesboo.net`
+
+1. Start the container and detach:
+
+    ```console
+    docker compose up --detach
+    ```
+
+1. Access the web application using the hostname you configured:
+[https://vtt.minsclovesboo.net](https://vtt.minsclovesboo.net).
+
+[caddy]: https://caddyserver.com
+[docker]: https://docs.docker.com
+[foundryvtt]: https://foundryvtt.com
+[letsencrypt]: https://letsencrypt.org

@@ -1,0 +1,8 @@
+{$SITE_ADDRESS} {
+  reverse_proxy foundry:30000
+
+  tls {$LETSENCRYPT_EMAIL} {
+    # Uncomment the next line for staging server testing
+    # ca https://acme-staging-v02.api.letsencrypt.org/directory
+  }
+}
