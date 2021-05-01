@@ -36,7 +36,7 @@ services:
     environment:
       - CONTAINER_CACHE=/data/container_cache
       - CONTAINER_VERBOSE=true
-      - FOUNDRY_ADMIN_KEY=atropos
+      - FOUNDRY_ADMIN_KEY=<admin_password>
       - FOUNDRY_HOSTNAME=<vtt.example.com>
       - FOUNDRY_PASSWORD=<password>
       - FOUNDRY_PROXY_SSL=true
