@@ -32,7 +32,7 @@ contained within `< >`.  For example, modifying the placeholders for the Caddy s
     -        - SITE_ADDRESS=<vtt.example.com>
     +        - SITE_ADDRESS=vtt.minsclovesboo.net
           ports:
-            - target: "443"
+            - target: 443
     ```
 
 1. Start the container and detach:
