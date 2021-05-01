@@ -16,10 +16,10 @@
     .
     ├── Caddyfile
     ├── docker-compose.yml
-    └── volumes
-        ├── caddy_config
-        ├── caddy_data
-        └── foundry_data
+    └── volumes/
+        ├── caddy_config/
+        ├── caddy_data/
+        └── foundry_data/
     ```
 
 1. Edit `docker-compose.yml` and replace all the placeholder values that are
