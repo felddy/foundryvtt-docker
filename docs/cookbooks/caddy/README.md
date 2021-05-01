@@ -27,6 +27,16 @@ contained within `< >`.  For example, the text `SITE_ADDRESS=<vtt.example.com>`
 would be replaced with your server's hostname
 `SITE_ADDRESS=vtt.minsclovesboo.net`
 
+    ```diff
+          environment:
+      -      - LETSENCRYPT_EMAIL=<your_email@example.com>
+      +      - LETSENCRYPT_EMAIL=super_dm@minsclovesboo.net
+      -      - SITE_ADDRESS=<vtt.example.com>
+      +      - SITE_ADDRESS=vtt.minsclovesboo.net
+          ports:
+            - target: "443"
+    ```
+
 1. Start the container and detach:
 
     ```console
