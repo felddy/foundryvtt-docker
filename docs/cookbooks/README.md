@@ -10,4 +10,5 @@ the same structure.
 - Instructions for accessing the services.
 
 - [Single server running behind Caddy](caddy)
+- [Single server running behind nginx](nginx)
 - [Two servers running behind Caddy with different paths](caddy-two-paths)

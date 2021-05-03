@@ -4,10 +4,19 @@
 
 - Two services running in [Docker] containers
 - TLS provided by [Caddy] proxy
-- Free certificates from [LetsEncrypt]
-- Certificates automatically updated
+- Free certificates provided by [LetsEncrypt]
+- Certificates are automatically installed and updated
+- FoundryVTT distributions are cached after download
+- FoundryVTT data stored in local file system
 
 ## How to create this setup ##
+
+1. Download this cookbook:
+
+    ```bash
+    curl https://codeload.github.com/felddy/foundryvtt-docker/legacy.tar.gz/improvement/cookbooks | \
+    tar xz --strip-components=4 --exclude .gitignore --include '*/cookbooks/caddy'
+    ```
 
 1. Create the following directory structure using the [`Caddyfile`](Caddyfile) and
 [`docker-compose.yml`](docker-compose.yml) files from this section.
