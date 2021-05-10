@@ -1,10 +1,10 @@
 ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
-ARG FOUNDRY_VERSION=0.7.4
+ARG FOUNDRY_VERSION=0.8.2
 ARG VERSION
 
-FROM node:12-alpine as optional-release-stage
+FROM node:14-alpine as optional-release-stage
 
 ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
@@ -33,7 +33,7 @@ RUN \
     unzip -d dist ${ARCHIVE} 'resources/*'; \
   fi
 
-FROM node:12-alpine as final-stage
+FROM node:14-alpine as final-stage
 
 ARG FOUNDRY_UID=421
 ARG FOUNDRY_VERSION
@@ -60,6 +60,7 @@ COPY \
   src/logging.js \
   src/logging.sh \
   src/package.json \
+  src/set_options.js \
   src/set_password.js \
   ./
 RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
@@ -73,7 +74,13 @@ RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   && npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]
+# HTTP Server
 EXPOSE 30000/TCP
+# TURN Server
+# Not exposing TURN ports due to bug in Docker.
+# See: https://github.com/moby/moby/issues/11185
+# EXPOSE 33478/UDP
+# EXPOSE 49152-65535/UDP
 
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["resources/app/main.js", "--port=30000", "--headless", "--noupdate",\
