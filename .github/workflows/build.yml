@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2.2.2
         with:
           python-version: 3.9
       - uses: actions/cache@v2
@@ -311,7 +311,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2.2.2
         with:
           python-version: 3.9
       - name: Cache testing environments
@@ -360,7 +360,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2.2.2
         with:
           python-version: 3.9
       - name: Cache testing environments
