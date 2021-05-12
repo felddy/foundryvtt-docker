@@ -40,7 +40,7 @@ jobs:
     name: "Lint sources"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
       - id: setup-python
         uses: actions/setup-python@v2
         with:
@@ -117,7 +117,7 @@ jobs:
       source_version: ${{ steps.prep.outputs.source_version }}
       tags: ${{ steps.prep.outputs.tags }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
       - name: Gather repository metadata
         id: repo
         uses: actions/github-script@v4
@@ -175,7 +175,7 @@ jobs:
     needs: [prepare]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.3.4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -241,7 +241,7 @@ jobs:
     needs: [prepare]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.3.4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -309,7 +309,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-normal]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
       - id: setup-python
         uses: actions/setup-python@v2
         with:
@@ -358,7 +358,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-pre-install]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
       - id: setup-python
         uses: actions/setup-python@v2
         with:
@@ -423,7 +423,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.3.4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
