@@ -134,8 +134,8 @@ environment variables.  See the
 
 The images of this container are tagged with [semantic
 versions](https://semver.org) of the underlying example project that they
-containerize.  It is recommended that most users use a version tag.  e.g.,
-`:0.0.1`
+containerize.  It is recommended that most users use a version tag (e.g.
+`:0.0.1`).
 
 | Image:tag | Description |
 |-----------|-------------|
