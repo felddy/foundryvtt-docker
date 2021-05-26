@@ -1,10 +1,15 @@
 #!/bin/sh
-# shellcheck disable=SC2039
-# busybox supports more features than POSIX /bin/sh
+# shellcheck disable=SC3010,SC3046,SC3051
+# SC3010 - busybox supports [[ ]]
+# SC3046 - busybox supports source command
+# SC3051 - busybox supports source command
 
 set -o nounset
 set -o errexit
+# shellcheck disable=SC3040
+# pipefail is supported by busybox
 set -o pipefail
+
 
 CONFIG_DIR="/data/Config"
 LICENSE_FILE="${CONFIG_DIR}/license.json"
@@ -12,8 +17,8 @@ LICENSE_FILE="${CONFIG_DIR}/license.json"
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
 LOG_NAME="Entrypoint"
-# shellcheck disable=SC1091
-# disable following
+
+# shellcheck source=src/logging.sh
 source logging.sh
 
 image_version=$(cat image_version.txt)
