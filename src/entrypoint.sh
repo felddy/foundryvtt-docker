@@ -12,11 +12,13 @@ set -o pipefail
 
 
 CONFIG_DIR="/data/Config"
+LANGUAGE_FILE="$FOUNDRY_HOME/resources/app/public/lang/en.json"
 LICENSE_FILE="${CONFIG_DIR}/license.json"
 # setup logging
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
 LOG_NAME="Entrypoint"
+UPDATE_WARNING="This instance of Foundry Virtual Tabletop is running in a Docker container.  To update, please pull a new Docker image and restart the container."
 
 # shellcheck source=src/logging.sh
 source logging.sh
@@ -171,15 +173,14 @@ if [ $install_required = true ]; then
     fi
   fi
 
-  # Replace --noupdate error message with a container-specific one.
+  # Modify update warnings to be container-specific.
   log_debug "Editing server update error message."
-  update_js="$FOUNDRY_HOME/resources/app/dist/update.js"
-  sed --file=- --in-place=.orig "${update_js}" << SED_SCRIPT
-s/'You[^']*--noupdate\\\\x20mode.'\
-/'This instance of Foundry Virtual Tabletop is running in a Docker container.  \
-To update, please pull a new Docker image and restart the container.'/g
-SED_SCRIPT
-
+  patch_lang_file=$(mktemp -t patch_lang.XXXXXX)
+  jq --arg msg "${UPDATE_WARNING}" --exit-status \
+  '."SETUP.UpdateWarning" = $msg | ."SETUP.UpdateNoUpdate" = $msg' \
+  "${LANGUAGE_FILE}" > "${patch_lang_file}"
+  mv "${patch_lang_file}" "${LANGUAGE_FILE}"
+  chmod a+r "${LANGUAGE_FILE}"
 fi  # install required
 
 if [ ! -f "${LICENSE_FILE}" ]; then
@@ -226,9 +227,9 @@ fi
 # drop privileges and handoff to launcher
 log "Starting launcher with uid:gid as ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}."
 export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
-  FOUNDRY_HOSTNAME FOUNDRY_LANGUAGE FOUNDRY_MINIFY_STATIC_FILES \
-  FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT \
-  FOUNDRY_SSL_KEY FOUNDRY_TURN_CONFIGS FOUNDRY_TURN_MAX_PORT FOUNDRY_UPNP \
-  FOUNDRY_WORLD
+  FOUNDRY_HOSTNAME FOUNDRY_LANGUAGE FOUNDRY_LOCAL_HOSTNAME \
+  FOUNDRY_MINIFY_STATIC_FILES FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL \
+  FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT FOUNDRY_SSL_KEY FOUNDRY_TURN_CONFIGS \
+  FOUNDRY_TURN_MAX_PORT FOUNDRY_UPNP FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
 su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" ./launcher.sh "$@"
 exit 0

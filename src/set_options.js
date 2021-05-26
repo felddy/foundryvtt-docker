@@ -38,6 +38,7 @@ let options = {
   fullscreen: false,
   hostname: process.env.FOUNDRY_HOSTNAME || null,
   language: process.env.FOUNDRY_LANGUAGE || LANGUAGE,
+  localHostname: process.env.FOUNDRY_LOCAL_HOSTNAME || null,
   minifyStaticFiles: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
   port: FOUNDRY_PORT,
   proxyPort: clampEnv(
@@ -58,6 +59,7 @@ let options = {
   ),
   updateChannel: UPDATE_CHANNEL,
   upnp: process.env.FOUNDRY_UPNP == "true",
+  upnpLeaseDuration: process.env.FOUNDRY_UPNP_LEASE_DURATION || null,
   world: process.env.FOUNDRY_WORLD || null,
 };
 
