@@ -47,7 +47,7 @@ services:
       # - FOUNDRY_WORLD=
       # - TIMEZONE=US/Eastern
     ports:
-      - target: "30000"
-        published: "30000"
+      - target: 30000
+        published: 30000
         protocol: tcp
         mode: host
