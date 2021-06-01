@@ -395,6 +395,7 @@ server {
 
         proxy_http_version 1.1;
         access_log /var/log/nginx/upstream_log upstream_logging;
+        client_max_body_size 300M;
 
         proxy_read_timeout 90;
         proxy_set_header Connection "Upgrade";
