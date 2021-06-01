@@ -395,10 +395,11 @@ server {
 
         proxy_http_version 1.1;
         access_log /var/log/nginx/upstream_log upstream_logging;
+        client_max_body_size 300M;
 
         proxy_read_timeout 90;
         proxy_set_header Connection "Upgrade";
-        proxy_set_header Host $host;
+        proxy_set_header Host $http_host;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
