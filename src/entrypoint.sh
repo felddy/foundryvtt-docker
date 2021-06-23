@@ -44,6 +44,13 @@ cookiejar_file="cookiejar.json"
 license_min_length=24
 secret_file="/run/secrets/config.json"
 
+# Warn user if FOUNDRY_VERSION does not match the version of the container.
+if [[ ${image_version} != "${FOUNDRY_VERSION}" ]]; then
+  log_warn "FOUNDRY_VERSION has been manually set and does not match the container's version."
+  log_warn "Expected ${image_version} but found ${FOUNDRY_VERSION}"
+  log_warn "The container may not function properly with this version mismatch."
+fi
+
 # Check for raft secrets
 if [ -f "${secret_file}" ]; then
   log "Reading configured secrets from: ${secret_file}"
