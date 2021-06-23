@@ -29,19 +29,13 @@ services:
       # - FOUNDRY_LOCAL_HOSTNAME=
       # - FOUNDRY_LICENSE_KEY=
       # - FOUNDRY_MINIFY_STATIC_FILES=
+      # - FOUNDRY_PASSWORD_SALT=
       # - FOUNDRY_PROXY_PORT=
       # - FOUNDRY_PROXY_SSL=false
       # - FOUNDRY_RELEASE_URL=
       # - FOUNDRY_ROUTE_PREFIX=
       # - FOUNDRY_SSL_CERT=
       # - FOUNDRY_SSL_KEY=
-      # - |
-      #   FOUNDRY_TURN_CONFIGS=[{
-      #   "url": "turn:example.com:3478",
-      #   "urls": ["turn:example.com:3478", "turns:example.com:5349"],
-      #   "username": "my username",
-      #   "credential": "my password"
-      #   }]
       # - FOUNDRY_UID=foundry
       # - FOUNDRY_UPNP=false
       # - FOUNDRY_UPNP_LEASE_DURATION=

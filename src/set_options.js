@@ -5,10 +5,7 @@ const FOUNDRY_PORT = 30000;
 const LANGUAGE = "en.core";
 const MAXIMUM_PORT = 65535;
 const MINIMUM_PORT = 1;
-const MINIMUM_TURN_MAX_PORT = 42153;
 const UPDATE_CHANNEL = "release";
-
-let parsedTURNConfigs = undefined;
 
 /**
  * Returns a number from an environment variable whose value is limited to the
@@ -28,10 +25,6 @@ function clampEnv(envVar, min, max, unset = undefined) {
   }
 }
 
-if (process.env.FOUNDRY_TURN_CONFIGS) {
-  parsedTURNConfigs = JSON.parse(process.env.FOUNDRY_TURN_CONFIGS);
-}
-
 let options = {
   awsConfig: process.env.FOUNDRY_AWS_CONFIG || null,
   dataPath: DATA_PATH,
@@ -40,6 +33,7 @@ let options = {
   language: process.env.FOUNDRY_LANGUAGE || LANGUAGE,
   localHostname: process.env.FOUNDRY_LOCAL_HOSTNAME || null,
   minifyStaticFiles: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
+  passwordSalt: process.env.FOUNDRY_PASSWORD_SALT || null,
   port: FOUNDRY_PORT,
   proxyPort: clampEnv(
     process.env.FOUNDRY_PROXY_PORT,
@@ -51,12 +45,6 @@ let options = {
   routePrefix: process.env.FOUNDRY_ROUTE_PREFIX || null,
   sslCert: process.env.FOUNDRY_SSL_CERT || null,
   sslKey: process.env.FOUNDRY_SSL_KEY || null,
-  turnConfigs: parsedTURNConfigs,
-  turnMaxPort: clampEnv(
-    process.env.FOUNDRY_TURN_MAX_PORT,
-    MINIMUM_TURN_MAX_PORT,
-    MAXIMUM_PORT
-  ),
   updateChannel: UPDATE_CHANNEL,
   upnp: process.env.FOUNDRY_UPNP == "true",
   upnpLeaseDuration: process.env.FOUNDRY_UPNP_LEASE_DURATION || null,
