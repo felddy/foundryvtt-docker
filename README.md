@@ -273,6 +273,7 @@ distribution's name must be of the form: `foundryvtt-0.8.7.zip`
 | `FOUNDRY_LOCAL_HOSTNAME` | Override the local network address used for invitation links, mirroring the functionality of the `FOUNDRY_HOSTNAME` option which configures the external address. | `null` |
 | `FOUNDRY_LICENSE_KEY` | The license key to install. e.g.; `AAAA-BBBB-CCCC-DDDD-EEEE-FFFF`  If left unset, a license key will be fetched when using account authentication.   If multiple license keys are associated with an account, one will be chosen at random.  Specific licenses can be selected by passing in an integer index.  The first license key being `1`.  May be set [using secrets](#using-secrets). | |
 | `FOUNDRY_MINIFY_STATIC_FILES` | Set to `true` to reduce network traffic by serving minified static JavaScript and CSS files.  Enabling this setting is recommended for most users, but module developers may wish to disable it. | `false` |
+| `FOUNDRY_PASSWORD_SALT` | Custom salt string to be applied to the admin password instead of the default salt string.  May be set [using secrets](#using-secrets). | `null` |
 | `FOUNDRY_PROXY_PORT` | Inform the Foundry Server that the software is running behind a reverse proxy on some other port. This allows the invitation links created to the game to include the correct external port. | `null` |
 | `FOUNDRY_PROXY_SSL` | Indicates whether the software is running behind a reverse proxy that uses SSL. This allows invitation links and A/V functionality to work as if the Foundry Server had SSL configured directly. | `false` |
 | `FOUNDRY_ROUTE_PREFIX` | A string path which is appended to the base hostname to serve Foundry VTT content from a specific namespace. For example setting this to `demo` will result in data being served from `http://x.x.x.x:30000/demo/`. | `null` |
@@ -292,6 +293,7 @@ distribution's name must be of the form: `foundryvtt-0.8.7.zip`
 | `config.json` | `foundry_admin_key` | Overrides `FOUNDRY_ADMIN_KEY` environment variable. |
 | `config.json` | `foundry_license_key` | Overrides `FOUNDRY_LICENSE_KEY` environment variable. |
 | `config.json` | `foundry_password` | Overrides `FOUNDRY_PASSWORD` environment variable. |
+| `config.json` | `foundry_password_salt` | Overrides `FOUNDRY_PASSWORD_SALT` environment variable. |
 | `config.json` | `foundry_username` | Overrides `FOUNDRY_USERNAME` environment variable. |
 
 ## Building from source ##

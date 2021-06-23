@@ -7,8 +7,6 @@ const MAXIMUM_PORT = 65535;
 const MINIMUM_PORT = 1;
 const UPDATE_CHANNEL = "release";
 
-let parsedTURNConfigs = undefined;
-
 /**
  * Returns a number from an environment variable whose value is limited to the
  * given range.
@@ -35,6 +33,7 @@ let options = {
   language: process.env.FOUNDRY_LANGUAGE || LANGUAGE,
   localHostname: process.env.FOUNDRY_LOCAL_HOSTNAME || null,
   minifyStaticFiles: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
+  passwordSalt: process.env.FOUNDRY_PASSWORD_SALT || null,
   port: FOUNDRY_PORT,
   proxyPort: clampEnv(
     process.env.FOUNDRY_PROXY_PORT,

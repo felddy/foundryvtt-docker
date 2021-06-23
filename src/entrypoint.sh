@@ -50,11 +50,13 @@ if [ -f "${secret_file}" ]; then
   secret_admin_key=$(jq --exit-status --raw-output .foundry_admin_key ${secret_file}) || secret_admin_key=""
   secret_license_key=$(jq --exit-status --raw-output .foundry_license_key ${secret_file}) || secret_license_key=""
   secret_password=$(jq --exit-status --raw-output .foundry_password ${secret_file}) || secret_password=""
+  secret_password_salt=$(jq --exit-status --raw-output .foundry_password_salt ${secret_file}) || secret_password_salt=""
   secret_username=$(jq --exit-status --raw-output .foundry_username ${secret_file}) || secret_username=""
   # Override environment variables if secrets were set
   FOUNDRY_ADMIN_KEY=${secret_admin_key:-${FOUNDRY_ADMIN_KEY:-}}
   FOUNDRY_LICENSE_KEY=${secret_license_key:-${FOUNDRY_LICENSE_KEY:-}}
   FOUNDRY_PASSWORD=${secret_password:-${FOUNDRY_PASSWORD:-}}
+  FOUNDRY_PASSWORD_SALT=${secret_password_salt:-${FOUNDRY_PASSWORD_SALT:-}}
   FOUNDRY_USERNAME=${secret_username:-${FOUNDRY_USERNAME:-}}
 fi
 
@@ -228,8 +230,8 @@ fi
 log "Starting launcher with uid:gid as ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}."
 export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
   FOUNDRY_HOSTNAME FOUNDRY_LANGUAGE FOUNDRY_LOCAL_HOSTNAME \
-  FOUNDRY_MINIFY_STATIC_FILES FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL \
-  FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT FOUNDRY_SSL_KEY FOUNDRY_UPNP \
-  FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
+  FOUNDRY_MINIFY_STATIC_FILES FOUNDRY_PASSWORD_SALT FOUNDRY_PROXY_PORT \
+  FOUNDRY_PROXY_SSL FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT FOUNDRY_SSL_KEY \
+  FOUNDRY_UPNP FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
 su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" ./launcher.sh "$@"
 exit 0
