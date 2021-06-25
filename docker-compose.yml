@@ -23,6 +23,12 @@ services:
       # - CONTAINER_PRESERVE_CONFIG=false
       # - CONTAINER_VERBOSE=true
       # - FOUNDRY_AWS_CONFIG=
+      # - |
+      #   FOUNDRY_DEMO_CONFIG={
+      #   "worldName": "demo-world",
+      #   "sourceZip": "/data/demo-world.zip",
+      #   "resetSeconds": 3600
+      #   }
       # - FOUNDRY_GID=foundry
       # - FOUNDRY_HOSTNAME=
       # - FOUNDRY_LANGUAGE=
@@ -39,7 +45,7 @@ services:
       # - FOUNDRY_UID=foundry
       # - FOUNDRY_UPNP=false
       # - FOUNDRY_UPNP_LEASE_DURATION=
-      # - FOUNDRY_VERSION=0.8.7
+      # - FOUNDRY_VERSION=0.8.8
       # - FOUNDRY_WORLD=
       # - TIMEZONE=US/Eastern
     ports:
