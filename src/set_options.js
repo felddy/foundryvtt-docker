@@ -7,6 +7,8 @@ const MAXIMUM_PORT = 65535;
 const MINIMUM_PORT = 1;
 const UPDATE_CHANNEL = "release";
 
+let parsedDemoConfig = undefined;
+
 /**
  * Returns a number from an environment variable whose value is limited to the
  * given range.
@@ -25,9 +27,14 @@ function clampEnv(envVar, min, max, unset = undefined) {
   }
 }
 
+if (process.env.FOUNDRY_DEMO_CONFIG) {
+  parsedDemoConfig = JSON.parse(process.env.FOUNDRY_DEMO_CONFIG);
+}
+
 let options = {
   awsConfig: process.env.FOUNDRY_AWS_CONFIG || null,
   dataPath: DATA_PATH,
+  demo: parsedDemoConfig,
   fullscreen: false,
   hostname: process.env.FOUNDRY_HOSTNAME || null,
   language: process.env.FOUNDRY_LANGUAGE || LANGUAGE,
