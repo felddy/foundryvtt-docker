@@ -43,14 +43,17 @@ RUN \
   ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
   s3_url=$(./get_release_url.js cookiejar.json "${FOUNDRY_VERSION}") && \
   wget -O ${ARCHIVE} "${s3_url}" && \
-  unzip -d dist ${ARCHIVE} 'resources/*'; \
+  unzip -d dist ${ARCHIVE} 'resources/*' && \
+  echo "installed" > status.txt; \
   elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
   wget -O ${ARCHIVE} "${FOUNDRY_RELEASE_URL}" && \
-  unzip -d dist ${ARCHIVE} 'resources/*'; \
+  unzip -d dist ${ARCHIVE} 'resources/*' && \
+  echo "installed" > status.txt; \
   fi
 
 FROM node:${NODE_IMAGE_VERSION} as final-stage
 
+ARG CONTAINER_PATCH_URLS
 ARG FOUNDRY_UID=421
 ARG FOUNDRY_VERSION
 ARG TARGETPLATFORM
@@ -70,6 +73,7 @@ COPY --from=compile-typescript-stage /root/dist/ .
 COPY \
   package.json \
   package-lock.json \
+  src/apply_patches.sh \
   src/check_health.sh \
   src/entrypoint.sh \
   src/launcher.sh \
@@ -93,6 +97,14 @@ EXPOSE 30000/TCP
 # See: https://github.com/moby/moby/issues/11185
 # EXPOSE 33478/UDP
 # EXPOSE 49152-65535/UDP
+
+COPY --from=optional-release-stage /root/status.txt .
+
+RUN \
+  if  [[ $(cat status.txt) = "installed" ]]; then \
+    source ./apply_patches.sh; \
+  fi && \
+  rm status.txt
 
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["resources/app/main.mjs", "--port=30000", "--headless", "--noupdate",\
