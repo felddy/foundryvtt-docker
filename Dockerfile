@@ -1,6 +1,6 @@
 ARG VERSION=unspecified
 
-FROM python:3.9-alpine
+FROM python:3.9.6-alpine
 
 ARG VERSION
 
