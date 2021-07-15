@@ -281,8 +281,8 @@ jobs:
     # PLATFORMS environment variable.  These images are tagged with the Docker
     # tags calculated in the "prepare" job and pushed to Docker Hub and the
     # GitHub Container Registry.  The contents of README.md are pushed as the
-    # image's description to Docker Hub.  This job is skipped when the triggering
-    # event is a pull request.
+    # image's description to Docker Hub.  This job is skipped when the
+    # triggering event is a pull request.
     name: "Build and push all platforms"
     runs-on: ubuntu-latest
     needs: [lint, prepare, test]
