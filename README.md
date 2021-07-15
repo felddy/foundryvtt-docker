@@ -102,7 +102,7 @@ environment variables.  See the
 
 ### Docker Compose ###
 
-1. Pull the new image from Docker hub:
+1. Pull the new image from Docker Hub:
 
     ```console
     docker-compose pull
