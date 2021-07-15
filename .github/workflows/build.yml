@@ -79,13 +79,13 @@ jobs:
     #     The source version as reported by the `bump_version.sh show` command.
     #   tags:
     #     A comma separated list of Docker tags to be applied to the images on
-    #     DockerHub.  The tags will vary depending on:
+    #     Docker Hub.  The tags will vary depending on:
     #     - The event that triggered the build.
     #     - The branch the build is based upon.
     #     - The git tag the build is based upon.
     #
     #     When a build is based on a git tag of the form `v*.*.*` the image will
-    #     be tagged on DockerHub with multiple levels of version specificity.
+    #     be tagged on Docker Hub with multiple levels of version specificity.
     #     For example, a git tag of `v1.2.3+a` will generate Docker tags of
     #     `:1.2.3_a`, `:1.2.3`, `:1.2`, `:1`, and `:latest`.
     #
@@ -279,16 +279,16 @@ jobs:
   build-push-all:
     # Builds the final set of images for each of the platforms listed in
     # PLATFORMS environment variable.  These images are tagged with the Docker
-    # tags calculated in the "prepare" job and pushed to DockerHub and the
+    # tags calculated in the "prepare" job and pushed to Docker Hub and the
     # GitHub Container Registry.  The contents of README.md are pushed as the
-    # image's description to DockerHub.  This job is skipped when the triggering
+    # image's description to Docker Hub.  This job is skipped when the triggering
     # event is a pull request.
     name: "Build and push all platforms"
     runs-on: ubuntu-latest
     needs: [lint, prepare, test]
     if: github.event_name != 'pull_request'
     steps:
-      - name: Login to DockerHub
+      - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
