@@ -26,11 +26,13 @@ on:
 
 env:
   BUILDX_CACHE_DIR: ~/.cache/buildx
+  CURL_CACHE_DIR: ~/.cache/curl
   IMAGE_NAME: cisagov/example
   PIP_CACHE_DIR: ~/.cache/pip
   PLATFORMS: "linux/amd64,linux/arm/v6,linux/arm/v7,\
   linux/arm64,linux/ppc64le,linux/s390x"
   PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
+  RUN_TMATE: ${{ secrets.RUN_TMATE }}
 
 jobs:
   lint:
@@ -39,25 +41,88 @@ jobs:
     name: "Lint sources"
     runs-on: ubuntu-latest
     steps:
+      - uses: cisagov/setup-env-github-action@develop
       - uses: actions/checkout@v2
       - id: setup-python
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
+      # GO_VERSION and GOCACHE are used by the cache task, so the Go
+      # installation must happen before that.
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16'
+      - name: Store installed Go version
+        run: |
+          echo "GO_VERSION="\
+          "$(go version | sed 's/^go version go\([0-9.]\+\) .*/\1/')" \
+          >> $GITHUB_ENV
+      - name: Lookup Go cache directory
+        id: go-cache
+        run: |
+          echo "::set-output name=dir::$(go env GOCACHE)"
       - uses: actions/cache@v2
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-"
+            py${{ steps.setup-python.outputs.python-version }}-\
+            go${{ env.GO_VERSION }}-\
+            packer${{ env.PACKER_VERSION }}-\
+            tf${{ env.TERRAFORM_VERSION }}-"
         with:
+          # Note that the .terraform directory IS NOT included in the
+          # cache because if we were caching, then we would need to use
+          # the `-upgrade=true` option. This option blindly pulls down the
+          # latest modules and providers instead of checking to see if an
+          # update is required. That behavior defeats the benefits of caching.
+          # so there is no point in doing it for the .terraform directory.
           path: |
             ${{ env.PIP_CACHE_DIR }}
             ${{ env.PRE_COMMIT_CACHE_DIR }}
+            ${{ env.CURL_CACHE_DIR }}
+            ${{ steps.go-cache.outputs.dir }}
           key: "${{ env.BASE_CACHE_KEY }}\
             ${{ hashFiles('**/requirements-test.txt') }}-\
             ${{ hashFiles('**/requirements.txt') }}-\
             ${{ hashFiles('**/.pre-commit-config.yaml') }}"
           restore-keys: |
             ${{ env.BASE_CACHE_KEY }}
+      - name: Setup curl cache
+        run: mkdir -p ${{ env.CURL_CACHE_DIR }}
+      - name: Install Packer
+        run: |
+          PACKER_ZIP="packer_${PACKER_VERSION}_linux_amd64.zip"
+          curl --output ${{ env.CURL_CACHE_DIR }}/"${PACKER_ZIP}" \
+            --time-cond ${{ env.CURL_CACHE_DIR }}/"${PACKER_ZIP}" \
+            --location \
+            "https://releases.hashicorp.com/packer/${PACKER_VERSION}/${PACKER_ZIP}"
+          sudo unzip -d /opt/packer \
+            ${{ env.CURL_CACHE_DIR }}/"${PACKER_ZIP}"
+          sudo mv /usr/local/bin/packer /usr/local/bin/packer-default
+          sudo ln -s /opt/packer/packer /usr/local/bin/packer
+      - name: Install Terraform
+        run: |
+          TERRAFORM_ZIP="terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+          curl --output ${{ env.CURL_CACHE_DIR }}/"${TERRAFORM_ZIP}" \
+            --time-cond ${{ env.CURL_CACHE_DIR }}/"${TERRAFORM_ZIP}" \
+            --location \
+            "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/${TERRAFORM_ZIP}"
+          sudo unzip -d /opt/terraform \
+            ${{ env.CURL_CACHE_DIR }}/"${TERRAFORM_ZIP}"
+          sudo mv /usr/local/bin/terraform /usr/local/bin/terraform-default
+          sudo ln -s /opt/terraform/terraform /usr/local/bin/terraform
+      - name: Install shfmt
+        run: go install mvdan.cc/sh/v3/cmd/shfmt@${SHFMT_VERSION}
+      - name: Install Terraform-docs
+        run: |
+          go install \
+            github.com/terraform-docs/terraform-docs@${TERRAFORM_DOCS_VERSION}
+      - name: Find and initialize Terraform directories
+        run: |
+          for path in $(find . -not \( -type d -name ".terraform" -prune \) \
+            -type f -iname "*.tf" -exec dirname "{}" \; | sort -u); do \
+            echo "Initializing '$path'..."; \
+            terraform init -input=false -backend=false "$path"; \
+            done
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -66,7 +131,9 @@ jobs:
         run: pre-commit install-hooks
       - name: Run pre-commit on all files
         run: pre-commit run --all-files
-
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v3
+        if: env.RUN_TMATE
   prepare:
     # Calculates and publishes outputs that are used by other jobs.
     #
@@ -119,7 +186,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Gather repository metadata
         id: repo
-        uses: actions/github-script@v3
+        uses: actions/github-script@v4
         with:
           script: |
             const repo = await github.repos.get(context.repo)
@@ -164,10 +231,9 @@ jobs:
           echo ::set-output name=source_version::$(./bump_version.sh show)
           echo ::set-output name=tags::${TAGS}
           echo tags=${TAGS}
-      - name: Setup debug session remote shell
+      - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@v3
-        if: github.event.inputs.remote-shell == 'true'
-
+        if: github.event.inputs.remote-shell == 'true' || env.RUN_TMATE
   build:
     # Builds a single test image for the native platform.  This image is saved
     # as an artifact and loaded by the test job.
@@ -236,7 +302,9 @@ jobs:
         with:
           name: dist
           path: dist
-
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v3
+        if: env.RUN_TMATE
   test:
     # Executes tests on the single-platform image created in the "build" job.
     name: "Test image"
@@ -275,7 +343,9 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: pytest --runslow
-
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v3
+        if: env.RUN_TMATE
   build-push-all:
     # Builds the final set of images for each of the platforms listed in
     # PLATFORMS environment variable.  These images are tagged with the Docker
@@ -359,3 +429,6 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: ./push_readme.sh
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v3
+        if: env.RUN_TMATE
