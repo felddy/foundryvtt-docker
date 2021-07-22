@@ -1,6 +1,5 @@
 ---
-version: "1"
-
 lineage:
   skeleton:
     remote-url: https://github.com/cisagov/skeleton-generic.git
+version: '1'
