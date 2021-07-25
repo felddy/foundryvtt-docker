@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Push the README.md file to the docker hub repository
+# Push the README.md file to the Docker Hub repository
 
 # Requires the following environment variables to be set:
 # DOCKER_PASSWORD, DOCKER_USERNAME, IMAGE_NAME
