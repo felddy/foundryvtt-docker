@@ -14,7 +14,7 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  get_release_url.js [--log-level=LEVEL] <cookiejar> <version>
+  get_release_url.js [--log-level=LEVEL] <cookiejar> <build>
   get_release_url.js (-h | --help)
 
 Options:
@@ -26,7 +26,7 @@ Options:
 
 // Argument parsing
 const { docopt } = require("docopt");
-const options = docopt(doc, { version: "1.0.0" });
+const options = docopt(doc, { version: "2.0.0" });
 
 // Imports
 const _nodeFetch = require("node-fetch");
@@ -53,12 +53,12 @@ const HEADERS = {
 /**
  * fetchReleaseURL - Fetch the pre-signed S3 URL.
  *
- * @param  {string} version Semantic version to download.
- * @return {string} The URL of the requested release version.
+ * @param  {string} build Build to download.
+ * @return {string} The URL of the requested build.
  */
-async function fetchReleaseURL(version) {
-  logger.info(`Fetching S3 pre-signed release URL for ${version}...`);
-  const release_url = `${BASE_URL}/releases/download?version=${version}&platform=linux`;
+async function fetchReleaseURL(build) {
+  logger.info(`Fetching S3 pre-signed release URL for build ${build}...`);
+  const release_url = `${BASE_URL}/releases/download?build=${build}&platform=linux`;
   logger.debug(`Fetching: ${release_url}`);
   const response = await fetch(release_url, {
     method: "GET",
@@ -83,7 +83,7 @@ async function fetchReleaseURL(version) {
 async function main() {
   // Extract values from CLI options.
   const cookiejar_filename = options["<cookiejar>"];
-  const foundry_version = options["<version>"];
+  const foundry_build = options["<build>"];
   const log_level = options["--log-level"].toLowerCase();
 
   // Setup logging.
@@ -95,7 +95,7 @@ async function main() {
   fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
 
   // Generate an S3 pre-signed URL and print it to stdout.
-  const releaseURL = await fetchReleaseURL(foundry_version);
+  const releaseURL = await fetchReleaseURL(foundry_build);
 
   if (releaseURL) {
     process.stdout.write(releaseURL);

@@ -41,6 +41,7 @@ log "Starting felddy/foundryvtt container v${image_version}"
 log_debug "CONTAINER_VERBOSE set.  Debug logging enabled."
 
 cookiejar_file="cookiejar.json"
+foundry_build=$(echo "$FOUNDRY_VERSION" | cut -d'.' -f2)
 license_min_length=24
 secret_file="/run/secrets/config.json"
 
@@ -102,7 +103,7 @@ if [ $install_required = true ]; then
       log "Using authenticated credentials to download release."
       # CONTAINER_VERBOSE default value should not be quoted.
       # shellcheck disable=SC2086
-      s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}" "${FOUNDRY_VERSION}")
+      s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}" "${foundry_build}")
     fi
   fi
 
