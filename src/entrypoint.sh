@@ -44,10 +44,12 @@ cookiejar_file="cookiejar.json"
 license_min_length=24
 secret_file="/run/secrets/config.json"
 
-# Warn user if FOUNDRY_VERSION does not match the version of the container.
-if [[ ${image_version} != "${FOUNDRY_VERSION}" ]]; then
+# Warn user if the container version does not start with the FOUNDRY_VERSION.
+# The FOUNDRY_VERSION looks like x.yyy
+# The container version is a semver x.y.z
+if [[ ${image_version%.*} != "${FOUNDRY_VERSION}" ]]; then
   log_warn "FOUNDRY_VERSION has been manually set and does not match the container's version."
-  log_warn "Expected ${image_version} but found ${FOUNDRY_VERSION}"
+  log_warn "Expected ${image_version%.*} but found ${FOUNDRY_VERSION}"
   log_warn "The container may not function properly with this version mismatch."
 fi
 
@@ -70,7 +72,9 @@ fi
 # Check to see if an install is required
 install_required=false
 if [ -f "resources/app/package.json" ]; then
-  installed_version=$(jq --raw-output .version resources/app/package.json)
+  # FoundryVTT no longer supports the "version" field in package.json
+  # We need to build up a pseudo-version using the generation and build values
+  installed_version=$(jq --raw-output '.release | "\(.generation).\(.build)"' resources/app/package.json)
   log "Foundry Virtual Tabletop ${installed_version} is installed."
   if [ "${FOUNDRY_VERSION}" != "${installed_version}" ]; then
     log "Requested version (${FOUNDRY_VERSION}) from FOUNDRY_VERSION differs."
