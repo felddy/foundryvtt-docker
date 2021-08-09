@@ -14,7 +14,7 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  get_release_url.js [--log-level=LEVEL] <cookiejar> <build>
+  get_release_url.js [--log-level=LEVEL] <cookiejar> <version>
   get_release_url.js (-h | --help)
 
 Options:
@@ -83,7 +83,7 @@ async function fetchReleaseURL(build) {
 async function main() {
   // Extract values from CLI options.
   const cookiejar_filename = options["<cookiejar>"];
-  const foundry_build = options["<build>"];
+  const foundry_version = options["<version>"];
   const log_level = options["--log-level"].toLowerCase();
 
   // Setup logging.
@@ -93,6 +93,10 @@ async function main() {
   logger.debug(`Loading cookies from: ${cookiejar_filename}`);
   cookieJar = new CookieJar(new CookieFileStore(cookiejar_filename));
   fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
+
+  // Extract build number from FoundryVTT version
+  // FoundryVTT versions looks like x.yyy where y is a build
+  const foundry_build = foundry_version.split(".").pop();
 
   // Generate an S3 pre-signed URL and print it to stdout.
   const releaseURL = await fetchReleaseURL(foundry_build);
