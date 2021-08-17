@@ -205,8 +205,8 @@ most users use the `:release` tag.
 |`felddy/foundryvtt:release` | The most recent image from the release channel.  These images are **considered stable**, and well-tested.  Most users will use this tag.  The `latest` tag always points to the same version as `release`.|
 |`felddy/foundryvtt:beta` | Beta channel releases **should be stable** for all users, but may impose some module conflicts or compatibility issues. It is only recommended for users to update to this version if they are comfortable with accepting some minor risks. Users are discouraged from updating to this version if it is immediately before a game session. _Please take care to periodically back up your critical user data in case you experience any issues._ |
 |`felddy/foundryvtt:alpha` | Alpha channel releases are **VERY LIKELY to introduce breaking bugs** that will be disruptive to play. Do not install this update unless you are using for the specific purposes of testing. The intention of Alpha builds are to allow for previewing new features and to help developers to begin updating modules which are impacted by the changes. If you choose to update to this version for a live game you do so entirely at your own risk of having a bad experience. _Please back up your critical user data before installing this update._ |
-|`felddy/foundryvtt:9.220`| An exact version. |
-|`felddy/foundryvtt:0.8`| The most recent release matching the major and minor version numbers. |
+|`felddy/foundryvtt:9.220.0`| An exact version. |
+|`felddy/foundryvtt:9.220`| The most recent release matching the major and minor version numbers. |
 |`felddy/foundryvtt:latest`| See the `release` tag.  [Why does `latest` == `release`?](https://vsupalov.com/docker-latest-tag/) |
 
 See the [tags tab](https://hub.docker.com/r/felddy/foundryvtt/tags) on Docker
@@ -303,8 +303,8 @@ Build the image locally using this git repository as the [build context](https:/
 
 ```console
 docker build \
-  --build-arg VERSION=9.220 \
-  --tag felddy/foundryvtt:9.220 \
+  --build-arg VERSION=9.220.0 \
+  --tag felddy/foundryvtt:9.220.0 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```
 
@@ -334,9 +334,9 @@ Docker:
     docker buildx build \
       --file Dockerfile-x \
       --platform linux/amd64 \
-      --build-arg VERSION=9.220 \
+      --build-arg VERSION=9.220.0 \
       --output type=docker \
-      --tag felddy/foundryvtt:9.220 .
+      --tag felddy/foundryvtt:9.220.0 .
     ```
 
 ## Pre-installed distribution builds ##
@@ -354,8 +354,8 @@ Build the image with credentials:
 docker build \
   --build-arg FOUNDRY_USERNAME='<your_username>' \
   --build-arg FOUNDRY_PASSWORD='<your_password>' \
-  --build-arg VERSION=9.220 \
-  --tag felddy/foundryvtt:9.220 \
+  --build-arg VERSION=9.220.0 \
+  --tag felddy/foundryvtt:9.220.0 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```
 
@@ -364,8 +364,8 @@ Or build the image using a temporary URL:
 ```console
 docker build \
   --build-arg FOUNDRY_RELEASE_URL='<temporary_url>' \
-  --build-arg VERSION=9.220 \
-  --tag felddy/foundryvtt:9.220 \
+  --build-arg VERSION=9.220.0 \
+  --tag felddy/foundryvtt:9.220.0 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```
 
