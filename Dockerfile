@@ -1,7 +1,7 @@
 ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
-ARG FOUNDRY_VERSION=0.8.8
+ARG FOUNDRY_VERSION=0.8.9
 ARG VERSION
 
 FROM node:14-alpine as optional-release-stage
@@ -23,14 +23,14 @@ COPY \
 RUN mkdir dist && touch dist/.placeholder
 RUN \
   if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
-    npm install && \
-    ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
-    s3_url=$(./get_release_url.js cookiejar.json "${FOUNDRY_VERSION}") && \
-    wget -O ${ARCHIVE} "${s3_url}" && \
-    unzip -d dist ${ARCHIVE} 'resources/*'; \
+  npm install && \
+  ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
+  s3_url=$(./get_release_url.js cookiejar.json "${FOUNDRY_VERSION}") && \
+  wget -O ${ARCHIVE} "${s3_url}" && \
+  unzip -d dist ${ARCHIVE} 'resources/*'; \
   elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
-    wget -O ${ARCHIVE} "${FOUNDRY_RELEASE_URL}" && \
-    unzip -d dist ${ARCHIVE} 'resources/*'; \
+  wget -O ${ARCHIVE} "${FOUNDRY_RELEASE_URL}" && \
+  unzip -d dist ${ARCHIVE} 'resources/*'; \
   fi
 
 FROM node:14-alpine as final-stage
