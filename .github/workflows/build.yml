@@ -29,11 +29,8 @@ env:
   CURL_CACHE_DIR: ~/.cache/curl
   IMAGE_NAME: cisagov/example
   PIP_CACHE_DIR: ~/.cache/pip
-  # TODO: Add back in support for the linux/s390x platform once the
-  # official Python Docker image again supports it.  See
-  # cisagov/skeleton-docker#69 for more details.
   PLATFORMS: "linux/amd64,linux/arm/v6,linux/arm/v7,\
-  linux/arm64,linux/ppc64le"
+  linux/arm64,linux/ppc64le,linux/s390x"
   PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
   RUN_TMATE: ${{ secrets.RUN_TMATE }}
 
