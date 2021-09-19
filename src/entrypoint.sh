@@ -190,7 +190,7 @@ if [ $install_required = true ]; then
   log_debug "Editing server update error message."
   patch_lang_file=$(mktemp -t patch_lang.XXXXXX)
   jq --arg msg "${UPDATE_WARNING}" --exit-status \
-  '."SETUP.UpdateWarning" = $msg | ."SETUP.UpdateNoUpdate" = $msg' \
+  '."SETUP.UpdateNoupdateMode" = $msg' \
   "${LANGUAGE_FILE}" > "${patch_lang_file}"
   mv "${patch_lang_file}" "${LANGUAGE_FILE}"
   chmod a+r "${LANGUAGE_FILE}"
