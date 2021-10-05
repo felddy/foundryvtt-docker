@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-"use strict";
-
 const doc = `
 Log into Foundry Virtual Tabletop website, and save cookies to file.
 
@@ -21,17 +19,15 @@ Options:
                          "warn", and "error". [default: info]
 `;
 
-// Argument parsing
-const { docopt } = require("docopt");
-const options = docopt(doc, { version: "1.0.0" });
-
 // Imports
-const _nodeFetch = require("node-fetch");
-const { CookieJar, Cookie } = require("tough-cookie");
-const cheerio = require("cheerio");
-const CookieFileStore = require("tough-cookie-file-store").FileCookieStore;
-const createLogger = require("./logging").createLogger;
-const process = require("process");
+import { CookieJar, Cookie } from "tough-cookie";
+import { FileCookieStore as CookieFileStore } from "tough-cookie-file-store";
+import cheerio from "cheerio";
+import createLogger from "./logging.js";
+import docopt from "docopt";
+import fetchCookie from "fetch-cookie/node-fetch.js";
+import nodeFetch from "node-fetch";
+import process from "process";
 
 // Setup globals, to be configured in main()
 var cookieJar;
@@ -137,6 +133,9 @@ async function login(csrfmiddlewaretoken, username, password) {
  * @return {number}  exit code
  */
 async function main() {
+  // Parse command line arguments
+  const options = docopt.docopt(doc, { version: "1.0.0" });
+
   // Extract values from CLI options.
   const cookiejar_filename = options["<cookiejar>"];
   const log_level = options["--log-level"].toLowerCase();
@@ -149,7 +148,7 @@ async function main() {
   // Setup global cookie jar, storage, and fetch library
   logger.debug(`Saving cookies to: ${cookiejar_filename}`);
   cookieJar = new CookieJar(new CookieFileStore(cookiejar_filename));
-  fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
+  fetch = fetchCookie(nodeFetch, cookieJar);
 
   try {
     // Get the tokens and cookies we'll need to login.

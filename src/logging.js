@@ -1,6 +1,4 @@
-"use strict";
-
-const winston = require("winston");
+import winston from "winston";
 
 /**
  * createLogger - Create a named logger with a level filter.
@@ -10,7 +8,7 @@ const winston = require("winston");
  *                            are: error, warn, info, debug
  * @return {string}           The logger.
  */
-function createLogger(name, log_level) {
+export default function createLogger(name, log_level) {
   const logger = winston.createLogger({
     level: log_level,
     format: winston.format.combine(
@@ -31,5 +29,3 @@ function createLogger(name, log_level) {
   });
   return logger;
 }
-
-exports.createLogger = createLogger;

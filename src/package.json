@@ -4,19 +4,22 @@
     "url": "https://github.com/felddy/foundryvtt-docker/issues"
   },
   "dependencies": {
-    "cheerio": "^1.0.0-rc.6",
+    "cheerio": "^1.0.0-rc.10",
     "docopt": "^0.6.2",
     "fetch-cookie": "^1.0.0",
-    "node-fetch": "^2.6.1",
-    "tough-cookie-file-store": "^2.0.2",
+    "node-fetch": "^3.0.0",
+    "tough-cookie-file-store": "^2.0.3",
     "winston": "^3.3.3"
   },
   "description": "Utilities to help boot a FoundryVTT server.",
   "devDependencies": {},
+  "engines": {
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+  },
   "homepage": "https://github.com/felddy/foundryvtt-docker#readme",
   "keywords": [
-    "foundryvtt",
-    "docker"
+    "docker",
+    "foundryvtt"
   ],
   "license": "MIT",
   "main": "authenticate.js",
@@ -28,5 +31,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "0.0.1"
+  "type": "module",
+  "version": "0.0.2"
 }
