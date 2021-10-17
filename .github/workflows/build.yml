@@ -181,7 +181,7 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            const repo = await github.repos.get(context.repo)
+            const repo = await github.rest.repos.get(context.repo)
             return repo.data
       - name: Calculate output values
         id: prep
