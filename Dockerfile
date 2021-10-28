@@ -4,7 +4,7 @@ ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION=0.8.9
 ARG VERSION
 
-FROM node:14-alpine as optional-release-stage
+FROM node:17-alpine as optional-release-stage
 
 ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
@@ -33,7 +33,7 @@ RUN \
   unzip -d dist ${ARCHIVE} 'resources/*'; \
   fi
 
-FROM node:14-alpine as final-stage
+FROM node:17-alpine as final-stage
 
 ARG FOUNDRY_UID=421
 ARG FOUNDRY_VERSION
