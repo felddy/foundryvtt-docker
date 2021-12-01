@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const crypto = require("crypto");
-const fs = require("fs");
+import crypto from "crypto";
+import fs from "fs";
 
 const digest = "sha512";
 const iterations = 1000;

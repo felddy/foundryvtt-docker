@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-"use strict";
-
 const doc = `
 Generate a Foundry Virtual Tabletop pre-signed release URL using cookies from
 authenticate.js.
@@ -24,16 +22,14 @@ Options:
                          "warn", and "error". [default: info]
 `;
 
-// Argument parsing
-const { docopt } = require("docopt");
-const options = docopt(doc, { version: "2.0.0" });
-
 // Imports
-const _nodeFetch = require("node-fetch");
-const { CookieJar } = require("tough-cookie");
-const CookieFileStore = require("tough-cookie-file-store").FileCookieStore;
-const createLogger = require("./logging").createLogger;
-const process = require("process");
+import { CookieJar } from "tough-cookie";
+import { FileCookieStore } from "tough-cookie-file-store";
+import createLogger from "./logging.js";
+import docopt from "docopt";
+import fetchCookie from "fetch-cookie/node-fetch.js";
+import nodeFetch from "node-fetch";
+import process from "process";
 
 // Setup globals, to be configured in main()
 var cookieJar;
@@ -81,6 +77,9 @@ async function fetchReleaseURL(build) {
  * @return {number}  exit code
  */
 async function main() {
+  // Parse command line options.
+  const options = docopt.docopt(doc, { version: "2.0.0" });
+
   // Extract values from CLI options.
   const cookiejar_filename = options["<cookiejar>"];
   const foundry_version = options["<version>"];
@@ -91,8 +90,8 @@ async function main() {
 
   // Setup global cookie jar, storage, and fetch library
   logger.debug(`Loading cookies from: ${cookiejar_filename}`);
-  cookieJar = new CookieJar(new CookieFileStore(cookiejar_filename));
-  fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
+  cookieJar = new CookieJar(new FileCookieStore(cookiejar_filename));
+  fetch = fetchCookie(nodeFetch, cookieJar);
 
   // Extract build number from FoundryVTT version
   // FoundryVTT versions looks like x.yyy where y is a build

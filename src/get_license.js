@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-"use strict";
-
 const doc = `
 Retrieve a Foundrty Virtual Tabletop license key from a user's account using
 cookies from authenticate.js.
@@ -28,17 +26,15 @@ Options:
                          starts at 1.
 `;
 
-// Argument parsing
-const { docopt } = require("docopt");
-const options = docopt(doc, { version: "1.0.0" });
-
 // Imports
-const _nodeFetch = require("node-fetch");
-const { CookieJar } = require("tough-cookie");
-const cheerio = require("cheerio");
-const CookieFileStore = require("tough-cookie-file-store").FileCookieStore;
-const createLogger = require("./logging").createLogger;
-const process = require("process");
+import { CookieJar } from "tough-cookie";
+import { FileCookieStore } from "tough-cookie-file-store";
+import cheerio from "cheerio";
+import createLogger from "./logging.js";
+import docopt from "docopt";
+import fetchCookie from "fetch-cookie/node-fetch.js";
+import nodeFetch from "node-fetch";
+import process from "process";
 
 // Setup globals, to be configured in main()
 var cookieJar;
@@ -90,6 +86,9 @@ async function fetchLicenses(username) {
  * @return {number}  exit code
  */
 async function main() {
+  // Parse command line options.
+  const options = docopt.docopt(doc, { version: "1.0.0" });
+
   // Extract values from CLI options.
   const cookiejar_filename = options["<cookiejar>"];
   const log_level = options["--log-level"].toLowerCase();
@@ -100,8 +99,8 @@ async function main() {
 
   // Setup global cookie jar, storage, and fetch library
   logger.debug(`Reading cookies from: ${cookiejar_filename}`);
-  cookieJar = new CookieJar(new CookieFileStore(cookiejar_filename));
-  fetch = require("fetch-cookie/node-fetch")(_nodeFetch, cookieJar);
+  cookieJar = new CookieJar(new FileCookieStore(cookiejar_filename));
+  fetch = fetchCookie(nodeFetch, cookieJar);
 
   // Retrieve username from cookie.
   const local_cookies = cookieJar.getCookiesSync(`http://${LOCAL_DOMAIN}`);
