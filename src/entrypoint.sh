@@ -12,13 +12,11 @@ set -o pipefail
 
 
 CONFIG_DIR="/data/Config"
-LANGUAGE_FILE="$FOUNDRY_HOME/resources/app/public/lang/en.json"
 LICENSE_FILE="${CONFIG_DIR}/license.json"
 # setup logging
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
 LOG_NAME="Entrypoint"
-UPDATE_WARNING="This instance of Foundry Virtual Tabletop is running in a Docker container.  To update, please pull a new Docker image and restart the container."
 
 # shellcheck source=src/logging.sh
 source logging.sh
@@ -186,14 +184,9 @@ if [ $install_required = true ]; then
     fi
   fi
 
-  # Modify update warnings to be container-specific.
-  log_debug "Editing server update error message."
-  patch_lang_file=$(mktemp -t patch_lang.XXXXXX)
-  jq --arg msg "${UPDATE_WARNING}" --exit-status \
-  '."SETUP.UpdateHint" = $msg | ."SETUP.UpdateNoUpdateMode" = $msg' \
-  "${LANGUAGE_FILE}" > "${patch_lang_file}"
-  mv "${patch_lang_file}" "${LANGUAGE_FILE}"
-  chmod a+r "${LANGUAGE_FILE}"
+  # Modify update and config warnings to be container-specific.
+  log_debug "Patching GUI update and configuration messages."
+  ./patch_lang.mjs
 fi  # install required
 
 if [ ! -f "${LICENSE_FILE}" ]; then
