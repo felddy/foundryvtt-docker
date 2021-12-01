@@ -9,8 +9,8 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  authenticate.js [--log-level=LEVEL] <username> <password> <cookiejar>
-  authenticate.js (-h | --help)
+  authenticate.mjs [--log-level=LEVEL] <username> <password> <cookiejar>
+  authenticate.mjs (-h | --help)
 
 Options:
   -h --help              Show this message.
@@ -23,7 +23,7 @@ Options:
 import { CookieJar, Cookie } from "tough-cookie";
 import { FileCookieStore } from "tough-cookie-file-store";
 import cheerio from "cheerio";
-import createLogger from "./logging.js";
+import createLogger from "./logging.mjs";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie/node-fetch.js";
 import nodeFetch from "node-fetch";

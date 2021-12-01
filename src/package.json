@@ -19,7 +19,7 @@
     "docker"
   ],
   "license": "MIT",
-  "main": "authenticate.js",
+  "main": "authenticate.mjs",
   "name": "foundryvtt-utils",
   "repository": {
     "type": "git",

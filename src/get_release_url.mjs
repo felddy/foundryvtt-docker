@@ -2,7 +2,7 @@
 
 const doc = `
 Generate a Foundry Virtual Tabletop pre-signed release URL using cookies from
-authenticate.js.
+authenticate.mjs.
 
 The utility will print the release URL to standard out.
 
@@ -12,8 +12,8 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  get_release_url.js [--log-level=LEVEL] <cookiejar> <version>
-  get_release_url.js (-h | --help)
+  get_release_url.mjs [--log-level=LEVEL] <cookiejar> <version>
+  get_release_url.mjs (-h | --help)
 
 Options:
   -h --help              Show this message.
@@ -25,7 +25,7 @@ Options:
 // Imports
 import { CookieJar } from "tough-cookie";
 import { FileCookieStore } from "tough-cookie-file-store";
-import createLogger from "./logging.js";
+import createLogger from "./logging.mjs";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie/node-fetch.js";
 import nodeFetch from "node-fetch";

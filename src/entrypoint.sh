@@ -98,13 +98,13 @@ if [ $install_required = true ]; then
     # The resulting cookiejar is used to get a release URL or license.
     # CONTAINER_VERBOSE default value should not be quoted.
     # shellcheck disable=SC2086
-    ./authenticate.js ${CONTAINER_VERBOSE+--log-level=debug} "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
+    ./authenticate.mjs ${CONTAINER_VERBOSE+--log-level=debug} "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
     if [[ ! "${s3_url:-}" ]]; then
       # If the s3_url wasn't set by FOUNDRY_RELEASE_URL generate one now.
       log "Using authenticated credentials to download release."
       # CONTAINER_VERBOSE default value should not be quoted.
       # shellcheck disable=SC2086
-      s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}" "${FOUNDRY_VERSION}")
+      s3_url=$(./get_release_url.mjs ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}" "${FOUNDRY_VERSION}")
     fi
   fi
 
@@ -205,10 +205,10 @@ if [ ! -f "${LICENSE_FILE}" ]; then
       # FOUNDRY_LICENSE_KEY can be an index, try passing it.
       # CONTAINER_VERBOSE default value should not be quoted.
       # shellcheck disable=SC2086
-      fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=debug} --select="${FOUNDRY_LICENSE_KEY}" "${cookiejar_file}")
+      fetched_license_key=$(./get_license.mjs ${CONTAINER_VERBOSE+--log-level=debug} --select="${FOUNDRY_LICENSE_KEY}" "${cookiejar_file}")
     else
       # shellcheck disable=SC2086
-      fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}")
+      fetched_license_key=$(./get_license.mjs ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}")
     fi
     echo "{ \"license\": \"${fetched_license_key}\" }" > "${LICENSE_FILE}"
   else

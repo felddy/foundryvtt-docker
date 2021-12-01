@@ -10,7 +10,7 @@ RED="\e[31m"
 RESET="\e[0m"
 YELLOW="\e[33m"
 
-# Mimic the winston logging used in logging.js
+# Mimic the winston logging used in logging.mjs
 log_debug(){
   if [[ "${CONTAINER_VERBOSE:-}" ]]; then
     echo -e "${LOG_NAME} | $(date +%Y-%m-%d\ %H:%M:%S) | [${BLUE}debug${RESET}] $*"

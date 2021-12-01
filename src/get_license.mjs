@@ -12,8 +12,8 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  get_license.js [--log-level=LEVEL] [--select=MODE] <cookiejar>
-  get_license.js (-h | --help)
+  get_license.mjs [--log-level=LEVEL] [--select=MODE] <cookiejar>
+  get_license.mjs (-h | --help)
 
 Options:
   -h --help              Show this message.
@@ -30,7 +30,7 @@ Options:
 import { CookieJar } from "tough-cookie";
 import { FileCookieStore } from "tough-cookie-file-store";
 import cheerio from "cheerio";
-import createLogger from "./logging.js";
+import createLogger from "./logging.mjs";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie/node-fetch.js";
 import nodeFetch from "node-fetch";
