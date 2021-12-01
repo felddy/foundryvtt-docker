@@ -25,6 +25,7 @@ repos:
         args:
           - --fix=lf
       - id: pretty-format-json
+        exclude: package-lock.json
         args:
           - --autofix
       - id: requirements-txt-fixer

@@ -2,12 +2,11 @@ __pycache__
 .mypy_cache
 .pytest_cache
 .python-version
-*-mine.*
 *.egg-info
 *.tgz
 *.zip
+/package-lock.json
 cookiejar.json
 Dockerfile-x
 license.json
 node_modules
-package-lock.json
