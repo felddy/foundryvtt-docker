@@ -31,6 +31,7 @@ services:
       #   }
       # - FOUNDRY_GID=foundry
       # - FOUNDRY_HOSTNAME=
+      # - FOUNDRY_IP_DISCOVERY=
       # - FOUNDRY_LANGUAGE=
       # - FOUNDRY_LOCAL_HOSTNAME=
       # - FOUNDRY_LICENSE_KEY=

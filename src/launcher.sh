@@ -53,6 +53,12 @@ if [ "$1" = "--shell" ]; then
   exit $?
 fi
 
+if [[ "${FOUNDRY_IP_DISCOVERY:-}" == "false" ]]; then
+  log "FOUNDRY_IP_DISCOVERY is set to false: Disabling IP discovery."
+  # Add argument to disable IP discovery
+  set -- "$@" --noipdiscovery
+fi
+
 # Spawn node with clean environment to prevent credential leaks
 log "Starting Foundry Virtual Tabletop."
 env -i HOME="$HOME" node "$@"
