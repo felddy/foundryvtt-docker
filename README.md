@@ -194,18 +194,18 @@ upgrade to a new version of Foundry pull an updated image version.
 
 ## Image tags ##
 
-The images of this container are tagged with both the [semantic
-versions](https://semver.org) of Foundry Virtual Tabletop that they support as
-well as the update channel associated with the version.  It is recommended that
-most users use the `:release` tag.
+The images of this container are tagged with the [semantic
+versions](https://semver.org) that align with the [version and build of Foundry
+Virtual Tabletop](https://foundryvtt.com/article/versioning/) that they support.
+It is recommended that most users use the `:release` tag.
 
 | Image:tag | Description |
 |-----------|-------------|
-|`felddy/foundryvtt:release` | The most recent image from the release channel.  These images are **considered stable**, and well-tested.  Most users will use this tag.  The `latest` tag always points to the same version as `release`.|
-|`felddy/foundryvtt:beta` | Beta channel releases **should be stable** for all users, but may impose some module conflicts or compatibility issues. It is only recommended for users to update to this version if they are comfortable with accepting some minor risks. Users are discouraged from updating to this version if it is immediately before a game session. _Please take care to periodically back up your critical user data in case you experience any issues._ |
-|`felddy/foundryvtt:alpha` | Alpha channel releases are **VERY LIKELY to introduce breaking bugs** that will be disruptive to play. Do not install this update unless you are using for the specific purposes of testing. The intention of Alpha builds are to allow for previewing new features and to help developers to begin updating modules which are impacted by the changes. If you choose to update to this version for a live game you do so entirely at your own risk of having a bad experience. _Please back up your critical user data before installing this update._ |
-|`felddy/foundryvtt:9.232.0`| An exact version. |
-|`felddy/foundryvtt:9.232`| The most recent release matching the major and minor version numbers. |
+|`felddy/foundryvtt:release` | The most recent image from the `stable` channel.  These images are **considered stable**, and well-tested.  Most users will use this tag.  The `latest` tag always points to the same version as `release`.|
+|`felddy/foundryvtt:prerelease` | The most recent image from the `testing`, `development`, or `prototype` channels.  Pre-releases are **VERY LIKELY to introduce breaking bugs** that will be disruptive to play. Do not install this version unless you are using for the specific purposes of testing. The intention of pre-release builds are to allow for previewing new features and to help developers to begin updating modules which are impacted by the changes. If you choose to update to this version for a live game you do so entirely at your own risk of having a bad experience. _Please back up your critical user data before installing this version._ |
+|`felddy/foundryvtt:9.232.0`| An exact image version. |
+|`felddy/foundryvtt:9.232`| The most recent image matching the major and minor version numbers. |
+|`felddy/foundryvtt:9`| The most recent image matching the major version number. |
 |`felddy/foundryvtt:latest`| See the `release` tag.  [Why does `latest` == `release`?](https://vsupalov.com/docker-latest-tag/) |
 
 See the [tags tab](https://hub.docker.com/r/felddy/foundryvtt/tags) on Docker
@@ -368,73 +368,6 @@ docker build \
   --tag felddy/foundryvtt:9.232.0 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```
-
-## Hosting behind Nginx with TLS ##
-
-Below is an example configuration that will serve the Foundry Virtual Tabletop
-application at a specific path.  In this example, the application container will
-be accessible at `https://example.com/vtt`:
-
-```nginx
-server {
-    listen 443 ssl http2 default_server;
-    listen [::]:443 ssl http2 default_server;
-    server_name example.com www.example.com;
-
-    if ($host = www.example.com) {
-        return 301 https://example.com$request_uri;
-    }
-
-    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
-    ssl_trusted_certificate /etc/letsencrypt/live/example.com/chain.pem;
-
-    add_header Access-Control-Allow-Origin https://example.com always;
-
-    location /vtt {
-        # Foundry Virtual Tabletop routePrefix = "vtt"
-
-        proxy_http_version 1.1;
-        access_log /var/log/nginx/upstream_log upstream_logging;
-        client_max_body_size 300M;
-
-        proxy_read_timeout 90;
-        proxy_set_header Connection "Upgrade";
-        proxy_set_header Host $http_host;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Real-IP $remote_addr;
-
-        proxy_pass http://localhost:30000;
-    }
-}
-
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    server_name example.com www.example.com;
-    return 301 https://example.com$request_uri;
-}
-```
-
-## Debugging ##
-
-Here are a couple of options that can help if the container isn't working as it
-should.
-
-Making the logging more verbose will provide more information about what is
-going on during container startup.  When reporting an issue, verbose output is
-always more helpful.  Simply set the `CONTAINER_VERBOSE` environment variable to
-`true` to generate more detailed logging.
-
-To drop into a shell after distribution installation but before it is started,
-you can pass the `--shell` option to the service:
-
-| Purpose | Command |
-|---------|---------|
-| Drop into a shell in the container before switching uid:gid | `docker compose run foundry --root-shell` |
-| Drop into a shell in the container after switching uid:gid | `docker compose run foundry --shell` |
 
 ## Contributing ##
 
