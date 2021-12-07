@@ -8,7 +8,10 @@ import winston from "winston";
  *                            are: error, warn, info, debug
  * @return {string}           The logger.
  */
-export default function createLogger(name, log_level) {
+export default function createLogger(
+  name: string,
+  log_level: string
+): winston.Logger {
   const logger = winston.createLogger({
     level: log_level,
     format: winston.format.combine(
