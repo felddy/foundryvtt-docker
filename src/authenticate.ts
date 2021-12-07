@@ -9,8 +9,8 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  authenticate.mjs [--log-level=LEVEL] <username> <password> <cookiejar>
-  authenticate.mjs (-h | --help)
+  authenticate.js [--log-level=LEVEL] <username> <password> <cookiejar>
+  authenticate.js (-h | --help)
 
 Options:
   -h --help              Show this message.

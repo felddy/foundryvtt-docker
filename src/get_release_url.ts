@@ -2,7 +2,7 @@
 
 const doc = `
 Generate a Foundry Virtual Tabletop pre-signed release URL using cookies from
-authenticate.mjs.
+authenticate.js.
 
 The utility will print the release URL to standard out.
 
