@@ -10,6 +10,7 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "outDir": "dist",
+    "removeComments": true,
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
