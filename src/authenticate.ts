@@ -147,7 +147,7 @@ async function login(
  *
  * @return {number}  exit code
  */
-async function main() {
+async function main(): Promise<number> {
   // Parse command line options.
   const options = docopt.docopt(doc, { version: "1.0.0" });
 
