@@ -12,8 +12,8 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  get_license.mjs [--log-level=LEVEL] [--select=MODE] <cookiejar>
-  get_license.mjs (-h | --help)
+  get_license.js [--log-level=LEVEL] [--select=MODE] <cookiejar>
+  get_license.js (-h | --help)
 
 Options:
   -h --help              Show this message.
@@ -30,22 +30,23 @@ Options:
 import { CookieJar } from "tough-cookie";
 import { FileCookieStore } from "tough-cookie-file-store";
 import cheerio from "cheerio";
-import createLogger from "./logging.mjs";
+import createLogger from "./logging.js";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie/node-fetch.js";
-import nodeFetch from "node-fetch";
+import nodeFetch, { HeadersInit } from "node-fetch";
 import process from "process";
+import winston from "winston";
 
 // Setup globals, to be configured in main()
-var cookieJar;
-var fetch;
-var logger;
+var cookieJar: CookieJar;
+var fetch: typeof nodeFetch;
+var logger: winston.Logger;
 
 // Constants
-const BASE_URL = "https://foundryvtt.com";
-const LOCAL_DOMAIN = "felddy.com";
+const BASE_URL: string = "https://foundryvtt.com";
+const LOCAL_DOMAIN: string = "felddy.com";
 
-const HEADERS = {
+const HEADERS: HeadersInit = {
   DNT: "1",
   Referer: BASE_URL,
   "Upgrade-Insecure-Requests": "1",
@@ -58,7 +59,7 @@ const HEADERS = {
  * @param  {string} username Username (not e-mail address) of license owner.
  * @return {string}          License key formatted with dashes.
  */
-async function fetchLicenses(username) {
+async function fetchLicenses(username: string): Promise<string[]> {
   logger.info("Fetching licenses.");
   const LICENSE_URL = `${BASE_URL}/community/${username}/licenses`;
   logger.debug(`Fetching: ${LICENSE_URL}`);
@@ -73,10 +74,12 @@ async function fetchLicenses(username) {
   const $ = await cheerio.load(body);
 
   const licenses = $("pre.license-key code")
-    .map(function () {
+    .map(function (this: cheerio.Element) {
       return $(this).text().replace(/-/g, ""); // remove dashes
     })
-    .toArray();
+    .toArray()
+    .toString()
+    .split(",");
   return licenses;
 }
 
@@ -85,14 +88,14 @@ async function fetchLicenses(username) {
  *
  * @return {number}  exit code
  */
-async function main() {
+async function main(): Promise<number> {
   // Parse command line options.
   const options = docopt.docopt(doc, { version: "1.0.0" });
 
   // Extract values from CLI options.
-  const cookiejar_filename = options["<cookiejar>"];
-  const log_level = options["--log-level"].toLowerCase();
-  const select_mode = options["--select"];
+  const cookiejar_filename: string = options["<cookiejar>"];
+  const log_level: string = options["--log-level"].toLowerCase();
+  const select_mode: string = options["--select"];
 
   // Setup logging.
   logger = createLogger("License", log_level);
@@ -105,7 +108,7 @@ async function main() {
   // Retrieve username from cookie.
   const local_cookies = cookieJar.getCookiesSync(`http://${LOCAL_DOMAIN}`);
   if (local_cookies.length != 1) {
-    logger.fatal(
+    logger.emerg(
       `Wrong number of cookies found for ${LOCAL_DOMAIN}.  Expected 1, found ${local_cookies.length}`
     );
     return -1;
@@ -138,15 +141,16 @@ async function main() {
   }
 
   // Handle multiple licenses keys found.
-  var select_index;
+  var select_index: number;
 
   // Use a 1-based index when communicating with the user.
-  if (!select_mode) {
+  if (!parseInt(select_mode)) {
+    // No numeric index specified, so select a random license key.
     select_index = Math.floor(Math.random() * key_count) + 1;
     logger.info(`License key #${select_index} randomly selected.`);
     process.stdout.write(license_keys[select_index - 1]);
     return 0;
-  } else if (select_mode == parseInt(select_mode)) {
+  } else {
     // mode is integer
     select_index = parseInt(select_mode);
     if (select_index > key_count) {
