@@ -3,9 +3,16 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ES6",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
     "outDir": "dist",
     "skipLibCheck": true,
     "strict": true,
+    "strictNullChecks": true,
     "target": "es2021"
   },
   "include": [
