@@ -14,6 +14,12 @@
     "winston": "^3.3.3"
   },
   "description": "Utilities to help boot a FoundryVTT server.",
+  "devDependencies": {
+    "@types/cheerio": "^0.22.30",
+    "@types/docopt": "^0.6.33",
+    "@types/tough-cookie": "^4.0.1",
+    "@types/tough-cookie-file-store": "^2.0.1"
+  },
   "homepage": "https://github.com/felddy/foundryvtt-docker#readme",
   "keywords": [
     "foundryvtt",
