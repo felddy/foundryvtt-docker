@@ -30,7 +30,7 @@ if [[ "${CONTAINER_PRESERVE_CONFIG:-}" == "true" && -f "${CONFIG_FILE}" ]]; then
 else
   # Update configuration file
   log "Generating options.json file."
-  ./set_options.mjs > "${CONFIG_FILE}"
+  ./set_options.js > "${CONFIG_FILE}"
 fi
 
 if [[ "${CONTAINER_PRESERVE_CONFIG:-}" == "true" && -f "${ADMIN_KEY_FILE}" ]];
@@ -40,7 +40,7 @@ else
   # Save admin access key to file if set.  Delete file if unset.
   if [[ "${FOUNDRY_ADMIN_KEY:-}" ]]; then
     log "Setting 'Admin Access Key'."
-    echo "${FOUNDRY_ADMIN_KEY}" | ./set_password.mjs > "${ADMIN_KEY_FILE}"
+    echo "${FOUNDRY_ADMIN_KEY}" | ./set_password.js > "${ADMIN_KEY_FILE}"
   else
     log_warn "No 'Admin Access Key' has been configured."
     rm "${ADMIN_KEY_FILE}" >& /dev/null || true
