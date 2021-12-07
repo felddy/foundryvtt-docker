@@ -12,8 +12,8 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  get_release_url.mjs [--log-level=LEVEL] <cookiejar> <version>
-  get_release_url.mjs (-h | --help)
+  get_release_url.js [--log-level=LEVEL] <cookiejar> <version>
+  get_release_url.js (-h | --help)
 
 Options:
   -h --help              Show this message.
@@ -25,16 +25,17 @@ Options:
 // Imports
 import { CookieJar } from "tough-cookie";
 import { FileCookieStore } from "tough-cookie-file-store";
-import createLogger from "./logging.mjs";
+import createLogger from "./logging.js";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie/node-fetch.js";
-import nodeFetch from "node-fetch";
+import nodeFetch, { Response } from "node-fetch";
 import process from "process";
+import winston from "winston";
 
 // Setup globals, to be configured in main()
-var cookieJar;
-var fetch;
-var logger;
+var cookieJar: CookieJar;
+var fetch: typeof nodeFetch;
+var logger: winston.Logger;
 
 // Constants
 const BASE_URL = "https://foundryvtt.com";
@@ -52,11 +53,11 @@ const HEADERS = {
  * @param  {string} build Build to download.
  * @return {string} The URL of the requested build.
  */
-async function fetchReleaseURL(build) {
+async function fetchReleaseURL(build: string): Promise<string | null> {
   logger.info(`Fetching S3 pre-signed release URL for build ${build}...`);
-  const release_url = `${BASE_URL}/releases/download?build=${build}&platform=linux`;
+  const release_url: string = `${BASE_URL}/releases/download?build=${build}&platform=linux`;
   logger.debug(`Fetching: ${release_url}`);
-  const response = await fetch(release_url, {
+  const response: Response = await fetch(release_url, {
     method: "GET",
     headers: HEADERS,
     redirect: "manual",
@@ -65,7 +66,7 @@ async function fetchReleaseURL(build) {
   if (!(response.status >= 300 && response.status < 400)) {
     throw new Error(`Unexpected response ${response.statusText}`);
   }
-  const s3_url = response.headers.get("location");
+  const s3_url: string | null = response.headers.get("location");
   logger.debug(`S3 presigned URL: ${s3_url}`);
 
   return s3_url;
@@ -76,14 +77,14 @@ async function fetchReleaseURL(build) {
  *
  * @return {number}  exit code
  */
-async function main() {
+async function main(): Promise<number> {
   // Parse command line options.
   const options = docopt.docopt(doc, { version: "2.0.0" });
 
   // Extract values from CLI options.
-  const cookiejar_filename = options["<cookiejar>"];
-  const foundry_version = options["<version>"];
-  const log_level = options["--log-level"].toLowerCase();
+  const cookiejar_filename: string = options["<cookiejar>"];
+  const foundry_version: string = options["<version>"];
+  const log_level: string = options["--log-level"].toLowerCase();
 
   // Setup logging.
   logger = createLogger("ReleaseURL", log_level);
@@ -95,10 +96,19 @@ async function main() {
 
   // Extract build number from FoundryVTT version
   // FoundryVTT versions looks like x.yyy where y is a build
-  const foundry_build = foundry_version.split(".").pop();
+  const foundry_build: string | undefined = foundry_version.split(".").pop();
+
+  if (!foundry_build) {
+    logger.error(
+      `Unable to extract build number from version: ${foundry_version}`
+    );
+    throw new Error(
+      `Unable to extract build number from version: ${foundry_version}`
+    );
+  }
 
   // Generate an S3 pre-signed URL and print it to stdout.
-  const releaseURL = await fetchReleaseURL(foundry_build);
+  const releaseURL: string | null = await fetchReleaseURL(foundry_build);
 
   if (releaseURL) {
     process.stdout.write(releaseURL);
