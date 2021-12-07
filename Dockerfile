@@ -4,6 +4,19 @@ ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION=9.232
 ARG VERSION
 
+FROM node:16-alpine as compile-typescript-stage
+
+WORKDIR /root
+
+COPY \
+  package.json \
+  package-lock.json \
+  tsconfig.json \
+  ./
+COPY /src/*.ts src/
+RUN npm install && npm install --global typescript && tsc
+RUN grep -l "#!" dist/*.js | xargs chmod a+x
+
 FROM node:16-alpine as optional-release-stage
 
 ARG FOUNDRY_PASSWORD
@@ -13,20 +26,20 @@ ARG FOUNDRY_VERSION
 ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
 
 WORKDIR /root
-COPY \
-  package.json \
-  package-lock.json \
-  src/authenticate.mjs \
-  src/get_release_url.mjs \
-  src/logging.mjs \
+COPY --from=compile-typescript-stage \
+  /root/package.json \
+  /root/package-lock.json \
+  /root/dist/authenticate.js \
+  /root/dist/get_release_url.js \
+  /root/dist/logging.js \
   ./
 # .placeholder file to mitigate https://github.com/moby/moby/issues/37965
 RUN mkdir dist && touch dist/.placeholder
 RUN \
   if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
   npm install && \
-  ./authenticate.mjs "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
-  s3_url=$(./get_release_url.mjs cookiejar.json "${FOUNDRY_VERSION}") && \
+  ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
+  s3_url=$(./get_release_url.js cookiejar.json "${FOUNDRY_VERSION}") && \
   wget -O ${ARCHIVE} "${s3_url}" && \
   unzip -d dist ${ARCHIVE} 'resources/*'; \
   elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
@@ -51,20 +64,14 @@ ENV FOUNDRY_VERSION=${FOUNDRY_VERSION}
 WORKDIR ${FOUNDRY_HOME}
 
 COPY --from=optional-release-stage /root/dist/ .
+COPY --from=compile-typescript-stage /root/dist/ .
 COPY \
   package.json \
   package-lock.json \
-  src/authenticate.mjs \
   src/check_health.sh \
   src/entrypoint.sh \
-  src/get_license.mjs \
-  src/get_release_url.mjs \
   src/launcher.sh \
-  src/logging.mjs \
   src/logging.sh \
-  src/patch_lang.mjs \
-  src/set_options.mjs \
-  src/set_password.mjs \
   ./
 RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   && adduser --system --uid ${FOUNDRY_UID} --ingroup foundry foundry \
