@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ES6",
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es2021"
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

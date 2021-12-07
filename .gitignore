@@ -5,8 +5,9 @@ __pycache__
 *.egg-info
 *.tgz
 *.zip
-/package-lock.json
 cookiejar.json
+dist
 Dockerfile-x
 license.json
 node_modules
+package-lock.json

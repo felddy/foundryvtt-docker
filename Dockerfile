@@ -14,10 +14,11 @@ ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
 
 WORKDIR /root
 COPY \
+  package.json \
+  package-lock.json \
   src/authenticate.mjs \
   src/get_release_url.mjs \
   src/logging.mjs \
-  src/package.json \
   ./
 # .placeholder file to mitigate https://github.com/moby/moby/issues/37965
 RUN mkdir dist && touch dist/.placeholder
@@ -51,6 +52,8 @@ WORKDIR ${FOUNDRY_HOME}
 
 COPY --from=optional-release-stage /root/dist/ .
 COPY \
+  package.json \
+  package-lock.json \
   src/authenticate.mjs \
   src/check_health.sh \
   src/entrypoint.sh \
@@ -59,7 +62,6 @@ COPY \
   src/launcher.sh \
   src/logging.mjs \
   src/logging.sh \
-  src/package.json \
   src/patch_lang.mjs \
   src/set_options.mjs \
   src/set_password.mjs \

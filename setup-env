@@ -161,6 +161,9 @@ pre-commit install ${INSTALL_HOOKS:+"--install-hooks"}
 # Create Node.js virtual environment within the Python virtual environment.
 nodeenv --python-virtualenv
 
+# Install project node dependencies.
+npm install
+
 # Setup git remotes from lineage configuration
 # This could fail if the remotes are already setup, but that is ok.
 set +o errexit
