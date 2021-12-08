@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const doc = `
-Retrieve a Foundrty Virtual Tabletop license key from a user's account using
+Retrieve a Foundry Virtual Tabletop license key from a user's account using
 cookies from authenticate.js.
 
 The utility will print a license key to standard out.
