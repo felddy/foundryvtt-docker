@@ -13,8 +13,9 @@ COPY \
   package-lock.json \
   tsconfig.json \
   ./
+RUN npm install && npm install --global typescript
 COPY /src/*.ts src/
-RUN npm install && npm install --global typescript && tsc
+RUN tsc
 RUN grep -l "#!" dist/*.js | xargs chmod a+x
 
 FROM node:16-alpine as optional-release-stage
