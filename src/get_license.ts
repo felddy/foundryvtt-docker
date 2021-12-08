@@ -57,7 +57,7 @@ const HEADERS: HeadersInit = {
  * fetchLicense - Fetch a license key for a user.
  *
  * @param  {string} username Username (not e-mail address) of license owner.
- * @return {string}          License key formatted with dashes.
+ * @return {string[]}        License keys formatted without dashes.
  */
 async function fetchLicenses(username: string): Promise<string[]> {
   logger.info("Fetching licenses.");
@@ -73,13 +73,11 @@ async function fetchLicenses(username: string): Promise<string[]> {
   const body = await response.text();
   const $ = await cheerio.load(body);
 
-  const licenses = $("pre.license-key code")
+  const licenses: string[] = $("pre.license-key code")
     .map(function (this: cheerio.Element) {
       return $(this).text().replace(/-/g, ""); // remove dashes
     })
-    .toArray()
-    .toString()
-    .split(",");
+    .get();
   return licenses;
 }
 
