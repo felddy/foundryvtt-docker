@@ -61,14 +61,20 @@ docker run \
   felddy/foundryvtt:release
 ```
 
-### Running with a Docker composition ###
+### Configuration management ###
 
-Using [`docker compose`](https://docs.docker.com/compose/) to manage your
-server is highly recommended.  A `docker-compose.yml` file is a more reliable
-way to start and maintain a container while capturing its configurations.  All
-of Foundry's [configuration
-options](https://foundryvtt.com/article/configuration/) can be specified using
-[environment variables](#environment-variables).
+[Configuration options](https://foundryvtt.com/article/configuration/) are
+specified using [environment variables](#environment-variables).  It is highly
+recommended that you use [`docker compose`](https://docs.docker.com/compose/) or
+similar container orchestration to manage your server's configuration.  A
+`docker-compose.yml` file, like the example below, is a reliable way to start
+and maintain a container while capturing its configurations.
+
+Each time the container starts it generates the configuration files needed by
+Foundry Virtual Tabletop using the values of the environment variables.  That
+means **changes made in the server's configuration GUI will not persist between
+container restarts**.  If you would like to disable the regeneration of these
+configuration files, set `CONTAINER_PRESERVE_CONFIG` to `true`.
 
 1. Create a `docker-compose.yml` file similar to the one below.  Provide
    your credentials as values to the environment variables:
