@@ -5,4 +5,4 @@
 
 # Its purpose is to add branch-specific tags to an image.
 
-TAGS="${TAGS},${IMAGE_NAME}:prerelease"
+TAGS="${TAGS},${IMAGE_NAME}:release,${IMAGE_NAME}:latest"
