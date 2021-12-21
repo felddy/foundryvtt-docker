@@ -10,7 +10,6 @@ set -o errexit
 # pipefail is supported by busybox
 set -o pipefail
 
-
 CONFIG_DIR="/data/Config"
 LICENSE_FILE="${CONFIG_DIR}/license.json"
 # setup logging
@@ -123,9 +122,9 @@ if [ $install_required = true ]; then
     # Download release if newer than cached version.
     # Filter out warnings about bad date formats if the file is missing.
     curl --fail --location --time-cond "${release_filename}" \
-         --output "${downloading_filename}" "${s3_url}" 2>&1 | \
-         tr "\r" "\n" | \
-         sed --unbuffered '/^Warning: .* date/d'
+      --output "${downloading_filename}" "${s3_url}" 2>&1 \
+      | tr "\r" "\n" \
+      | sed --unbuffered '/^Warning: .* date/d'
 
     # Rename the download now that it is completed.
     # If we had a cache hit, the file is already renamed.
@@ -154,16 +153,15 @@ if [ $install_required = true ]; then
   # apply URL patches if requested
   if [[ "${CONTAINER_PATCH_URLS:-}" ]]; then
     log_warn "CONTAINER_PATCH_URLS is set:  Only use patch URLs from trusted sources!"
-      for url in ${CONTAINER_PATCH_URLS}
-      do
-        log "Downloading patch from URL: $url"
-        patch_file=$(mktemp -t patch_url.sh.XXXXXX)
-        curl --silent --output "${patch_file}" "${url}"
-        log_debug "Sourcing patch file: ${patch_file}"
-        # shellcheck disable=SC1090
-        source "${patch_file}"
-      done
-      log "Completed URL patching."
+    for url in ${CONTAINER_PATCH_URLS}; do
+      log "Downloading patch from URL: $url"
+      patch_file=$(mktemp -t patch_url.sh.XXXXXX)
+      curl --silent --output "${patch_file}" "${url}"
+      log_debug "Sourcing patch file: ${patch_file}"
+      # shellcheck disable=SC1090
+      source "${patch_file}"
+    done
+    log "Completed URL patching."
   fi
 
   # apply patches if requested and the directory exists
@@ -171,8 +169,7 @@ if [ $install_required = true ]; then
     log "Using CONTAINER_PATCHES: ${CONTAINER_PATCHES}"
     if [ -d "${CONTAINER_PATCHES}" ]; then
       log "Container patches directory detected.  Starting patch application..."
-      for f in "${CONTAINER_PATCHES}"/*
-      do
+      for f in "${CONTAINER_PATCHES}"/*; do
         [ -f "$f" ] || continue # we can't set nullglob in busybox
         log "Sourcing patch from file: $f"
         # shellcheck disable=SC1090
@@ -187,7 +184,7 @@ if [ $install_required = true ]; then
   # Modify update and config warnings to be container-specific.
   log_debug "Patching GUI update and configuration messages."
   ./patch_lang.js
-fi  # install required
+fi # install required
 
 if [ ! -f "${LICENSE_FILE}" ]; then
   log "Installation not yet licensed."

@@ -33,8 +33,7 @@ else
   ./set_options.js > "${CONFIG_FILE}"
 fi
 
-if [[ "${CONTAINER_PRESERVE_CONFIG:-}" == "true" && -f "${ADMIN_KEY_FILE}" ]];
-then
+if [[ "${CONTAINER_PRESERVE_CONFIG:-}" == "true" && -f "${ADMIN_KEY_FILE}" ]]; then
   log_warn "CONTAINER_PRESERVE_CONFIG is set: Not updating admin.txt"
 else
   # Save admin access key to file if set.  Delete file if unset.
@@ -43,7 +42,7 @@ else
     echo "${FOUNDRY_ADMIN_KEY}" | ./set_password.js > "${ADMIN_KEY_FILE}"
   else
     log_warn "No 'Admin Access Key' has been configured."
-    rm "${ADMIN_KEY_FILE}" >& /dev/null || true
+    rm "${ADMIN_KEY_FILE}" >&/dev/null || true
   fi
 fi
 
