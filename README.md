@@ -20,8 +20,8 @@ distribution.
 
 ## Prerequisites ##
 
-* A functioning [Docker](https://docs.docker.com/get-docker/) installation.
-* A [FoundryVTT.com](https://foundryvtt.com/auth/register/) account with a purchased
+- A functioning [Docker](https://docs.docker.com/get-docker/) installation.
+- A [FoundryVTT.com](https://foundryvtt.com/auth/register/) account with a purchased
   software license.
 
 ## Running ##
@@ -80,6 +80,7 @@ configuration files, set `CONTAINER_PRESERVE_CONFIG` to `true`.
    your credentials as values to the environment variables:
 
     ```yaml
+    ---
     version: "3.8"
 
     services:
@@ -137,6 +138,7 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
 1. Then add the secret to your `docker-compose.yml` file:
 
     ```yaml
+    ---
     version: "3.8"
 
     secrets:
@@ -170,7 +172,7 @@ upgrade to a new version of Foundry pull an updated image version.
 
 ### Updating with Docker Compose ###
 
-1. Pull the new image from Docker hub:
+1. Pull the new image from Docker Hub:
 
     ```console
     docker compose pull
@@ -200,7 +202,7 @@ upgrade to a new version of Foundry pull an updated image version.
 
 ## Image tags ##
 
-The images of this container are tagged with the [semantic
+The images of this container are tagged with [semantic
 versions](https://semver.org) that align with the [version and build of Foundry
 Virtual Tabletop](https://foundryvtt.com/article/versioning/) that they support.
 It is recommended that most users use the `:release` tag.
@@ -222,6 +224,14 @@ Hub for a list of all the supported tags.
 | Mount point | Purpose        |
 |-------------|----------------|
 | `/data`    | Configuration, data, and log storage. |
+
+## Ports ##
+
+The following ports are exposed by this container:
+
+| Port | Purpose        |
+|------|----------------|
+| 30000 | Foundry Virtual Tabletop server web interface |
 
 ## Environment variables ##
 
