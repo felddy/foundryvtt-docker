@@ -1,10 +1,24 @@
 ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
-ARG FOUNDRY_VERSION=0.8.9
+ARG FOUNDRY_VERSION=9.238
 ARG VERSION
 
-FROM node:14-alpine as optional-release-stage
+FROM node:16-alpine as compile-typescript-stage
+
+WORKDIR /root
+
+COPY \
+  package.json \
+  package-lock.json \
+  tsconfig.json \
+  ./
+RUN npm install && npm install --global typescript
+COPY /src/*.ts src/
+RUN tsc
+RUN grep -l "#!" dist/*.js | xargs chmod a+x
+
+FROM node:16-alpine as optional-release-stage
 
 ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
@@ -13,11 +27,12 @@ ARG FOUNDRY_VERSION
 ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
 
 WORKDIR /root
-COPY \
-  src/authenticate.js \
-  src/get_release_url.js \
-  src/logging.js \
-  src/package.json \
+COPY --from=compile-typescript-stage \
+  /root/package.json \
+  /root/package-lock.json \
+  /root/dist/authenticate.js \
+  /root/dist/get_release_url.js \
+  /root/dist/logging.js \
   ./
 # .placeholder file to mitigate https://github.com/moby/moby/issues/37965
 RUN mkdir dist && touch dist/.placeholder
@@ -33,7 +48,7 @@ RUN \
   unzip -d dist ${ARCHIVE} 'resources/*'; \
   fi
 
-FROM node:14-alpine as final-stage
+FROM node:16-alpine as final-stage
 
 ARG FOUNDRY_UID=421
 ARG FOUNDRY_VERSION
@@ -50,18 +65,14 @@ ENV FOUNDRY_VERSION=${FOUNDRY_VERSION}
 WORKDIR ${FOUNDRY_HOME}
 
 COPY --from=optional-release-stage /root/dist/ .
+COPY --from=compile-typescript-stage /root/dist/ .
 COPY \
-  src/authenticate.js \
+  package.json \
+  package-lock.json \
   src/check_health.sh \
   src/entrypoint.sh \
-  src/get_license.js \
-  src/get_release_url.js \
   src/launcher.sh \
-  src/logging.js \
   src/logging.sh \
-  src/package.json \
-  src/set_options.js \
-  src/set_password.js \
   ./
 RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   && adduser --system --uid ${FOUNDRY_UID} --ingroup foundry foundry \
@@ -83,6 +94,6 @@ EXPOSE 30000/TCP
 # EXPOSE 49152-65535/UDP
 
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["resources/app/main.js", "--port=30000", "--headless", "--noupdate",\
+CMD ["resources/app/main.mjs", "--port=30000", "--headless", "--noupdate",\
   "--dataPath=/data"]
 HEALTHCHECK --start-period=3m --interval=30s --timeout=5s CMD ./check_health.sh

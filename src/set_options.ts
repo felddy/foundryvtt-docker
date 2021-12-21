@@ -1,26 +1,32 @@
 #!/usr/bin/env node
 
-const DATA_PATH = "/data";
-const FOUNDRY_PORT = 30000;
-const LANGUAGE = "en.core";
-const MAXIMUM_PORT = 65535;
-const MINIMUM_PORT = 1;
-const UPDATE_CHANNEL = "release";
+const DATA_PATH: string = "/data";
+const FOUNDRY_PORT: number = 30000;
+const LANGUAGE: string = "en.core";
+const MAXIMUM_PORT: number = 65535;
+const MINIMUM_PORT: number = 1;
+const UPDATE_CHANNEL: string = "release";
 
-let parsedDemoConfig = undefined;
+let parsedDemoConfig: any = undefined;
 
 /**
  * Returns a number from an environment variable whose value is limited to the
  * given range.
  *
- * @param {string} envVar The value of the environment variable
+ * @param {string | undefined} envVarValue The value of the environment variable
  * @param {number} min The lower boundary of the output range
  * @param {number} max The upper boundary of the output range
- * @return {number} clamped value, or undefined
+ * @param {number | null} unset The default value to return if the environment variable is not set
+ * @return {number | null} clamped value, or undefined
  */
-function clampEnv(envVar, min, max, unset = undefined) {
-  if (envVar) {
-    var i = parseInt(envVar);
+function clampEnv(
+  envVarValue: string | undefined,
+  min: number,
+  max: number,
+  unset: number | null = null
+): number | null {
+  if (envVarValue) {
+    var i = parseInt(envVarValue);
     return Math.min(Math.max(i, min), max);
   } else {
     return unset;
@@ -31,7 +37,7 @@ if (process.env.FOUNDRY_DEMO_CONFIG) {
   parsedDemoConfig = JSON.parse(process.env.FOUNDRY_DEMO_CONFIG);
 }
 
-let options = {
+let options: object = {
   awsConfig: process.env.FOUNDRY_AWS_CONFIG || null,
   dataPath: DATA_PATH,
   demo: parsedDemoConfig,

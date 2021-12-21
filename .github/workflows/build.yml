@@ -27,11 +27,13 @@ on:
 
 env:
   BUILDX_CACHE_DIR: ~/.cache/buildx
+  CURL_CACHE_DIR: ~/.cache/curl
   IMAGE_NAME: felddy/foundryvtt
   PIP_CACHE_DIR: ~/.cache/pip
   PLATFORMS: "linux/amd64,linux/arm/v6,linux/arm/v7,\
   linux/arm64,linux/ppc64le,linux/s390x"
   PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
+  RUN_TMATE: ${{ secrets.RUN_TMATE }}
 
 jobs:
   lint:
@@ -40,25 +42,47 @@ jobs:
     name: "Lint sources"
     runs-on: ubuntu-latest
     steps:
+      - uses: cisagov/setup-env-github-action@develop
       - uses: actions/checkout@v2
       - id: setup-python
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
+      # GO_VERSION and GOCACHE are used by the cache task, so the Go
+      # installation must happen before that.
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16'
+      - name: Store installed Go version
+        run: |
+          echo "GO_VERSION="\
+          "$(go version | sed 's/^go version go\([0-9.]\+\) .*/\1/')" \
+          >> $GITHUB_ENV
+      - name: Lookup Go cache directory
+        id: go-cache
+        run: |
+          echo "::set-output name=dir::$(go env GOCACHE)"
       - uses: actions/cache@v2
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-"
+            py${{ steps.setup-python.outputs.python-version }}-\
+            go${{ env.GO_VERSION }}-"
         with:
           path: |
             ${{ env.PIP_CACHE_DIR }}
             ${{ env.PRE_COMMIT_CACHE_DIR }}
+            ${{ env.CURL_CACHE_DIR }}
+            ${{ steps.go-cache.outputs.dir }}
           key: "${{ env.BASE_CACHE_KEY }}\
             ${{ hashFiles('**/requirements-test.txt') }}-\
             ${{ hashFiles('**/requirements.txt') }}-\
             ${{ hashFiles('**/.pre-commit-config.yaml') }}"
           restore-keys: |
             ${{ env.BASE_CACHE_KEY }}
+      - name: Setup curl cache
+        run: mkdir -p ${{ env.CURL_CACHE_DIR }}
+      - name: Install shfmt
+        run: go install mvdan.cc/sh/v3/cmd/shfmt@${SHFMT_VERSION}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -67,7 +91,9 @@ jobs:
         run: pre-commit install-hooks
       - name: Run pre-commit on all files
         run: pre-commit run --all-files
-
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v3
+        if: env.RUN_TMATE
   prepare:
     # Calculates and publishes outputs that are used by other jobs.
     #
@@ -80,13 +106,13 @@ jobs:
     #     The source version as reported by the `bump_version.sh show` command.
     #   tags:
     #     A comma separated list of Docker tags to be applied to the images on
-    #     DockerHub.  The tags will vary depending on:
+    #     Docker Hub.  The tags will vary depending on:
     #     - The event that triggered the build.
     #     - The branch the build is based upon.
     #     - The git tag the build is based upon.
     #
     #     When a build is based on a git tag of the form `v*.*.*` the image will
-    #     be tagged on DockerHub with multiple levels of version specificity.
+    #     be tagged on Docker Hub with multiple levels of version specificity.
     #     For example, a git tag of `v1.2.3+a` will generate Docker tags of
     #     `:1.2.3_a`, `:1.2.3`, `:1.2`, `:1`, and `:latest`.
     #
@@ -166,10 +192,12 @@ jobs:
           echo ::set-output name=source_version::$(./bump_version.sh show)
           echo ::set-output name=tags::${TAGS}
           echo tags=${TAGS}
-      - name: Setup debug session remote shell
+      - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@v3
-        if: github.event.inputs.remote-shell == 'true'
+        if: github.event.inputs.remote-shell == 'true' || env.RUN_TMATE
   build-normal:
+    # Builds a single test image for the native platform.  This image is saved
+    # as an artifact and loaded by the test job.
     name: "Build normal test image"
     runs-on: ubuntu-latest
     needs: [prepare]
@@ -235,6 +263,9 @@ jobs:
         with:
           name: dist-normal
           path: dist
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v3
+        if: env.RUN_TMATE
   build-pre-install:
     name: "Build pre-installed test image"
     runs-on: ubuntu-latest
@@ -303,6 +334,9 @@ jobs:
         with:
           name: dist-pre-install
           path: dist
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v3
+        if: env.RUN_TMATE
   test-normal:
     # Executes tests on the single-platform image created in the "build" job.
     name: "Test normal image"
@@ -352,6 +386,9 @@ jobs:
         with:
           name: data-normal
           path: data
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v3
+        if: env.RUN_TMATE
   test-pre-install:
     # Executes tests on the single-platform image created in the "build" job.
     name: "Test pre-installed image"
@@ -399,19 +436,22 @@ jobs:
         with:
           name: data-pre-install
           path: data
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v3
+        if: env.RUN_TMATE
   build-push-all:
     # Builds the final set of images for each of the platforms listed in
     # PLATFORMS environment variable.  These images are tagged with the Docker
-    # tags calculated in the "prepare" job and pushed to DockerHub and the
-    # GitHub Container Registry.  The contents of README.md is pushed as the
-    # image's description to DockerHub.  This job is skipped when the triggering
-    # event is a pull request.
+    # tags calculated in the "prepare" job and pushed to Docker Hub and the
+    # GitHub Container Registry.  The contents of README.md are pushed as the
+    # image's description to Docker Hub.  This job is skipped when the
+    # triggering event is a pull request.
     name: "Build and push all platforms"
     runs-on: ubuntu-latest
     needs: [lint, prepare, test-normal, test-pre-install]
     if: github.event_name != 'pull_request'
     steps:
-      - name: Login to DockerHub
+      - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -482,3 +522,6 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: ./push_readme.sh
+      - name: Setup tmate debug session
+        uses: mxschmitt/action-tmate@v3
+        if: env.RUN_TMATE

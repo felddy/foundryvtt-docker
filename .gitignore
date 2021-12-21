@@ -1,12 +1,20 @@
+# This file specifies intentionally untracked files that Git should ignore.
+# Files already tracked by Git are not affected.
+# See: https://git-scm.com/docs/gitignore
+
+## Docker ##
+Dockerfile-x
+
+## Python ##
 __pycache__
 .mypy_cache
 .pytest_cache
 .python-version
-*-mine.*
 *.egg-info
 *.tgz
 *.zip
 cookiejar.json
+dist
 Dockerfile-x
 license.json
 node_modules

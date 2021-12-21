@@ -10,15 +10,12 @@ set -o errexit
 # pipefail is supported by busybox
 set -o pipefail
 
-
 CONFIG_DIR="/data/Config"
-LANGUAGE_FILE="$FOUNDRY_HOME/resources/app/public/lang/en.json"
 LICENSE_FILE="${CONFIG_DIR}/license.json"
 # setup logging
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
 LOG_NAME="Entrypoint"
-UPDATE_WARNING="This instance of Foundry Virtual Tabletop is running in a Docker container.  To update, please pull a new Docker image and restart the container."
 
 # shellcheck source=src/logging.sh
 source logging.sh
@@ -44,10 +41,12 @@ cookiejar_file="cookiejar.json"
 license_min_length=24
 secret_file="/run/secrets/config.json"
 
-# Warn user if FOUNDRY_VERSION does not match the version of the container.
-if [[ ${image_version} != "${FOUNDRY_VERSION}" ]]; then
+# Warn user if the container version does not start with the FOUNDRY_VERSION.
+# The FOUNDRY_VERSION looks like x.yyy
+# The container version is a semver x.y.z
+if [[ ${image_version%.*} != "${FOUNDRY_VERSION}" ]]; then
   log_warn "FOUNDRY_VERSION has been manually set and does not match the container's version."
-  log_warn "Expected ${image_version} but found ${FOUNDRY_VERSION}"
+  log_warn "Expected ${image_version%.*} but found ${FOUNDRY_VERSION}"
   log_warn "The container may not function properly with this version mismatch."
 fi
 
@@ -70,7 +69,9 @@ fi
 # Check to see if an install is required
 install_required=false
 if [ -f "resources/app/package.json" ]; then
-  installed_version=$(jq --raw-output .version resources/app/package.json)
+  # FoundryVTT no longer supports the "version" field in package.json
+  # We need to build up a pseudo-version using the generation and build values
+  installed_version=$(jq --raw-output '.release | "\(.generation).\(.build)"' resources/app/package.json)
   log "Foundry Virtual Tabletop ${installed_version} is installed."
   if [ "${FOUNDRY_VERSION}" != "${installed_version}" ]; then
     log "Requested version (${FOUNDRY_VERSION}) from FOUNDRY_VERSION differs."
@@ -121,9 +122,9 @@ if [ $install_required = true ]; then
     # Download release if newer than cached version.
     # Filter out warnings about bad date formats if the file is missing.
     curl --fail --location --time-cond "${release_filename}" \
-         --output "${downloading_filename}" "${s3_url}" 2>&1 | \
-         tr "\r" "\n" | \
-         sed --unbuffered '/^Warning: .* date/d'
+      --output "${downloading_filename}" "${s3_url}" 2>&1 \
+      | tr "\r" "\n" \
+      | sed --unbuffered '/^Warning: .* date/d'
 
     # Rename the download now that it is completed.
     # If we had a cache hit, the file is already renamed.
@@ -152,16 +153,15 @@ if [ $install_required = true ]; then
   # apply URL patches if requested
   if [[ "${CONTAINER_PATCH_URLS:-}" ]]; then
     log_warn "CONTAINER_PATCH_URLS is set:  Only use patch URLs from trusted sources!"
-      for url in ${CONTAINER_PATCH_URLS}
-      do
-        log "Downloading patch from URL: $url"
-        patch_file=$(mktemp -t patch_url.sh.XXXXXX)
-        curl --silent --output "${patch_file}" "${url}"
-        log_debug "Sourcing patch file: ${patch_file}"
-        # shellcheck disable=SC1090
-        source "${patch_file}"
-      done
-      log "Completed URL patching."
+    for url in ${CONTAINER_PATCH_URLS}; do
+      log "Downloading patch from URL: $url"
+      patch_file=$(mktemp -t patch_url.sh.XXXXXX)
+      curl --silent --output "${patch_file}" "${url}"
+      log_debug "Sourcing patch file: ${patch_file}"
+      # shellcheck disable=SC1090
+      source "${patch_file}"
+    done
+    log "Completed URL patching."
   fi
 
   # apply patches if requested and the directory exists
@@ -169,8 +169,7 @@ if [ $install_required = true ]; then
     log "Using CONTAINER_PATCHES: ${CONTAINER_PATCHES}"
     if [ -d "${CONTAINER_PATCHES}" ]; then
       log "Container patches directory detected.  Starting patch application..."
-      for f in "${CONTAINER_PATCHES}"/*
-      do
+      for f in "${CONTAINER_PATCHES}"/*; do
         [ -f "$f" ] || continue # we can't set nullglob in busybox
         log "Sourcing patch from file: $f"
         # shellcheck disable=SC1090
@@ -182,15 +181,10 @@ if [ $install_required = true ]; then
     fi
   fi
 
-  # Modify update warnings to be container-specific.
-  log_debug "Editing server update error message."
-  patch_lang_file=$(mktemp -t patch_lang.XXXXXX)
-  jq --arg msg "${UPDATE_WARNING}" --exit-status \
-  '."SETUP.UpdateWarning" = $msg | ."SETUP.UpdateNoUpdate" = $msg' \
-  "${LANGUAGE_FILE}" > "${patch_lang_file}"
-  mv "${patch_lang_file}" "${LANGUAGE_FILE}"
-  chmod a+r "${LANGUAGE_FILE}"
-fi  # install required
+  # Modify update and config warnings to be container-specific.
+  log_debug "Patching GUI update and configuration messages."
+  ./patch_lang.js
+fi # install required
 
 if [ ! -f "${LICENSE_FILE}" ]; then
   log "Installation not yet licensed."
@@ -236,9 +230,9 @@ fi
 # drop privileges and handoff to launcher
 log "Starting launcher with uid:gid as ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}."
 export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
-  FOUNDRY_DEMO_CONFIG FOUNDRY_HOSTNAME FOUNDRY_LANGUAGE FOUNDRY_LOCAL_HOSTNAME \
-  FOUNDRY_MINIFY_STATIC_FILES FOUNDRY_PASSWORD_SALT FOUNDRY_PROXY_PORT \
-  FOUNDRY_PROXY_SSL FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT FOUNDRY_SSL_KEY \
-  FOUNDRY_UPNP FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
+  FOUNDRY_DEMO_CONFIG FOUNDRY_HOSTNAME FOUNDRY_IP_DISCOVERY FOUNDRY_LANGUAGE \
+  FOUNDRY_LOCAL_HOSTNAME FOUNDRY_MINIFY_STATIC_FILES FOUNDRY_PASSWORD_SALT \
+  FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT \
+  FOUNDRY_SSL_KEY FOUNDRY_UPNP FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
 su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" ./launcher.sh "$@"
 exit 0

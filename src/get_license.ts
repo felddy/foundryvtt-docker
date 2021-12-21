@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const doc = `
-Retrieve a Foundrty Virtual Tabletop license key from a user's account using
+Retrieve a Foundry Virtual Tabletop license key from a user's account using
 cookies from authenticate.js.
 
 The utility will print a license key to standard out.
@@ -28,24 +28,25 @@ Options:
 
 // Imports
 import { CookieJar } from "tough-cookie";
-import { FileCookieStore as CookieFileStore } from "tough-cookie-file-store";
+import { FileCookieStore } from "tough-cookie-file-store";
 import cheerio from "cheerio";
 import createLogger from "./logging.js";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie/node-fetch.js";
-import nodeFetch from "node-fetch";
+import nodeFetch, { HeadersInit } from "node-fetch";
 import process from "process";
+import winston from "winston";
 
 // Setup globals, to be configured in main()
-var cookieJar;
-var fetch;
-var logger;
+var cookieJar: CookieJar;
+var fetch: typeof nodeFetch;
+var logger: winston.Logger;
 
 // Constants
-const BASE_URL = "https://foundryvtt.com";
-const LOCAL_DOMAIN = "felddy.com";
+const BASE_URL: string = "https://foundryvtt.com";
+const LOCAL_DOMAIN: string = "felddy.com";
 
-const HEADERS = {
+const HEADERS: HeadersInit = {
   DNT: "1",
   Referer: BASE_URL,
   "Upgrade-Insecure-Requests": "1",
@@ -56,9 +57,9 @@ const HEADERS = {
  * fetchLicense - Fetch a license key for a user.
  *
  * @param  {string} username Username (not e-mail address) of license owner.
- * @return {string}          License key formatted with dashes.
+ * @return {string[]}        License keys formatted without dashes.
  */
-async function fetchLicenses(username) {
+async function fetchLicenses(username: string): Promise<string[]> {
   logger.info("Fetching licenses.");
   const LICENSE_URL = `${BASE_URL}/community/${username}/licenses`;
   logger.debug(`Fetching: ${LICENSE_URL}`);
@@ -72,11 +73,11 @@ async function fetchLicenses(username) {
   const body = await response.text();
   const $ = await cheerio.load(body);
 
-  const licenses = $("pre.license-key code")
-    .map(function () {
+  const licenses: string[] = $("pre.license-key code")
+    .map(function (this: cheerio.Element) {
       return $(this).text().replace(/-/g, ""); // remove dashes
     })
-    .toArray();
+    .get();
   return licenses;
 }
 
@@ -85,27 +86,27 @@ async function fetchLicenses(username) {
  *
  * @return {number}  exit code
  */
-async function main() {
-  // Parse command line arguments
+async function main(): Promise<number> {
+  // Parse command line options.
   const options = docopt.docopt(doc, { version: "1.0.0" });
 
   // Extract values from CLI options.
-  const cookiejar_filename = options["<cookiejar>"];
-  const log_level = options["--log-level"].toLowerCase();
-  const select_mode = options["--select"];
+  const cookiejar_filename: string = options["<cookiejar>"];
+  const log_level: string = options["--log-level"].toLowerCase();
+  const select_mode: string = options["--select"];
 
   // Setup logging.
   logger = createLogger("License", log_level);
 
   // Setup global cookie jar, storage, and fetch library
   logger.debug(`Reading cookies from: ${cookiejar_filename}`);
-  cookieJar = new CookieJar(new CookieFileStore(cookiejar_filename));
+  cookieJar = new CookieJar(new FileCookieStore(cookiejar_filename));
   fetch = fetchCookie(nodeFetch, cookieJar);
 
   // Retrieve username from cookie.
   const local_cookies = cookieJar.getCookiesSync(`http://${LOCAL_DOMAIN}`);
   if (local_cookies.length != 1) {
-    logger.fatal(
+    logger.emerg(
       `Wrong number of cookies found for ${LOCAL_DOMAIN}.  Expected 1, found ${local_cookies.length}`
     );
     return -1;
@@ -138,15 +139,16 @@ async function main() {
   }
 
   // Handle multiple licenses keys found.
-  var select_index;
+  var select_index: number;
 
   // Use a 1-based index when communicating with the user.
-  if (!select_mode) {
+  if (!parseInt(select_mode)) {
+    // No numeric index specified, so select a random license key.
     select_index = Math.floor(Math.random() * key_count) + 1;
     logger.info(`License key #${select_index} randomly selected.`);
     process.stdout.write(license_keys[select_index - 1]);
     return 0;
-  } else if (select_mode == parseInt(select_mode)) {
+  } else {
     // mode is integer
     select_index = parseInt(select_mode);
     if (select_index > key_count) {

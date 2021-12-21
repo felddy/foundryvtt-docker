@@ -31,6 +31,7 @@ services:
       #   }
       # - FOUNDRY_GID=foundry
       # - FOUNDRY_HOSTNAME=
+      # - FOUNDRY_IP_DISCOVERY=
       # - FOUNDRY_LANGUAGE=
       # - FOUNDRY_LOCAL_HOSTNAME=
       # - FOUNDRY_LICENSE_KEY=
@@ -45,7 +46,7 @@ services:
       # - FOUNDRY_UID=foundry
       # - FOUNDRY_UPNP=false
       # - FOUNDRY_UPNP_LEASE_DURATION=
-      # - FOUNDRY_VERSION=0.8.9
+      # - FOUNDRY_VERSION=9.238
       # - FOUNDRY_WORLD=
       # - TIMEZONE=US/Eastern
     ports:
