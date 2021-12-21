@@ -3,22 +3,22 @@ name: 🐛 Bug report
 about: Create a report to help us improve
 ---
 
-# 🐛 Bug Report
+# 🐛 Bug Report #
 
 A clear and concise description of what the bug is.
 
-## To Reproduce
+## To Reproduce ##
 
 Steps to reproduce the behavior:
 
 - Do this
 - Then this
 
-## Expected behavior
+## Expected behavior ##
 
 A clear and concise description of what you expected to happen.
 
-## Any helpful log output
+## Any helpful log output ##
 
 Please run this command:
 
