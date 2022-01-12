@@ -1,0 +1,22 @@
+---
+# See https://ansible-lint.readthedocs.io/en/latest/configuring.html
+# for a list of the configuration elements that can exist in this
+# file.
+enable_list:
+  # Useful checks that one must opt-into.  See here for more details:
+  # https://ansible-lint.readthedocs.io/en/latest/rules.html
+  - fcqn-builtins
+  - no-log-password
+  - no-same-owner
+exclude_paths:
+  # This exclusion is implicit, unless exclude_paths is defined
+  - .cache
+  # Seems wise to ignore this too
+  - .github
+kinds:
+  # This will force our systemd specific molecule configurations to be treated
+  # as plain yaml files by ansible-lint. This mirrors the default kind
+  # configuration in ansible-lint for molecule configurations:
+  # yaml: "**/molecule/*/{base,molecule}.{yaml,yml}"
+  - yaml: "**/molecule/*/molecule-{no,with}-systemd.yml"
+use_default_rules: true
