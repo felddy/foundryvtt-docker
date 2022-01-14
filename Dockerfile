@@ -2,9 +2,10 @@ ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION=9.242
+ARG NODE_IMAGE_VERSION=16-alpine3.15
 ARG VERSION
 
-FROM node:16-alpine as compile-typescript-stage
+FROM node:${NODE_IMAGE_VERSION} as compile-typescript-stage
 
 WORKDIR /root
 
@@ -18,7 +19,7 @@ COPY /src/*.ts src/
 RUN tsc
 RUN grep -l "#!" dist/*.js | xargs chmod a+x
 
-FROM node:16-alpine as optional-release-stage
+FROM node:${NODE_IMAGE_VERSION} as optional-release-stage
 
 ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
@@ -48,7 +49,7 @@ RUN \
   unzip -d dist ${ARCHIVE} 'resources/*'; \
   fi
 
-FROM node:16-alpine as final-stage
+FROM node:${NODE_IMAGE_VERSION} as final-stage
 
 ARG FOUNDRY_UID=421
 ARG FOUNDRY_VERSION
