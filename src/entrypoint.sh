@@ -177,6 +177,7 @@ if [ $install_required = true ]; then
       *)
         log_error "${release_type}"
         log_error "${release_filename} has an unexpected file format, try downloading again."
+        exit 1
         ;;
     esac
     unzip -q "${release_filename}" 'resources/*'
