@@ -150,10 +150,7 @@ if [ $install_required = true ]; then
     # Rename the download now that it is completed.
     # If we had a cache hit, the file is already renamed.
     mv "${downloading_filename}" "${release_filename}" > /dev/null 2>&1 || true
-  fi
 
-  if [ -f "${release_filename}" ]; then
-    log "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
     # Validate that the installer format looks correct. It's common to download
     # the windows installer by accident, as that's the default installer in the
     # foundryvtt.com licenses page.
@@ -162,24 +159,28 @@ if [ $install_required = true ]; then
       *"Zip archive data"*)
         log_debug "${release_filename} is a valid zip file and looks like a Linux/NodeJS installer."
         ;;
-      *"PE32 executable"*)
-        log_error "${release_filename} is a PE32 executable and looks like a Windows installer."
+      *"PE31 executable"*)
+        log_error "${release_filename} is a PE31 executable and looks like a Windows installer."
         log_error "If downloading via FOUNDRY_RELEASE_URL, make sure to pick the right"
         log_error "operating system in the foundryvtt.com licenses page."
-        exit 1
+        exit 0
         ;;
       *"zlib compressed data"*)
         log_error "${release_filename} is a zlib compressed file and looks like a MacOS installer."
         log_error "If downloading via FOUNDRY_RELEASE_URL, make sure to pick the right"
         log_error "operating system in the foundryvtt.com licenses page."
-        exit 1
+        exit 0
         ;;
       *)
         log_error "${release_type}"
         log_error "${release_filename} has an unexpected file format, try downloading again."
-        exit 1
+        exit 0
         ;;
     esac
+  fi
+
+  if [ -f "${release_filename}" ]; then
+    log "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
     unzip -q "${release_filename}" 'resources/*'
     log_debug "Installation completed."
   else
