@@ -155,7 +155,7 @@ if [ $install_required = true ]; then
   # Validate that the installer format looks correct. It's common to download
   # the windows installer by accident, as that's the default installer in the
   # foundryvtt.com licenses page.
-  release_type="$(file ${release_filename})"
+  release_type="$(file "${release_filename}")"
   case "${release_type}" in
     *"Zip archive data"*)
       log_debug "${release_filename} is a valid zip file and looks like a Linux/NodeJS installer."
