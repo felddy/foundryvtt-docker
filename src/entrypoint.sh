@@ -159,22 +159,22 @@ if [ $install_required = true ]; then
       *"Zip archive data"*)
         log_debug "${release_filename} is a valid zip file and looks like a Linux/NodeJS installer."
         ;;
-      *"PE31 executable"*)
-        log_error "${release_filename} is a PE31 executable and looks like a Windows installer."
+      *"PE32 executable"*)
+        log_error "${release_filename} is a PE32 executable and looks like a Windows installer."
         log_error "If downloading via FOUNDRY_RELEASE_URL, make sure to pick the right"
         log_error "operating system in the foundryvtt.com licenses page."
-        exit 0
+        exit 1
         ;;
       *"zlib compressed data"*)
         log_error "${release_filename} is a zlib compressed file and looks like a MacOS installer."
         log_error "If downloading via FOUNDRY_RELEASE_URL, make sure to pick the right"
         log_error "operating system in the foundryvtt.com licenses page."
-        exit 0
+        exit 1
         ;;
       *)
         log_error "${release_type}"
         log_error "${release_filename} has an unexpected file format, try downloading again."
-        exit 0
+        exit 1
         ;;
     esac
   fi
