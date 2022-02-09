@@ -104,6 +104,12 @@ def test_log_version(version_container):
     ), f"Container version output to log does not match project version file {VERSION_FILE}"
 
 
+# The container version label is added during the GitHub Actions build workflow.
+# It will not be present if the container is built locally.
+# Skip this check if we are not running in GitHub Actions.
+@pytest.mark.skipif(
+    os.environ.get("GITHUB_ACTIONS") != "true", reason="not running in GitHub Actions"
+)
 def test_container_version_label_matches(version_container):
     """Verify the container version label is the correct version."""
     pkg_vars = {}
@@ -112,4 +118,4 @@ def test_container_version_label_matches(version_container):
     project_version = pkg_vars["__version__"]
     assert (
         version_container.labels["org.opencontainers.image.version"] == project_version
-    ), "Dockerfile version label does not match project version"
+    ), "Container version label does not match project version"
