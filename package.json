@@ -6,10 +6,9 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.10",
     "docopt": "^0.6.2",
-    "fetch-cookie": "^1.0.0",
-    "node-fetch": "^3.0.0",
+    "fetch-cookie": "^1.0.1",
+    "node-fetch": "^3.2.0",
     "tough-cookie-file-store": "^2.0.2",
-    "typescript": "^4.5.2",
     "winston": "^3.3.3"
   },
   "description": "Utilities to help boot a FoundryVTT server.",
@@ -17,7 +16,8 @@
     "@types/cheerio": "^0.22.30",
     "@types/docopt": "^0.6.33",
     "@types/tough-cookie": "^4.0.1",
-    "@types/tough-cookie-file-store": "^2.0.1"
+    "@types/tough-cookie-file-store": "^2.0.1",
+    "typescript": "^4.5.5"
   },
   "homepage": "https://github.com/felddy/foundryvtt-docker#readme",
   "keywords": [
