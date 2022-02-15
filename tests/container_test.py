@@ -40,6 +40,8 @@ def test_wait_for_ready(main_container):
     # This could take a while, as we download the application.
     TIMEOUT = 180
     for i in range(TIMEOUT):
+        # Verify the container is still running
+        assert main_container.is_running is True, "The container unexpectedly exited."
         logs = main_container.logs().decode("utf-8")
         if READY_MESSAGE in logs:
             break
@@ -58,6 +60,8 @@ def test_wait_for_healthy(main_container):
     # This could take a while
     TIMEOUT = 180
     for i in range(TIMEOUT):
+        # Verify the container is still running
+        assert main_container.is_running is True, "The container unexpectedly exited."
         inspect = main_container.inspect()
         status = inspect["State"]["Health"]["Status"]
         assert status != "unhealthy", "The container became unhealthy."
