@@ -137,7 +137,7 @@ if [ $install_required = true ]; then
     log_debug "Installation completed."
   else
     log_error "Unable to install Foundry Virtual Tabletop!"
-    log_error "Either set set FOUNDRY_RELEASE_URL."
+    log_error "Either set FOUNDRY_RELEASE_URL."
     log_error "Or set FOUNDRY_USERNAME and FOUNDRY_PASSWORD."
     log_error "Or set CONTAINER_CACHE to a directory containing foundryvtt-${FOUNDRY_VERSION}.zip"
     exit 1
