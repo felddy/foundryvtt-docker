@@ -231,7 +231,7 @@ The following ports are exposed by this container:
 
 | Port | Purpose        |
 |------|----------------|
-| 30000 | Foundry Virtual Tabletop server web interface |
+| `30000` | Foundry Virtual Tabletop server web interface |
 
 ## Environment variables ##
 
