@@ -27,7 +27,7 @@ import { CookieJar } from "tough-cookie";
 import { FileCookieStore } from "tough-cookie-file-store";
 import createLogger from "./logging.js";
 import docopt from "docopt";
-import fetchCookie from "fetch-cookie/node-fetch.js";
+import fetchCookie from "fetch-cookie";
 import nodeFetch, { Response } from "node-fetch";
 import process from "process";
 import winston from "winston";
