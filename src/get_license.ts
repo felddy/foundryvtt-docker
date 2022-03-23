@@ -32,7 +32,7 @@ import { FileCookieStore } from "tough-cookie-file-store";
 import cheerio from "cheerio";
 import createLogger from "./logging.js";
 import docopt from "docopt";
-import fetchCookie from "fetch-cookie/node-fetch.js";
+import fetchCookie from "fetch-cookie";
 import nodeFetch, { HeadersInit } from "node-fetch";
 import process from "process";
 import winston from "winston";
