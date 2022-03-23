@@ -26,7 +26,7 @@ import cheerio from "cheerio";
 import createLogger from "./logging.js";
 import winston from "winston";
 import docopt from "docopt";
-import fetchCookie from "fetch-cookie/node-fetch.js";
+import fetchCookie from "fetch-cookie";
 import nodeFetch from "node-fetch";
 import process from "process";
 
