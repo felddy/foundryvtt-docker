@@ -63,7 +63,7 @@ jobs:
         id: go-cache
         run: |
           echo "::set-output name=dir::$(go env GOCACHE)"
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
             py${{ steps.setup-python.outputs.python-version }}-\
@@ -215,7 +215,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
@@ -284,7 +284,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
@@ -355,7 +355,7 @@ jobs:
         with:
           python-version: 3.9
       - name: Cache testing environments
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
             py${{ steps.setup-python.outputs.python-version }}-"
@@ -407,7 +407,7 @@ jobs:
         with:
           python-version: 3.9
       - name: Cache testing environments
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
             py${{ steps.setup-python.outputs.python-version }}-"
@@ -475,7 +475,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
