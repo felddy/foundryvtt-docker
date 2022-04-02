@@ -2,3 +2,4 @@
 lineage:
   skeleton:
     remote-url: https://github.com/cisagov/skeleton-docker.git
+version: '1'
