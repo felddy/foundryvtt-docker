@@ -127,8 +127,8 @@ if [ $install_required = true ]; then
     log "Downloading Foundry Virtual Tabletop release."
     # Download release if newer than cached version.
     # Filter out warnings about bad date formats if the file is missing.
-    curl --fail --location --time-cond "${release_filename}" \
-      --output "${downloading_filename}" "${s3_url}" 2>&1 \
+    curl ${CONTAINER_VERBOSE+--verbose} --fail --location --time-cond \
+      "${release_filename}" --output "${downloading_filename}" "${s3_url}" 2>&1 \
       | tr "\r" "\n" \
       | sed --unbuffered '/^Warning: .* date/d'
 
@@ -162,7 +162,7 @@ if [ $install_required = true ]; then
     for url in ${CONTAINER_PATCH_URLS}; do
       log "Downloading patch from URL: $url"
       patch_file=$(mktemp -t patch_url.sh.XXXXXX)
-      curl --silent --output "${patch_file}" "${url}"
+      curl ${CONTAINER_VERBOSE+--verbose} --silent --output "${patch_file}" "${url}"
       log_debug "Sourcing patch file: ${patch_file}"
       # shellcheck disable=SC1090
       source "${patch_file}"
