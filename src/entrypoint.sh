@@ -107,9 +107,15 @@ if [ $install_required = true ]; then
     fi
   fi
 
+  # If CONTAINER_CACHE is null, set it to a default.
+  # If it set to an empty string, disable the caching.
+  CONTAINER_CACHE="${CONTAINER_CACHE-/data/container_cache}"
+
   if [[ "${CONTAINER_CACHE:-}" ]]; then
     log "Using CONTAINER_CACHE: ${CONTAINER_CACHE}"
     mkdir -p "${CONTAINER_CACHE}"
+  else
+    log_warn "CONTAINER_CACHE has been unset.  Release caching is disabled."
   fi
 
   set +o nounset
