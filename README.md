@@ -88,7 +88,6 @@ configuration files, set `CONTAINER_PRESERVE_CONFIG` to `true`.
         image: felddy/foundryvtt:release
         hostname: my_foundry_host
         init: true
-        restart: "unless-stopped"
         volumes:
           - type: bind
             source: <your_data_dir>
@@ -150,7 +149,6 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
         image: felddy/foundryvtt:release
         hostname: my_foundry_host
         init: true
-        restart: "unless-stopped"
         volumes:
           - type: bind
             source: <your_data_dir>
