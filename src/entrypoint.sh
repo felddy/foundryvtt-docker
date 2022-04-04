@@ -73,6 +73,9 @@ fi
 
 # Check to see if an install is required
 install_required=false
+# Track whether an S3 URL request is made.
+# We use this information to protect from a download loop.
+requested_s3_url=false
 if [ -f "resources/app/package.json" ]; then
   # FoundryVTT no longer supports the "version" field in package.json
   # We need to build up a pseudo-version using the generation and build values
@@ -113,6 +116,7 @@ if [ $install_required = true ]; then
       s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} \
         --user-agent="${node_user_agent}" \
         "${cookiejar_file}" "${FOUNDRY_VERSION}")
+      requested_s3_url=true
     fi
   fi
 
@@ -258,5 +262,16 @@ export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
   FOUNDRY_LOCAL_HOSTNAME FOUNDRY_MINIFY_STATIC_FILES FOUNDRY_PASSWORD_SALT \
   FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT \
   FOUNDRY_SSL_KEY FOUNDRY_UPNP FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
-su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" ./launcher.sh "$@"
+su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" ./launcher.sh "$@" \
+  || log_error "Launcher exited with error code: $?"
+
+# If the container requested a new S3 URL but disabled the cache
+# we are going to sleep forever to prevent a downlaod loop.
+if [[ "${requested_s3_url}" == "true" && "${CONTAINER_CACHE:-}" == "" ]]; then
+  log_warn "Server exited after using a new S3 URL but the CONTAINER_CACHE was disabled."
+  log_warn "Sleeping forever to prevent a download loop."
+  log_warn "Enabling the container cache will allow the container to exit properly."
+  while true; do sleep 60; done
+fi
+
 exit 0
