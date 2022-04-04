@@ -60,4 +60,4 @@ fi
 
 # Spawn node with clean environment to prevent credential leaks
 log "Starting Foundry Virtual Tabletop."
-env -i HOME="$HOME" node "$@"
+env -i HOME="$HOME" node "$@" || log_error "Node process exited with code $?"
