@@ -12,7 +12,7 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  get_release_url.js [--log-level=LEVEL] <cookiejar> <version>
+  get_release_url.js [options] <cookiejar> <version>
   get_release_url.js (-h | --help)
 
 Options:
@@ -20,6 +20,9 @@ Options:
   --log-level=LEVEL      If specified, then the log level will be set to
                          the specified value.  Valid values are "debug", "info",
                          "warn", and "error". [default: info]
+  --user-agent=USERAGENT If specified, then the user-agent header will be set to
+                         the specified value. [default: node-fetch]
+
 `;
 
 // Imports
@@ -28,7 +31,7 @@ import { FileCookieStore } from "tough-cookie-file-store";
 import createLogger from "./logging.js";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie";
-import nodeFetch, { Response } from "node-fetch";
+import nodeFetch, { Headers, Response } from "node-fetch";
 import process from "process";
 import winston from "winston";
 
@@ -40,12 +43,12 @@ var logger: winston.Logger;
 // Constants
 const BASE_URL = "https://foundryvtt.com";
 
-const HEADERS = {
+const HEADERS: Headers = new Headers({
   DNT: "1",
   Referer: BASE_URL,
   "Upgrade-Insecure-Requests": "1",
-  "User-Agent": "Mozilla/5.0",
-};
+  "User-Agent": "node-fetch",
+});
 
 /**
  * fetchReleaseURL - Fetch the pre-signed S3 URL.
@@ -85,6 +88,7 @@ async function main(): Promise<number> {
   const cookiejar_filename: string = options["<cookiejar>"];
   const foundry_version: string = options["<version>"];
   const log_level: string = options["--log-level"].toLowerCase();
+  HEADERS.set("User-Agent", options["--user-agent"]);
 
   // Setup logging.
   logger = createLogger("ReleaseURL", log_level);
