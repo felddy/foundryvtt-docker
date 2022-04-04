@@ -268,9 +268,10 @@ su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" ./launcher.sh "$@" \
 # If the container requested a new S3 URL but disabled the cache
 # we are going to sleep forever to prevent a downlaod loop.
 if [[ "${requested_s3_url}" == "true" && "${CONTAINER_CACHE:-}" == "" ]]; then
-  log_warn "Server exited after using a new S3 URL but the CONTAINER_CACHE was disabled."
-  log_warn "Sleeping forever to prevent a download loop."
-  log_warn "Enabling the container cache will allow the container to exit properly."
+  log_warn "Server exited after downloading a release while the CONTAINER_CACHE was disabled."
+  log_warn "This configuration could lead to a restart loop putting excessive load on the release server."
+  log_warn "Please re-enable the CONTAINER_CACHE to allow the container to safely exit."
+  log_warn "Sleeping..."
   while true; do sleep 60; done
 fi
 
