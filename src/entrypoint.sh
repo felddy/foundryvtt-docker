@@ -41,6 +41,11 @@ cookiejar_file="cookiejar.json"
 license_min_length=24
 secret_file="/run/secrets/config.json"
 
+# Calculate a user-agent comment to use in for curl and node-fetch requests
+CONTAINER_USER_AGENT_COMMENT="(felddy/foundryvtt:${image_version})"
+curl_user_agent=$(curl --version | awk 'NR==1 {print $1 "/" $2}')" ${CONTAINER_USER_AGENT_COMMENT}"
+node_user_agent="node-fetch ${CONTAINER_USER_AGENT_COMMENT}"
+
 # Warn user if the container version does not start with the FOUNDRY_VERSION.
 # The FOUNDRY_VERSION looks like x.yyy
 # The container version is a semver x.y.z
@@ -97,13 +102,17 @@ if [ $install_required = true ]; then
     # The resulting cookiejar is used to get a release URL or license.
     # CONTAINER_VERBOSE default value should not be quoted.
     # shellcheck disable=SC2086
-    ./authenticate.js ${CONTAINER_VERBOSE+--log-level=debug} "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
+    ./authenticate.js ${CONTAINER_VERBOSE+--log-level=debug} \
+      --user-agent="${node_user_agent}" \
+      "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
     if [[ ! "${s3_url:-}" ]]; then
       # If the s3_url wasn't set by FOUNDRY_RELEASE_URL generate one now.
       log "Using authenticated credentials to download release."
       # CONTAINER_VERBOSE default value should not be quoted.
       # shellcheck disable=SC2086
-      s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}" "${FOUNDRY_VERSION}")
+      s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} \
+        --user-agent="${node_user_agent}" \
+        "${cookiejar_file}" "${FOUNDRY_VERSION}")
     fi
   fi
 
@@ -127,8 +136,10 @@ if [ $install_required = true ]; then
     log "Downloading Foundry Virtual Tabletop release."
     # Download release if newer than cached version.
     # Filter out warnings about bad date formats if the file is missing.
-    curl ${CONTAINER_VERBOSE+--verbose} --fail --location --time-cond \
-      "${release_filename}" --output "${downloading_filename}" "${s3_url}" 2>&1 \
+    curl ${CONTAINER_VERBOSE+--verbose} --fail --location \
+      --user-agent "${curl_user_agent}" \
+      --time-cond "${release_filename}" \
+      --output "${downloading_filename}" "${s3_url}" 2>&1 \
       | tr "\r" "\n" \
       | sed --unbuffered '/^Warning: .* date/d'
 
@@ -162,7 +173,9 @@ if [ $install_required = true ]; then
     for url in ${CONTAINER_PATCH_URLS}; do
       log "Downloading patch from URL: $url"
       patch_file=$(mktemp -t patch_url.sh.XXXXXX)
-      curl ${CONTAINER_VERBOSE+--verbose} --silent --output "${patch_file}" "${url}"
+      curl ${CONTAINER_VERBOSE+--verbose} --silent \
+        --user-agent "${curl_user_agent}" \
+        --output "${patch_file}" "${url}"
       log_debug "Sourcing patch file: ${patch_file}"
       # shellcheck disable=SC1090
       source "${patch_file}"
@@ -208,10 +221,15 @@ if [ ! -f "${LICENSE_FILE}" ]; then
       # FOUNDRY_LICENSE_KEY can be an index, try passing it.
       # CONTAINER_VERBOSE default value should not be quoted.
       # shellcheck disable=SC2086
-      fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=debug} --select="${FOUNDRY_LICENSE_KEY}" "${cookiejar_file}")
+      fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=debug} \
+        --user-agent="${node_user_agent}" \
+        --select="${FOUNDRY_LICENSE_KEY}" \
+        "${cookiejar_file}")
     else
       # shellcheck disable=SC2086
-      fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=debug} "${cookiejar_file}")
+      fetched_license_key=$(./get_license.js ${CONTAINER_VERBOSE+--log-level=debug} \
+        --user-agent="${node_user_agent}" \
+        "${cookiejar_file}")
     fi
     echo "{ \"license\": \"${fetched_license_key}\" }" > "${LICENSE_FILE}"
   else
