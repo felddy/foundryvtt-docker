@@ -88,7 +88,6 @@ configuration files, set `CONTAINER_PRESERVE_CONFIG` to `true`.
         image: felddy/foundryvtt:release
         hostname: my_foundry_host
         init: true
-        restart: "unless-stopped"
         volumes:
           - type: bind
             source: <your_data_dir>
@@ -150,7 +149,6 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
         image: felddy/foundryvtt:release
         hostname: my_foundry_host
         init: true
-        restart: "unless-stopped"
         volumes:
           - type: bind
             source: <your_data_dir>
@@ -210,10 +208,10 @@ It is recommended that most users use the `:release` tag.
 | Image:tag | Description |
 |-----------|-------------|
 |`felddy/foundryvtt:release` | The most recent image from the `stable` channel.  These images are **considered stable**, and well-tested.  Most users will use this tag.  The `latest` tag always points to the same version as `release`.|
-|`felddy/foundryvtt:prerelease` | The most recent image from the `testing`, `development`, or `prototype` channels.  Pre-releases are **VERY LIKELY to introduce breaking bugs** that will be disruptive to play. Do not install this version unless you are using for the specific purposes of testing. The intention of pre-release builds are to allow for previewing new features and to help developers to begin updating modules which are impacted by the changes. If you choose to update to this version for a live game you do so entirely at your own risk of having a bad experience. _Please back up your critical user data before installing this version._ |
+|`felddy/foundryvtt:prerelease` | The most recent image from the `testing`, `development`, or `prototype` channels.  Pre-releases are **VERY LIKELY to introduce breaking bugs** that will be disruptive to play. Do not install this version unless you are using for the specific purposes of testing. The intention of pre-release builds are to allow for previewing new features and to help developers to begin updating modules which are impacted by the changes. If you choose to update to this version for a live game you do so entirely at your own risk of having a bad experience. *Please back up your critical user data before installing this version.* |
 |`felddy/foundryvtt:10.260.0`| An exact image version. |
 |`felddy/foundryvtt:10.260`| The most recent image matching the major and minor version numbers. |
-|`felddy/foundryvtt:9`| The most recent image matching the major version number. |
+|`felddy/foundryvtt:10`| The most recent image matching the major version number. |
 |`felddy/foundryvtt:latest`| See the `release` tag.  [Why does `latest` == `release`?](https://vsupalov.com/docker-latest-tag/) |
 
 See the [tags tab](https://hub.docker.com/r/felddy/foundryvtt/tags) on Docker
@@ -262,23 +260,15 @@ secrets](#using-secrets) instead of environment variables.
 |------------------|----------|
 | `FOUNDRY_RELEASE_URL` | S3 pre-signed URL generate from the user's profile.  Required for downloading an application distribution. |
 
-#### Pre-cached distribution variable ####
-
-A distribution can be downloaded and placed into a cache directory.  The
-distribution's name must be of the form: `foundryvtt-10.260.zip`
-
-| Name             | Purpose  |
-|------------------|----------|
-| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry distribution archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_cache`| |
-
 ### Optional ###
 
 | Name  | Purpose | Default |
 |-------|---------|---------|
-| `CONTAINER_PATCHES` | Set a path to a directory of shell scripts to be sourced after Foundry is installed but before it is started.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_patches`  Patch files are sourced in lexicographic order.  `CONTAINER_PATCHES` are processed after `CONTAINER_PATCH_URLS`.|  |
+| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry distribution archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container.  Set to `""` to disable.  ***Note***: When the cache is disabled the container may sleep instead of exiting, in certian circumstances, to prevent a download loop.  A distribution can be pre-downloaded and placed into a cache directory.  The distribution's name must be of the form: `foundryvtt-10.260.zip`| `/data/container_cache` |
+| `CONTAINER_PATCHES` | Set a path to a directory of shell scripts to be sourced after Foundry is installed but before it is started.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_patches`  Patch files are sourced in lexicographic order.  `CONTAINER_PATCHES` are processed after `CONTAINER_PATCH_URLS`.| |
 | `CONTAINER_PATCH_URLS` | Set to a space-delimited list of URLs to be sourced after Foundry is installed but before it is started.  Patch URLs are sourced in the order specified.  `CONTAINER_PATCH_URLS` are processed before `CONTAINER_PATCHES`.  ⚠️ **Only use patch URLs from trusted sources!** | |
 | `CONTAINER_PRESERVE_CONFIG` | Normally new `options.json` and `admin.txt` files are generated by the container at each startup.  Setting this to `true` prevents the container from modifying these files when they exist.  If they do not exist, they will be created as normal. | `false` |
-| `CONTAINER_PRESERVE_OWNER` | Normally the ownership of the `/data` directory and its contents are changed to match that of the server at startup.  Setting this to a regular expression will exclude any matching paths and preserve their ownership.   _Note: This is a match on the whole path, not a search._  This is useful if you want mount a volume as read-only inside `/data` (e.g.; a volume that contains assets mounted at `/data/Data/assets`).  | |
+| `CONTAINER_PRESERVE_OWNER` | Normally the ownership of the `/data` directory and its contents are changed to match that of the server at startup.  Setting this to a regular expression will exclude any matching paths and preserve their ownership.   *Note: This is a match on the whole path, not a search.*  This is useful if you want mount a volume as read-only inside `/data` (e.g.; a volume that contains assets mounted at `/data/Data/assets`).  | |
 | `CONTAINER_VERBOSE` | Set to `true` to enable verbose logging for the container utility scripts. | `false` |
 | `FOUNDRY_ADMIN_KEY` | Admin password to be applied at startup.  If omitted the admin password will be cleared.  May be set [using secrets](#using-secrets). | |
 | `FOUNDRY_AWS_CONFIG` | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | `null` |
