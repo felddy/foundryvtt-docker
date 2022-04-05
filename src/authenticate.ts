@@ -9,7 +9,7 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  authenticate.js [--log-level=LEVEL] <username> <password> <cookiejar>
+  authenticate.js [options] <username> <password> <cookiejar>
   authenticate.js (-h | --help)
 
 Options:
@@ -17,6 +17,8 @@ Options:
   --log-level=LEVEL      If specified, then the log level will be set to
                          the specified value.  Valid values are "debug", "info",
                          "warn", and "error". [default: info]
+  --user-agent=USERAGENT If specified, then the user-agent header will be set to
+                         the specified value. [default: node-fetch]
 `;
 
 // Imports
@@ -27,7 +29,7 @@ import createLogger from "./logging.js";
 import winston from "winston";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie";
-import nodeFetch from "node-fetch";
+import nodeFetch, { Headers } from "node-fetch";
 import process from "process";
 
 // Setup globals, to be configured in main()
@@ -41,12 +43,12 @@ const LOCAL_DOMAIN = "felddy.com";
 const LOGIN_URL = BASE_URL + "/auth/login/";
 const USERNAME_RE = /\/community\/(?<username>.+)/;
 
-const HEADERS = {
+const HEADERS: Headers = new Headers({
   DNT: "1",
   Referer: BASE_URL,
   "Upgrade-Insecure-Requests": "1",
-  "User-Agent": "Mozilla/5.0",
-};
+  "User-Agent": "node-fetch",
+});
 
 /**
  * fetchTokens - Fetch the CSRF form and cookie tokens.
@@ -154,6 +156,7 @@ async function main(): Promise<number> {
   // Extract values from CLI options.
   const cookiejar_filename = options["<cookiejar>"];
   const log_level = options["--log-level"].toLowerCase();
+  HEADERS.set("User-Agent", options["--user-agent"]);
   const password = options["<password>"];
   const username = options["<username>"].toLowerCase();
 

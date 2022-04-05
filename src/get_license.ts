@@ -12,7 +12,7 @@ EXIT STATUS
     >0  An error occurred.
 
 Usage:
-  get_license.js [--log-level=LEVEL] [--select=MODE] <cookiejar>
+  get_license.js [options] <cookiejar>
   get_license.js (-h | --help)
 
 Options:
@@ -24,6 +24,9 @@ Options:
                          account return the one specified by index.  In
                          unspecified, a random license will be returned.  Index
                          starts at 1.
+  --user-agent=USERAGENT If specified, then the user-agent header will be set to
+                         the specified value. [default: node-fetch]
+
 `;
 
 // Imports
@@ -33,7 +36,7 @@ import cheerio from "cheerio";
 import createLogger from "./logging.js";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie";
-import nodeFetch, { HeadersInit } from "node-fetch";
+import nodeFetch, { Headers } from "node-fetch";
 import process from "process";
 import winston from "winston";
 
@@ -46,12 +49,12 @@ var logger: winston.Logger;
 const BASE_URL: string = "https://foundryvtt.com";
 const LOCAL_DOMAIN: string = "felddy.com";
 
-const HEADERS: HeadersInit = {
+const HEADERS: Headers = new Headers({
   DNT: "1",
   Referer: BASE_URL,
   "Upgrade-Insecure-Requests": "1",
-  "User-Agent": "Mozilla/5.0",
-};
+  "User-Agent": "node-fetch",
+});
 
 /**
  * fetchLicense - Fetch a license key for a user.
@@ -94,6 +97,7 @@ async function main(): Promise<number> {
   const cookiejar_filename: string = options["<cookiejar>"];
   const log_level: string = options["--log-level"].toLowerCase();
   const select_mode: string = options["--select"];
+  HEADERS.set("User-Agent", options["--user-agent"]);
 
   // Setup logging.
   logger = createLogger("License", log_level);
