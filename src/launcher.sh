@@ -60,13 +60,12 @@ fi
 
 # Space seperated list of regex rules which environment variables must meet to
 # be carried over to the new environment, which Node/Foundry will be running in.
-# All rules have ^ prefixed by default.
-ENV_VAR_WHITELIST='HOME NODE_';
+ENV_VAR_WHITELIST='^HOME$ ^NODE_.+$';
 # Build list of environment variables to carry over into a clean environment
 ENV_VAR_CARRY_LIST=''
 while IFS='=' read -rd '' ENV_VAR_NAME ENV_VAR_VALUE; do
   for VAR_REGEX in $ENV_VAR_WHITELIST; do
-    if [[ $ENV_VAR_NAME =~ ^"${VAR_REGEX}" ]]; then
+    if [[ $ENV_VAR_NAME =~ "${VAR_REGEX}" ]]; then
       ENV_VAR_CARRY_LIST="${ENV_VAR_CARRY_LIST} ${ENV_VAR_NAME}=${ENV_VAR_VALUE}"
       break
     fi
