@@ -19,3 +19,4 @@ Dockerfile-x
 license.json
 node_modules
 package-lock.json
+venv
