@@ -136,10 +136,3 @@ repos:
     rev: v2.0.1
     hooks:
       - id: docker-compose-check
-
-  # Packer hooks
-  - repo: https://github.com/cisagov/pre-commit-packer
-    rev: v0.0.2
-    hooks:
-      - id: packer_validate
-      - id: packer_fmt
