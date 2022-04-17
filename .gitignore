@@ -5,18 +5,18 @@
 ## Docker ##
 Dockerfile-x
 
+## FoundryVTT ##
+cookiejar.json
+license.json
+
+## Javascript / Typescript ##
+dist
+node_modules
+
 ## Python ##
 __pycache__
 .mypy_cache
 .pytest_cache
 .python-version
 *.egg-info
-*.tgz
-*.zip
-cookiejar.json
-dist
-Dockerfile-x
-license.json
-node_modules
-package-lock.json
 venv
