@@ -233,7 +233,7 @@ The following ports are exposed by this container:
 
 ## Environment variables ##
 
-### Required combinations ###
+### Required variable combinations ###
 
 One of the three combinations of environment variables listed below must be set
 in order for the container to locate and install a Foundry Virtual Tabletop
