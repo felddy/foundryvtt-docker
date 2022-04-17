@@ -260,20 +260,7 @@ secrets](#using-secrets) instead of environment variables.
 |------------------|----------|
 | `FOUNDRY_RELEASE_URL` | S3 pre-signed URL generate from the user's profile.  Required for downloading an application distribution. |
 
-### Node variables ###
-
-Any
-[Node variables](https://nodejs.org/docs/latest-v16.x/api/cli.html#environment-variables)
-(`NODE_*`) supplied to the container will be passed to the Node server instance
-running FoundryVTT. Included below are some which are particularly useful.
-
-| Name | Purpose | Default |
-|------|---------|---------|
-| `NODE_EXTRA_CA_CERTS` | When set, the well known "root" CAs (like VeriSign) will be extended with the extra certificates. The file should consist of one or more trusted certificates in PEM format. A message will be emitted (once) with `process.emitWarning()` if the file is missing or malformed, but any errors are otherwise ignored. | |
-| `NODE_OPTIONS` | A space-separated list of command-line options that are interpreted before command-line options, so command-line options will override or compound after anything supplied. Node.js will exit with an error if an option that is not allowed in the environment is used, such as `-p` or a script file. | |
-| `NODE_TLS_REJECT_UNAUTHORIZED` | If the value equals `0`, certificate validation is disabled for TLS connections. This makes TLS, and HTTPS by extension, insecure. The use of this environment variable is strongly discouraged. | |
-
-### Optional ###
+### Optional variables ###
 
 | Name  | Purpose | Default |
 |-------|---------|---------|
@@ -305,6 +292,21 @@ running FoundryVTT. Included below are some which are particularly useful.
 | `FOUNDRY_VERSION` | Version of Foundry Virtual Tabletop to install. | `9.268` |
 | `FOUNDRY_WORLD` | The world to startup at system start. | `null` |
 | `TIMEZONE`     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | `UTC` |
+
+### Node.js variables ###
+
+Any [Node.js
+variables](https://nodejs.org/docs/latest-v16.x/api/cli.html#environment-variables)
+(`NODE_*`) supplied to the container will be passed to the underlying Node.js
+server running FoundryVTT.  Listed below are some variables that are
+particularly useful.
+
+| Name | Purpose |
+|------|---------|
+| `NODE_DEBUG` | `,`-separated list of core modules that should print debug information. |
+| `NODE_EXTRA_CA_CERTS` | When set, the well known "root" CAs (like VeriSign) will be extended with the extra certificates.  The file should consist of one or more trusted certificates in PEM format.  A message will be emitted (once) with `process.emitWarning()` if the file is missing or malformed, but any errors are otherwise ignored. |
+| `NODE_OPTIONS` | A space-separated list of command-line options that are interpreted before command-line options, so command-line options will override or compound after anything supplied.  Node.js will exit with an error if an option that is not allowed in the environment is used, such as `-p` or a script file. |
+| `NODE_TLS_REJECT_UNAUTHORIZED` | If the value equals `0`, certificate validation is disabled for TLS connections. This makes TLS, and HTTPS by extension, insecure.  ⚠️ **The use of this environment variable is strongly discouraged.** |
 
 ## Secrets ##
 
