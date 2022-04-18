@@ -42,16 +42,22 @@ jobs:
     name: "Lint sources"
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9b0655f430fba8c7001d4e38f8d4306db5c6e0ab
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+
       - id: setup-env
-        uses: cisagov/setup-env-github-action@develop
-      - uses: actions/checkout@v3
+        uses: cisagov/setup-env-github-action@a1913cd974407cd92d5b015342aa6d28d36539b8
+      - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - id: setup-python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
         with:
           python-version: 3.9
       # We need the Go version and Go cache location for the actions/cache step,
       # so the Go installation must happen before that.
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab
         with:
           go-version: '1.16'
       - name: Store installed Go version
@@ -63,7 +69,7 @@ jobs:
         id: go-cache
         run: |
           echo "::set-output name=dir::$(go env GOCACHE)"
-      - uses: actions/cache@v3
+      - uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
             py${{ steps.setup-python.outputs.python-version }}-\
@@ -98,7 +104,7 @@ jobs:
       - name: Run pre-commit on all files
         run: pre-commit run --all-files
       - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
   prepare:
     # Calculates and publishes outputs that are used by other jobs.
@@ -149,10 +155,16 @@ jobs:
       source_version: ${{ steps.prep.outputs.source_version }}
       tags: ${{ steps.prep.outputs.tags }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Harden Runner
+        uses: step-security/harden-runner@9b0655f430fba8c7001d4e38f8d4306db5c6e0ab
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+
+      - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - name: Gather repository metadata
         id: repo
-        uses: actions/github-script@v6
+        uses: actions/github-script@7f4e771d2b3022fa3b8bac499d4a547619f3ab10
         with:
           script: |
             const repo = await github.rest.repos.get(context.repo)
@@ -199,7 +211,7 @@ jobs:
           echo ::set-output name=tags::${TAGS}
           echo tags=${TAGS}
       - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: github.event.inputs.remote-shell == 'true' || env.RUN_TMATE
   build-normal:
     # Builds a single test image for the native platform.  This image is saved
@@ -208,14 +220,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: [prepare]
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9b0655f430fba8c7001d4e38f8d4306db5c6e0ab
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
           BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
@@ -227,7 +245,7 @@ jobs:
         run: mkdir -p dist
       - name: Build image
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
@@ -265,26 +283,32 @@ jobs:
       - name: Compress image
         run: gzip dist/image.tar
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
         with:
           name: dist-normal
           path: dist
       - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
   build-pre-install:
     name: "Build pre-installed test image"
     runs-on: ubuntu-latest
     needs: [prepare]
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9b0655f430fba8c7001d4e38f8d4306db5c6e0ab
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
           BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
@@ -296,7 +320,7 @@ jobs:
         run: mkdir -p dist
       - name: Build image
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
           build-args: |
             FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
@@ -336,12 +360,12 @@ jobs:
       - name: Compress image
         run: gzip dist/image.tar
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
         with:
           name: dist-pre-install
           path: dist
       - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
   test-normal:
     # Executes tests on the single-platform image created in the "build" job.
@@ -349,13 +373,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-normal]
     steps:
-      - uses: actions/checkout@v3
+      - name: Harden Runner
+        uses: step-security/harden-runner@9b0655f430fba8c7001d4e38f8d4306db5c6e0ab
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+
+      - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - id: setup-python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
         with:
           python-version: 3.9
       - name: Cache testing environments
-        uses: actions/cache@v3
+        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
             py${{ steps.setup-python.outputs.python-version }}-"
@@ -371,7 +401,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade --requirement requirements-test.txt
       - name: Download docker image artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
         with:
           name: dist-normal
           path: dist-normal
@@ -388,12 +418,12 @@ jobs:
         run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
         with:
           name: data-normal
           path: data
       - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
   test-pre-install:
     # Executes tests on the single-platform image created in the "build" job.
@@ -401,13 +431,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-pre-install]
     steps:
-      - uses: actions/checkout@v3
+      - name: Harden Runner
+        uses: step-security/harden-runner@9b0655f430fba8c7001d4e38f8d4306db5c6e0ab
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+
+      - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - id: setup-python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
         with:
           python-version: 3.9
       - name: Cache testing environments
-        uses: actions/cache@v3
+        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
             py${{ steps.setup-python.outputs.python-version }}-"
@@ -423,7 +459,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade --requirement requirements-test.txt
       - name: Download docker image artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
         with:
           name: dist-pre-install
           path: dist-pre-install
@@ -438,12 +474,12 @@ jobs:
         run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
         with:
           name: data-pre-install
           path: data
       - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
   build-push-all:
     # Builds the final set of images for each of the platforms listed in
@@ -457,25 +493,31 @@ jobs:
     needs: [lint, prepare, test-normal, test-pre-install]
     if: github.event_name != 'pull_request'
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9b0655f430fba8c7001d4e38f8d4306db5c6e0ab
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
           BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
@@ -487,7 +529,7 @@ jobs:
         run: ./buildx-dockerfile.sh
       - name: Build and push platform images to registries
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
@@ -529,5 +571,5 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         run: ./push_readme.sh
       - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
