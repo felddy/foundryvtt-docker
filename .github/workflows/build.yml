@@ -217,6 +217,28 @@ jobs:
       - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: github.event.inputs.remote-shell == 'true' || env.RUN_TMATE
+  check-docker-secrets:
+    name: "Check Docker secrets"
+    runs-on: ubuntu-latest
+    steps:
+      - name: check-secrets
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ] ||
+            [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "::warning::Set DOCKER_USERNAME and DOCKER_PASSWORD secrets."
+            exit 1
+          fi
+  check-foundry-secrets:
+    name: "Check Foundry secrets"
+    runs-on: ubuntu-latest
+    steps:
+      - name: check-secrets
+        run: |
+          if [ -z "${{ secrets.FOUNDRY_USERNAME }}" ] ||
+            [ -z "${{ secrets.FOUNDRY_PASSWORD }}" ]; then
+            echo "::warning::Set FOUNDRY_USERNAME and FOUNDRY_PASSWORD secrets."
+            exit 1
+          fi
   build-normal:
     # Builds a single test image for the native platform.  This image is saved
     # as an artifact and loaded by the test job.
@@ -297,7 +319,7 @@ jobs:
   build-pre-install:
     name: "Build pre-installed test image"
     runs-on: ubuntu-latest
-    needs: [prepare]
+    needs: [prepare, check-foundry-secrets]
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9b0655f430fba8c7001d4e38f8d4306db5c6e0ab
@@ -375,7 +397,7 @@ jobs:
     # Executes tests on the single-platform image created in the "build" job.
     name: "Test normal image"
     runs-on: ubuntu-latest
-    needs: [build-normal]
+    needs: [build-normal, check-foundry-secrets]
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9b0655f430fba8c7001d4e38f8d4306db5c6e0ab
@@ -496,7 +518,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    needs: [lint, prepare, test-normal, test-pre-install]
+    needs: [lint, prepare, test-normal, test-pre-install, check-docker-secrets]
     if: github.event_name != 'pull_request'
     steps:
       - name: Harden Runner
