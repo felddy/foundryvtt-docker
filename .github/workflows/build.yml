@@ -494,6 +494,8 @@ jobs:
     # triggering event is a pull request.
     name: "Build and push all platforms"
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     needs: [lint, prepare, test-normal, test-pre-install]
     if: github.event_name != 'pull_request'
     steps:
