@@ -25,6 +25,10 @@ on:
         required: true
         default: dispatch
 
+permissions:
+  actions: read
+  contents: read
+
 env:
   BUILDX_CACHE_DIR: ~/.cache/buildx
   CURL_CACHE_DIR: ~/.cache/curl
