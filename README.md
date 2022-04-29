@@ -106,7 +106,7 @@ configuration files, set `CONTAINER_PRESERVE_CONFIG` to `true`.
 1. Start the container and detach:
 
     ```console
-    docker compose up --detach
+    docker-compose up --detach
     ```
 
 1. Access the web application at:
