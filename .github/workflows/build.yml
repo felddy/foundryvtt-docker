@@ -257,7 +257,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
+        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
       - name: Cache Docker layers
         uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
@@ -332,7 +332,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
+        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
       - name: Cache Docker layers
         uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
@@ -543,7 +543,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
+        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
       - name: Cache Docker layers
         uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
