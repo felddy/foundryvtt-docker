@@ -271,7 +271,7 @@ jobs:
         run: mkdir -p dist
       - name: Build image
         id: docker_build
-        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
@@ -346,7 +346,7 @@ jobs:
         run: mkdir -p dist
       - name: Build image
         id: docker_build
-        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
         with:
           build-args: |
             FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
@@ -557,7 +557,7 @@ jobs:
         run: ./buildx-dockerfile.sh
       - name: Build and push platform images to registries
         id: docker_build
-        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
