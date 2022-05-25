@@ -403,3 +403,5 @@ This project is released as open source under the [MIT license](LICENSE).
 All contributions to this project will be released under the same MIT license.
 By submitting a pull request, you are agreeing to comply with this waiver of
 copyright interest.
+
+## 🤌 ##
