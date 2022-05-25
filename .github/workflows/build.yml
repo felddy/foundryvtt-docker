@@ -309,7 +309,7 @@ jobs:
       - name: Compress image
         run: gzip dist/image.tar
       - name: Upload artifacts
-        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: dist-normal
           path: dist
@@ -386,7 +386,7 @@ jobs:
       - name: Compress image
         run: gzip dist/image.tar
       - name: Upload artifacts
-        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: dist-pre-install
           path: dist
@@ -444,7 +444,7 @@ jobs:
         run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: data-normal
           path: data
@@ -500,7 +500,7 @@ jobs:
         run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: data-pre-install
           path: data
