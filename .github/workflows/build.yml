@@ -61,7 +61,7 @@ jobs:
           python-version: 3.9
       # We need the Go version and Go cache location for the actions/cache step,
       # so the Go installation must happen before that.
-      - uses: actions/setup-go@f6164bd8c8acb4a71fb2791a8b6c4024ff038dab
+      - uses: actions/setup-go@fcdc43634adb5f7ae75a9d7a9b9361790f7293e2
         with:
           go-version: '1.16'
       - name: Store installed Go version
@@ -255,9 +255,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480
+        uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
+        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
       - name: Cache Docker layers
         uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
@@ -271,7 +271,7 @@ jobs:
         run: mkdir -p dist
       - name: Build image
         id: docker_build
-        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
@@ -309,7 +309,7 @@ jobs:
       - name: Compress image
         run: gzip dist/image.tar
       - name: Upload artifacts
-        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: dist-normal
           path: dist
@@ -330,9 +330,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480
+        uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
+        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
       - name: Cache Docker layers
         uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
@@ -346,7 +346,7 @@ jobs:
         run: mkdir -p dist
       - name: Build image
         id: docker_build
-        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
         with:
           build-args: |
             FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
@@ -386,7 +386,7 @@ jobs:
       - name: Compress image
         run: gzip dist/image.tar
       - name: Upload artifacts
-        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: dist-pre-install
           path: dist
@@ -444,7 +444,7 @@ jobs:
         run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: data-normal
           path: data
@@ -500,7 +500,7 @@ jobs:
         run: pytest --runslow
       - name: Upload data artifacts
         if: ${{ always() }}
-        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: data-pre-install
           path: data
@@ -528,12 +528,12 @@ jobs:
           egress-policy: audit
 
       - name: Login to Docker Hub
-        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@dd4fa0671be5250ee6f50aedf4cb05514abda2c7
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -541,9 +541,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480
+        uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
+        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
       - name: Cache Docker layers
         uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
         env:
@@ -557,7 +557,7 @@ jobs:
         run: ./buildx-dockerfile.sh
       - name: Build and push platform images to registries
         id: docker_build
-        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
