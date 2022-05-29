@@ -4,12 +4,12 @@ name: build
 on:
   push:
     branches:
-      - '**'
+      - "**"
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   pull_request:
   schedule:
-    - cron: '0 10 * * *'  # everyday at 10am
+    - cron: "0 10 * * *"  # everyday at 10am
   repository_dispatch:
     # Respond to rebuild requests. See: https://github.com/cisagov/action-apb/
     types: [apb]
@@ -18,11 +18,11 @@ on:
       remote-shell:
         description: "Debug with remote shell"
         required: true
-        default: false
+        default: "false"
       image-tag:
         description: "Tag to apply to pushed images"
         required: true
-        default: dispatch
+        default: "dispatch"
 
 env:
   BUILDX_CACHE_DIR: ~/.cache/buildx
