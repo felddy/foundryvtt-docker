@@ -252,7 +252,7 @@ jobs:
         run: mkdir -p dist
       - name: Build image
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
@@ -380,7 +380,7 @@ jobs:
         run: ./buildx-dockerfile.sh
       - name: Build and push platform images to registries
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
