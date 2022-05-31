@@ -153,7 +153,7 @@ jobs:
           # Disable line-length check for readability of labels and tags.
           # yamllint disable rule:line-length
           labels: |
-            org.opencontainers.image.version=${{ needs.prepare.outputs.source_version }}
+            org.opencontainers.image.version=${{ steps.source_values.outputs.source_version }}
           tags: |
             type=edge
             type=ref,event=branch
