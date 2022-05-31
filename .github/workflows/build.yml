@@ -116,7 +116,7 @@ jobs:
     # Outputs:
     #   created:
     #     The current date-time in RFC3339 format.
-    #   repometa:
+    #   repo_metadata:
     #     The json metadata describing this repository.
     #   source_version:
     #     The source version as reported by the `bump_version.sh show` command.
@@ -155,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       created: ${{ steps.prep.outputs.created }}
-      repometa: ${{ steps.repo.outputs.result }}
+      repo_metadata: ${{ steps.repo.outputs.result }}
       source_version: ${{ steps.prep.outputs.source_version }}
       tags: ${{ steps.prep.outputs.tags }}
     steps:
@@ -298,21 +298,21 @@ jobs:
               needs.prepare.outputs.created }}
 
             org.opencontainers.image.description=${{
-              fromJson(needs.prepare.outputs.repometa).description }}
+              fromJson(needs.prepare.outputs.repo_metadata).description }}
 
             org.opencontainers.image.licenses=${{
-              fromJson(needs.prepare.outputs.repometa).license.spdx_id }}
+              fromJson(needs.prepare.outputs.repo_metadata).license.spdx_id }}
 
             org.opencontainers.image.revision=${{ github.sha }}
 
             org.opencontainers.image.source=${{
-              fromJson(needs.prepare.outputs.repometa).clone_url }}
+              fromJson(needs.prepare.outputs.repo_metadata).clone_url }}
 
             org.opencontainers.image.title=${{
-              fromJson(needs.prepare.outputs.repometa).name }}
+              fromJson(needs.prepare.outputs.repo_metadata).name }}
 
             org.opencontainers.image.url=${{
-              fromJson(needs.prepare.outputs.repometa).html_url }}
+              fromJson(needs.prepare.outputs.repo_metadata).html_url }}
 
             org.opencontainers.image.version=${{
               needs.prepare.outputs.source_version }}"
@@ -373,21 +373,21 @@ jobs:
               needs.prepare.outputs.created }}
 
             org.opencontainers.image.description=${{
-              fromJson(needs.prepare.outputs.repometa).description }}
+              fromJson(needs.prepare.outputs.repo_metadata).description }}
 
             org.opencontainers.image.licenses=${{
-              fromJson(needs.prepare.outputs.repometa).license.spdx_id }}
+              fromJson(needs.prepare.outputs.repo_metadata).license.spdx_id }}
 
             org.opencontainers.image.revision=${{ github.sha }}
 
             org.opencontainers.image.source=${{
-              fromJson(needs.prepare.outputs.repometa).clone_url }}
+              fromJson(needs.prepare.outputs.repo_metadata).clone_url }}
 
             org.opencontainers.image.title=${{
-              fromJson(needs.prepare.outputs.repometa).name }}
+              fromJson(needs.prepare.outputs.repo_metadata).name }}
 
             org.opencontainers.image.url=${{
-              fromJson(needs.prepare.outputs.repometa).html_url }}
+              fromJson(needs.prepare.outputs.repo_metadata).html_url }}
 
             org.opencontainers.image.version=${{
               needs.prepare.outputs.source_version }}"
@@ -595,21 +595,21 @@ jobs:
               needs.prepare.outputs.created }}
 
             org.opencontainers.image.description=${{
-              fromJson(needs.prepare.outputs.repometa).description }}
+              fromJson(needs.prepare.outputs.repo_metadata).description }}
 
             org.opencontainers.image.licenses=${{
-              fromJson(needs.prepare.outputs.repometa).license.spdx_id }}
+              fromJson(needs.prepare.outputs.repo_metadata).license.spdx_id }}
 
             org.opencontainers.image.revision=${{ github.sha }}
 
             org.opencontainers.image.source=${{
-              fromJson(needs.prepare.outputs.repometa).clone_url }}
+              fromJson(needs.prepare.outputs.repo_metadata).clone_url }}
 
             org.opencontainers.image.title=${{
-              fromJson(needs.prepare.outputs.repometa).name }}
+              fromJson(needs.prepare.outputs.repo_metadata).name }}
 
             org.opencontainers.image.url=${{
-              fromJson(needs.prepare.outputs.repometa).html_url }}
+              fromJson(needs.prepare.outputs.repo_metadata).html_url }}
 
             org.opencontainers.image.version=${{
               needs.prepare.outputs.source_version }}"
