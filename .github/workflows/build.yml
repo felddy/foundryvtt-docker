@@ -114,49 +114,21 @@ jobs:
     # Calculates and publishes outputs that are used by other jobs.
     #
     # Outputs:
-    #   created:
-    #     The current date-time in RFC3339 format.
-    #   repo_metadata:
-    #     The json metadata describing this repository.
     #   source_version:
     #     The source version as reported by the `bump_version.sh show` command.
+    #   labels:
+    #     A list of image labels to apply to the image.
     #   tags:
-    #     A comma separated list of Docker tags to be applied to the images on
-    #     Docker Hub.  The tags will vary depending on:
-    #     - The event that triggered the build.
-    #     - The branch the build is based upon.
-    #     - The git tag the build is based upon.
-    #
-    #     When a build is based on a git tag of the form `v*.*.*` the image will
-    #     be tagged on Docker Hub with multiple levels of version specificity.
-    #     For example, a git tag of `v1.2.3+a` will generate Docker tags of
-    #     `:1.2.3_a`, `:1.2.3`, `:1.2`, `:1`, and `:latest`.
-    #
-    #     Builds targeting the default branch will be tagged with `:edge`.
-    #
-    #     Builds from other branches will be tagged with the branch name. Solidi
-    #     (`/` characters - commonly known as slashes) in branch names are
-    #     replaced with hyphen-minuses (`-` characters) in the Docker tag.  For
-    #     more information about the solidus see these links:
-    #       * https://www.compart.com/en/unicode/U+002F
-    #       * https://en.wikipedia.org/wiki/Slash_(punctuation)#Encoding
-    #
-    #     Builds triggered by a push event are tagged with a short hash in the
-    #     form: sha-12345678
-    #
-    #     Builds triggered by a pull request are tagged with the pull request
-    #     number in the form pr-123.
-    #
-    #     Builds triggered using the GitHub GUI (workflow_dispatch) are tagged
-    #     with the value specified by the user.
-    #
-    #     Scheduled builds are tagged with `:nightly`.
+    #     A comma separated list of Docker tags to be applied to the image. For
+    #     more information about these tags, see the metadata-action
+    #     documentation: https://github.com/docker/metadata-action#tags-input
     name: "Prepare build variables"
     runs-on: ubuntu-latest
     outputs:
       created: ${{ steps.prep.outputs.created }}
-      repo_metadata: ${{ steps.repo.outputs.result }}
-      source_version: ${{ steps.prep.outputs.source_version }}
+      docker_labels: ${{ steps.docker_meta.outputs.labels }}
+      docker_tags: ${{ steps.docker_meta.outputs.tags }}
+      source_version: ${{ steps.source_values.outputs.source_version }}
       tags: ${{ steps.prep.outputs.tags }}
     steps:
       - name: Harden Runner
@@ -164,56 +136,37 @@ jobs:
         with:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
-
       - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
-      - name: Gather repository metadata
-        id: repo
-        uses: actions/github-script@7f4e771d2b3022fa3b8bac499d4a547619f3ab10
-        with:
-          script: |
-            const repo = await github.rest.repos.get(context.repo)
-            return repo.data
-      - name: Calculate output values
-        id: prep
+      - name: Calculate values from source
+        id: source_values
         run: |
-          VERSION=noop
-          SEMVER="^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$"
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            VERSION=nightly
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION=${{ github.event.inputs.image-tag }}
-          elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-          elif [[ $GITHUB_REF == refs/heads/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ];
-              then
-              VERSION=edge
-            fi
-          elif [[ $GITHUB_REF == refs/pull/* ]]; then
-            VERSION=pr-${{ github.event.number }}
-          fi
-          if [[ $VERSION =~ $SEMVER ]]; then
-            VERSION_NO_V=${VERSION#v}
-            MAJOR="${BASH_REMATCH[1]}"
-            MINOR="${BASH_REMATCH[2]}"
-            PATCH="${BASH_REMATCH[3]}"
-            TAGS="${IMAGE_NAME}:${VERSION_NO_V//+/_},${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH},${IMAGE_NAME}:${MAJOR}.${MINOR},${IMAGE_NAME}:${MAJOR}"
-            source image_tags.sh
-          else
-            TAGS="${IMAGE_NAME}:${VERSION}"
-          fi
-          if [ "${{ github.event_name }}" = "push" ]; then
-            TAGS="${TAGS},${IMAGE_NAME}:sha-${GITHUB_SHA::8}"
-          fi
-          for i in ${TAGS//,/ }
-          do
-            TAGS="${TAGS},ghcr.io/${i}"
-          done
-          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           echo ::set-output name=source_version::$(./bump_version.sh show)
-          echo ::set-output name=tags::${TAGS}
-          echo tags=${TAGS}
+      - name: Calculate Docker metadata
+        id: docker_meta
+        uses: docker/metadata-action@69f6fc9d46f2f8bf0d5491e4aabe0bb8c6a4678a
+        with:
+          flavor: |
+            latest=false
+          images: |
+            ${IMAGE_NAME}
+            ghcr.io/${IMAGE_NAME}
+          # Disable line-length check for readability of labels and tags.
+          # yamllint disable rule:line-length
+          labels: |
+            org.opencontainers.image.version=${{ needs.prepare.outputs.source_version }}
+          tags: |
+            type=edge
+            type=ref,event=branch
+            type=ref,event=pr
+            type=schedule,pattern=nightly
+            type=semver,pattern=latest,enable={{is_default_branch}}
+            type=semver,pattern=release,enable={{is_default_branch}}
+            type=semver,pattern=prerelease,enable=${{ github.ref == format('refs/heads/{0}', 'prerelease') }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+          # yamllint enable rule:line-length
       - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: github.event.inputs.remote-shell == 'true' || env.RUN_TMATE
@@ -261,7 +214,6 @@ jobs:
         with:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
-
       - name: Checkout
         uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - name: Set up QEMU
@@ -291,31 +243,9 @@ jobs:
           file: ./Dockerfile
           outputs: type=docker,dest=dist/image.tar
           tags: ${{ env.IMAGE_NAME }}:latest  # not to be pushed
-          # For a list of pre-defined annotation keys and value types see:
-          # https://github.com/opencontainers/image-spec/blob/master/annotations.md
-          labels: "\
-            org.opencontainers.image.created=${{
-              needs.prepare.outputs.created }}
-
-            org.opencontainers.image.description=${{
-              fromJson(needs.prepare.outputs.repo_metadata).description }}
-
-            org.opencontainers.image.licenses=${{
-              fromJson(needs.prepare.outputs.repo_metadata).license.spdx_id }}
-
-            org.opencontainers.image.revision=${{ github.sha }}
-
-            org.opencontainers.image.source=${{
-              fromJson(needs.prepare.outputs.repo_metadata).clone_url }}
-
-            org.opencontainers.image.title=${{
-              fromJson(needs.prepare.outputs.repo_metadata).name }}
-
-            org.opencontainers.image.url=${{
-              fromJson(needs.prepare.outputs.repo_metadata).html_url }}
-
-            org.opencontainers.image.version=${{
-              needs.prepare.outputs.source_version }}"
+          labels: ${{ needs.prepare.outputs.docker_labels }}
+      - name: Compress image
+        run: gzip dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
@@ -334,7 +264,6 @@ jobs:
         with:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
-
       - name: Checkout
         uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - name: Set up QEMU
@@ -366,34 +295,9 @@ jobs:
           file: ./Dockerfile
           outputs: type=docker,dest=dist/image.tar
           tags: ${{ env.IMAGE_NAME }}:latest  # not to be pushed
-          # For a list of pre-defined annotation keys and value types see:
-          # https://github.com/opencontainers/image-spec/blob/master/annotations.md
-          labels: "\
-            org.opencontainers.image.created=${{
-              needs.prepare.outputs.created }}
-
-            org.opencontainers.image.description=${{
-              fromJson(needs.prepare.outputs.repo_metadata).description }}
-
-            org.opencontainers.image.licenses=${{
-              fromJson(needs.prepare.outputs.repo_metadata).license.spdx_id }}
-
-            org.opencontainers.image.revision=${{ github.sha }}
-
-            org.opencontainers.image.source=${{
-              fromJson(needs.prepare.outputs.repo_metadata).clone_url }}
-
-            org.opencontainers.image.title=${{
-              fromJson(needs.prepare.outputs.repo_metadata).name }}
-
-            org.opencontainers.image.url=${{
-              fromJson(needs.prepare.outputs.repo_metadata).html_url }}
-
-            org.opencontainers.image.version=${{
-              needs.prepare.outputs.source_version }}"
-      - name: Compress and encrypt image
-        run: |
-          7za a -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z dist/image.tar
+          labels: ${{ needs.prepare.outputs.docker_labels }}
+      - name: Compress image
+        run: gzip dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
@@ -413,7 +317,6 @@ jobs:
         with:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
-
       - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - id: setup-python
         uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
@@ -476,7 +379,6 @@ jobs:
         with:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
-
       - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - id: setup-python
         uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
@@ -546,7 +448,6 @@ jobs:
         with:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
-
       - name: Login to Docker Hub
         uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
         with:
@@ -587,32 +488,8 @@ jobs:
           file: ./Dockerfile-x
           platforms: ${{ env.PLATFORMS }}
           push: true
-          tags: ${{ needs.prepare.outputs.tags }}
-          # For a list of pre-defined annotation keys and value types see:
-          # https://github.com/opencontainers/image-spec/blob/master/annotations.md
-          labels: "\
-            org.opencontainers.image.created=${{
-              needs.prepare.outputs.created }}
-
-            org.opencontainers.image.description=${{
-              fromJson(needs.prepare.outputs.repo_metadata).description }}
-
-            org.opencontainers.image.licenses=${{
-              fromJson(needs.prepare.outputs.repo_metadata).license.spdx_id }}
-
-            org.opencontainers.image.revision=${{ github.sha }}
-
-            org.opencontainers.image.source=${{
-              fromJson(needs.prepare.outputs.repo_metadata).clone_url }}
-
-            org.opencontainers.image.title=${{
-              fromJson(needs.prepare.outputs.repo_metadata).name }}
-
-            org.opencontainers.image.url=${{
-              fromJson(needs.prepare.outputs.repo_metadata).html_url }}
-
-            org.opencontainers.image.version=${{
-              needs.prepare.outputs.source_version }}"
+          tags: ${{ needs.prepare.outputs.docker_tags }}
+          labels: ${{ needs.prepare.outputs.docker_labels }}
       - name: Publish README.md to Docker Hub
         env:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
