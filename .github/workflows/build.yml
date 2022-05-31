@@ -148,8 +148,8 @@ jobs:
           flavor: |
             latest=false
           images: |
-            ${IMAGE_NAME}
-            ghcr.io/${IMAGE_NAME}
+            ${{ env.IMAGE_NAME }}
+            ghcr.io/${{ env.IMAGE_NAME }}
           # Disable line-length check for readability of labels and tags.
           # yamllint disable rule:line-length
           labels: |
