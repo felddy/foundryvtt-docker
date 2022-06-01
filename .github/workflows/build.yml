@@ -20,7 +20,7 @@ on:
         description: "Debug with remote shell"
         required: true
         default: false
-      image-tag:
+      dispatch-tag:
         description: "Tag to apply to pushed images"
         required: true
         default: dispatch
@@ -156,6 +156,7 @@ jobs:
             org.opencontainers.image.version=${{ steps.source_values.outputs.source_version }}
           tags: |
             type=edge
+            type=raw,event=workflow_dispatch,value=${{ github.event.inputs.dispatch-tag}}
             type=ref,event=branch
             type=ref,event=pr
             type=schedule,pattern=nightly
