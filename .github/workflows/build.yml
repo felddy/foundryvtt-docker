@@ -245,8 +245,9 @@ jobs:
           outputs: type=docker,dest=dist/image.tar
           tags: ${{ env.IMAGE_NAME }}:latest  # not to be pushed
           labels: ${{ needs.prepare.outputs.docker_labels }}
-      - name: Compress image
-        run: gzip dist/image.tar
+      - name: Compress and encrypt image
+        run: |
+          7za a -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
@@ -297,8 +298,9 @@ jobs:
           outputs: type=docker,dest=dist/image.tar
           tags: ${{ env.IMAGE_NAME }}:latest  # not to be pushed
           labels: ${{ needs.prepare.outputs.docker_labels }}
-      - name: Compress image
-        run: gzip dist/image.tar
+      - name: Compress and encrypt image
+        run: |
+          7za a -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
