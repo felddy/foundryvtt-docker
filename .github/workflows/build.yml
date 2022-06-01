@@ -306,13 +306,14 @@ jobs:
 
             org.opencontainers.image.version=${{
               needs.prepare.outputs.source_version }}"
-      - name: Compress image
-        run: gzip dist/image.tar
+      - name: Compress and encrypt image
+        run: |
+          7za a -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: dist-normal
-          path: dist
+          path: dist/image.tar.7z
       - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
@@ -383,13 +384,14 @@ jobs:
 
             org.opencontainers.image.version=${{
               needs.prepare.outputs.source_version }}"
-      - name: Compress image
-        run: gzip dist/image.tar
+      - name: Compress and encrypt image
+        run: |
+          7za a -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: dist-pre-install
-          path: dist
+          path: dist/image.tar.7z
       - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
@@ -430,9 +432,11 @@ jobs:
         uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
         with:
           name: dist-normal
-          path: dist-normal
+          path: dist
       - name: Load docker image
-        run: docker load < dist-normal/image.tar.gz
+        run: |
+          7za x -p${{ secrets.ARTIFACT_KEY }} -so \
+          dist/image.tar.7z | docker load
       - name: Set data directory permissions
         run: |
           chmod a+rwx data
@@ -442,12 +446,16 @@ jobs:
           FOUNDRY_USERNAME: ${{ secrets.FOUNDRY_USERNAME }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: pytest --runslow
+      - name: Compress and encrypt data directory
+        if: ${{ always() }}
+        run: |
+          tar cf - data | 7za a -p${{ secrets.ARTIFACT_KEY }} -si data.tar.7z
       - name: Upload data artifacts
         if: ${{ always() }}
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: data-normal
-          path: data
+          path: data.tar.7z
       - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
@@ -488,9 +496,11 @@ jobs:
         uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
         with:
           name: dist-pre-install
-          path: dist-pre-install
+          path: dist
       - name: Load docker image
-        run: docker load < dist-pre-install/image.tar.gz
+        run: |
+          7za x -p${{ secrets.ARTIFACT_KEY }} -so \
+          dist/image.tar.7z | docker load
       - name: Set data directory permissions
         run: |
           chmod a+rwx data
@@ -498,12 +508,16 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: pytest --runslow
+      - name: Compress and encrypt data directory
+        if: ${{ always() }}
+        run: |
+          tar cf - data | 7za a -p${{ secrets.ARTIFACT_KEY }} -si data.tar.7z
       - name: Upload data artifacts
         if: ${{ always() }}
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: data-pre-install
-          path: data
+          path: data.tar.7z
       - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
