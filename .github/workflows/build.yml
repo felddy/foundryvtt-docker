@@ -434,7 +434,9 @@ jobs:
           name: dist-normal
           path: dist
       - name: Load docker image
-        run: 7za x -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z | docker load
+        run: |
+          7za x -p${{ secrets.ARTIFACT_KEY }} -so \
+          dist/image.tar.7z | docker load
       - name: Set data directory permissions
         run: |
           chmod a+rwx data
@@ -496,7 +498,9 @@ jobs:
           name: dist-pre-install
           path: dist
       - name: Load docker image
-        run: 7za x -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z | docker load
+        run: |
+          7za x -p${{ secrets.ARTIFACT_KEY }} -so \
+          dist/image.tar.7z | docker load
       - name: Set data directory permissions
         run: |
           chmod a+rwx data
