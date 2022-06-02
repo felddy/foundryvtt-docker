@@ -32,7 +32,7 @@ permissions:
 env:
   BUILDX_CACHE_DIR: ~/.cache/buildx
   CURL_CACHE_DIR: ~/.cache/curl
-  IMAGE_NAME: felddy/foundryvtt
+  IMAGE_NAME: felddy/ci-testing
   PIP_CACHE_DIR: ~/.cache/pip
   PLATFORMS: "linux/amd64,linux/arm/v6,linux/arm/v7,\
   linux/arm64,linux/ppc64le,linux/s390x"
