@@ -137,6 +137,8 @@ jobs:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
       - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
+      - name: Dump context
+        uses: crazy-max/ghaction-dump-context@v1
       - name: Calculate values from source
         id: source_values
         run: |
