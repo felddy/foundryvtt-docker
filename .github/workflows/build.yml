@@ -316,14 +316,11 @@ jobs:
 
             org.opencontainers.image.version=${{
               needs.prepare.outputs.source_version }}"
-      - name: Compress and encrypt image
-        run: |
-          7za a -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: dist-normal
-          path: dist/image.tar.7z
+          path: dist/image.tar
       - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
@@ -445,8 +442,7 @@ jobs:
           path: dist
       - name: Load docker image
         run: |
-          7za x -p${{ secrets.ARTIFACT_KEY }} -so \
-          dist/image.tar.7z | docker load
+          docker load dist/image.tar
       - name: Set data directory permissions
         run: |
           chmod a+rwx data
