@@ -442,7 +442,7 @@ jobs:
           path: dist
       - name: Load docker image
         run: |
-          docker load dist/image.tar
+          docker load < dist/image.tar
       - name: Set data directory permissions
         run: |
           chmod a+rwx data
