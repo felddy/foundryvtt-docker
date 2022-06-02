@@ -217,6 +217,16 @@ jobs:
       - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: github.event.inputs.remote-shell == 'true' || env.RUN_TMATE
+  check-artifact-secrets:
+    name: "Check artifact secrets"
+    runs-on: ubuntu-latest
+    steps:
+      - name: check-secrets
+        run: |
+          if [ -z "${{ secrets.ARTIFACT_KEY }}" ]; then
+            echo "::warning::Set ARTIFACT_KEY secrets."
+            exit 1
+          fi
   check-docker-secrets:
     name: "Check Docker secrets"
     runs-on: ubuntu-latest
@@ -306,21 +316,18 @@ jobs:
 
             org.opencontainers.image.version=${{
               needs.prepare.outputs.source_version }}"
-      - name: Compress and encrypt image
-        run: |
-          7za a -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z dist/image.tar
       - name: Upload artifacts
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: dist-normal
-          path: dist/image.tar.7z
+          path: dist/image.tar
       - name: Setup tmate debug session
         uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
         if: env.RUN_TMATE
   build-pre-install:
     name: "Build pre-installed test image"
     runs-on: ubuntu-latest
-    needs: [prepare, check-foundry-secrets]
+    needs: [prepare, check-artifact-secrets, check-foundry-secrets]
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
@@ -399,7 +406,7 @@ jobs:
     # Executes tests on the single-platform image created in the "build" job.
     name: "Test normal image"
     runs-on: ubuntu-latest
-    needs: [build-normal, check-foundry-secrets]
+    needs: [build-normal, check-artifact-secrets, check-foundry-secrets]
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
@@ -435,8 +442,7 @@ jobs:
           path: dist
       - name: Load docker image
         run: |
-          7za x -p${{ secrets.ARTIFACT_KEY }} -so \
-          dist/image.tar.7z | docker load
+          docker load < dist/image.tar
       - name: Set data directory permissions
         run: |
           chmod a+rwx data
@@ -463,7 +469,7 @@ jobs:
     # Executes tests on the single-platform image created in the "build" job.
     name: "Test pre-installed image"
     runs-on: ubuntu-latest
-    needs: [build-pre-install]
+    needs: [build-pre-install, check-artifact-secrets]
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
