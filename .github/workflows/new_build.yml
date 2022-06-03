@@ -22,10 +22,12 @@ env:
 
 jobs:
   variables:
-    run: |
-      echo ::set-output name=go_version::1.16
-      echo ::set-output name=python_version::3.9
-      echo ::set-output name=shfmt_version::v3.4.3
+    steps:
+    - name: Store values
+      run: |
+        echo ::set-output name=go_version::1.16
+        echo ::set-output name=python_version::3.9
+        echo ::set-output name=shfmt_version::v3.4.3
 
   metadata:
     uses: ./.github/workflows/_metadata.yml
