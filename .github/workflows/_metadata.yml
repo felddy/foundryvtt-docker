@@ -20,7 +20,6 @@ on:
         description: "The version declared in the source code"
         value: ${{ jobs.metadata.outputs.source_version }}
 
-
 jobs:
   metadata:
     # Calculates and publishes outputs that are used by other jobs.
@@ -59,8 +58,8 @@ jobs:
           flavor: |
             latest=false
           images: |
-            ${{ env.IMAGE_NAME }}
-            ghcr.io/${{ env.IMAGE_NAME }}
+            ${{ inputs.image_name }}
+            ghcr.io/${{ inputs.image_name }}
           # Disable line-length check for readability of labels and tags.
           # yamllint disable rule:line-length
           labels: |
