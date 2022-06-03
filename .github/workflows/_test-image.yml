@@ -95,11 +95,11 @@ jobs:
           name: ${{ inputs.image_artifact_name }}
           path: ${{ env.ARTIFACT_WORK_DIR }}
       - name: Load unencrypted image
-        if: needs.steps.check_image_artifact_key.outputs.do_encryption == 'false'
+        if: steps.check_image_artifact_key.outputs.do_encryption == 'false'
         run: |
           docker load < ${{ env.ARTIFACT_WORK_DIR }}/image.tar
       - name: Load encrypted image
-        if: needs.steps.check_image_artifact_key.outputs.do_encryption == 'true'
+        if: steps.check_image_artifact_key.outputs.do_encryption == 'true'
         run: |
           7za x -p${{ secrets.image_artifact_key }} -so \
           ${{ env.ARTIFACT_WORK_DIR }}/image.tar.7z | docker load
