@@ -54,8 +54,12 @@ jobs:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
       - name: Check data artifact key secret
-        if: ${{ !secrets.data_artifact_key }}
-        run: exit 1
+        id: check_artifact_key
+        run: |
+          if [ -n "${{ secrets.data_artifact_key }}" ]; then
+            echo "::warning::Set the data_artifact_key secret."
+            exit 1
+          fi
       - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - id: setup-python
         uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
