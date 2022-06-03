@@ -1,0 +1,81 @@
+---
+
+on:
+  workflow_call:
+    inputs:
+      # Required inputs
+      image_name:
+        description: "The Docker image name"     
+        required: true
+        type: string
+      # Optional inputs
+    outputs:
+      image_labels:
+        description: "The calculated image labels"
+        value: ${{ jobs.metadata.outputs.image_labels }}
+      image_tags:
+        description: "The calculated image tags"
+        value: ${{ jobs.metadata.outputs.image_tags }}
+      source_version:
+        description: "The version declared in the source code"
+        value: ${{ jobs.metadata.outputs.source_version }}
+
+
+jobs:
+  metadata:
+    # Calculates and publishes outputs that are used by other jobs.
+    #
+    # Outputs:
+    #   source_version:
+    #     The source version as reported by the `bump_version.sh show` command.
+    #   labels:
+    #     A list of image labels to apply to the image.
+    #   tags:
+    #     A comma separated list of Docker tags to be applied to the image. For
+    #     more information about these tags, see the metadata-action
+    #     documentation: https://github.com/docker/metadata-action#tags-input
+    name: "Prepare build variables"
+    runs-on: ubuntu-latest
+    outputs:
+      docker_labels: ${{ steps.docker_meta.outputs.labels }}
+      docker_tags: ${{ steps.docker_meta.outputs.tags }}
+      source_version: ${{ steps.source_values.outputs.source_version }}
+      tags: ${{ steps.prep.outputs.tags }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+      - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
+      - name: Calculate values from source
+        id: source_values
+        run: |
+          echo ::set-output name=source_version::$(./bump_version.sh show)
+      - name: Calculate Docker metadata
+        id: docker_meta
+        uses: docker/metadata-action@69f6fc9d46f2f8bf0d5491e4aabe0bb8c6a4678a
+        with:
+          flavor: |
+            latest=false
+          images: |
+            ${{ env.IMAGE_NAME }}
+            ghcr.io/${{ env.IMAGE_NAME }}
+          # Disable line-length check for readability of labels and tags.
+          # yamllint disable rule:line-length
+          labels: |
+            org.opencontainers.image.version=${{ steps.source_values.outputs.source_version }}
+          tags: |
+            type=edge
+            type=raw,event=workflow_dispatch,value=${{ github.event.inputs.dispatch-tag}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=schedule,pattern=nightly
+            type=semver,pattern=latest,enable=${{ github.base_ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            type=semver,pattern=release,enable=${{ github.base_ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            type=semver,pattern=prerelease,enable=${{ github.base_ref == format('refs/heads/{0}', 'prerelease') }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+          # yamllint enable rule:line-length

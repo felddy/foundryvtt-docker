@@ -3,17 +3,17 @@ name: build
 # https://github.com/docker/build-push-action#complete-workflow
 
 on:
-  push:
-    branches:
-      - '**'
-    tags:
-      - 'v*.*.*'
-  pull_request:
-  schedule:
-    - cron: '0 10 * * *'  # everyday at 10am
-  repository_dispatch:
-    # Respond to rebuild requests. See: https://github.com/cisagov/action-apb/
-    types: [apb]
+  # push:
+  #   branches:
+  #     - '**'
+  #   tags:
+  #     - 'v*.*.*'
+  # pull_request:
+  # schedule:
+  #   - cron: '0 10 * * *'  # everyday at 10am
+  # repository_dispatch:
+  #   # Respond to rebuild requests. See: https://github.com/cisagov/action-apb/
+  #   types: [apb]
   workflow_dispatch:
     inputs:
       remote-shell:

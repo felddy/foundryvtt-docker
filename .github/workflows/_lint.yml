@@ -1,0 +1,105 @@
+---
+name: lint
+
+on:
+  workflow_call:
+  inputs:
+    buildx_cache_dir:
+      default: ~/.cache/buildx
+      required: false
+      type: string
+    curl_cache_dir:
+      default: ~/.cache/curl
+      required: false
+      type: string
+    pip_cache_dir:
+      default: ~/.cache/pip
+      required: false
+      type: string
+    pre_commit_cache_dir:
+      default: ~/.cache/pre-commit
+      required: false
+      type: string
+    go_version:
+      default: '1.16'
+      required: false
+      type: string
+    python_version:
+      default: '3.9'
+      required: false
+      type: string 
+    shfmt_version:
+      default: 'v3.4.3'
+      required: false
+      type: string
+
+env:
+  PIP_CACHE_DIR: ${{ inputs.pip_cache_dir }}
+  PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
+
+jobs:
+  lint:
+    # Checks out the source and runs pre-commit hooks.  Detects coding errors
+    # and style deviations.
+    name: "Lint sources"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+      - id: setup-env
+        uses: cisagov/setup-env-github-action@a1913cd974407cd92d5b015342aa6d28d36539b8
+      - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
+      - id: setup-python
+        uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
+        with:
+          python-version: ${{ inputs.python-version }}
+      # We need the Go version and Go cache location for the actions/cache step,
+      # so the Go installation must happen before that.
+      - uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923
+        with:
+          go-version: ${{ inputs.go-version }}
+      - name: Store installed Go version
+        id: go-version
+        run: |
+          echo "::set-output name=version::"\
+          "$(go version | sed 's/^go version go\([0-9.]\+\) .*/\1/')"
+      - name: Lookup Go cache directory
+        id: go-cache
+        run: |
+          echo "::set-output name=dir::$(go env GOCACHE)"
+      - uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
+        env:
+          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
+            py${{ inputs.python-version }}-\
+            go${{ steps.go-version.outputs.version }}-"
+        with:
+          path: |
+            ${{ inputs.pip_cache_dir }}
+            ${{ inputs.pre_commit_cache_dir }}
+            ${{ inputs.curl_cache_dir }}
+            ${{ steps.go-cache.outputs.dir }}
+          key: "${{ env.BASE_CACHE_KEY }}\
+            ${{ hashFiles('**/requirements-test.txt') }}-\
+            ${{ hashFiles('**/requirements.txt') }}-\
+            ${{ hashFiles('**/.pre-commit-config.yaml') }}"
+          restore-keys: |
+            ${{ env.BASE_CACHE_KEY }}
+      - name: Setup curl cache
+        run: mkdir -p ${{ inputs.curl_cache_dir }}
+      - name: Install shfmt
+        env:
+          PACKAGE_URL: mvdan.cc/sh/v3/cmd/shfmt
+          PACKAGE_VERSION: ${{ inputs.shfmt-version }}
+        run: go install ${PACKAGE_URL}@${PACKAGE_VERSION}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade --requirement requirements-test.txt
+      - name: Set up pre-commit hook environments
+        run: pre-commit install-hooks
+      - name: Run pre-commit on all files
+        run: pre-commit run --all-files
+        

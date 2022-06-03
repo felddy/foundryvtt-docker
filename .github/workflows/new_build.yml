@@ -1,0 +1,77 @@
+---
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*.*.*'
+  pull_request:
+  schedule:
+    - cron: '0 10 * * *'  # everyday at 10am
+
+permissions:
+  actions: read
+  contents: read
+
+env:
+  GO_VERSION: '1.16'
+  NORMAL_DATA_ARTIFACT_NAME: normal-data
+  NORMAL_IMAGE_ARTIFACT_NAME: normal-test-image
+  PRE_INSTALLED_DATA_ARTIFACT_NAME: pre-installed-data
+  PRE_INSTALLED_IMAGE_ARTIFACT_NAME: pre-installed-test-image
+  PYTHON_VERSION: '3.9'
+  SHFMT_VERSION: 'v3.4.3'
+
+jobs:
+  metadata:
+    uses: ./.github/workflows/_metadata.yml
+
+  lint:
+    uses: ./.github/workflows/lint.yml
+    with:
+      go_version: ${{ env.GO_VERSION }}
+      python_version: ${{ env.PYTHON_VERSION }}
+      shfmt_version: ${{ env.SHFMT_VERSION }}
+
+  build-normal-test-image:
+    uses: ./.github/workflows/_build-docker-test-image.yml
+    with:
+      artifact_name: ${{ env.NORMAL_IMAGE_ARTIFACT_NAME }}
+      build_args: |
+        VERSION=${{ needs.prepare.outputs.source_version }}
+
+  build-pre-installed-test-image:
+    uses: ./.github/workflows/_build-docker-test-image.yml
+    with:
+      artifact_name: ${{ env.PRE_INSTALLED_IMAGE_ARTIFACT_NAME }}
+      build_args: |
+        FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
+        FOUNDRY_USERNAME=${{ secrets.FOUNDRY_USERNAME }}
+        VERSION=${{ needs.prepare.outputs.source_version }}
+    secrets:
+      artifact_key: ${{ secrets.ARTIFACT_KEY }}
+
+  test-normal-image:
+    needs: [build-normal-test-image]
+    uses: ./.github/workflows/_test-image.yml
+    with:
+      data_artifact_name: ${{ env.NORMAL_DATA_ARTIFACT_NAME}}
+      image_artifact_name: ${{ env.NORMAL_IMAGE_ARTIFACT_NAME }}
+    secrets:
+      data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      foundry_password: ${{ secrets.FOUNDRY_PASSWORD }}
+      foundry_username: ${{ secrets.FOUNDRY_USERNAME }}
+
+  test-pre-installed-image:
+    needs: [build-pre-installed-test-image]
+    uses: ./.github/workflows/_test-image.yml
+    with:
+      data_artifact_name: ${{ env.PRE_INSTALLED_DATA_ARTIFACT_NAME}}
+      image_artifact_name: ${{ env.PRE_INSTALLED_IMAGE_ARTIFACT_NAME }}
+    secrets:
+      data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+
+  # build-and-push:
+  #   needs: [lint, prepare, test-normal, test-pre-install, check-docker-secrets]
