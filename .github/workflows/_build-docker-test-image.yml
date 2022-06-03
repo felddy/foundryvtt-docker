@@ -85,9 +85,9 @@ jobs:
         id: check_artifact_key
         run: |
           if [ -n "${{ secrets.artifact_key }}" ]; then
-            echo ::set-output name=do_encryption::false
-          else
             echo ::set-output name=do_encryption::true
+          else
+            echo ::set-output name=do_encryption::false
           fi
       - name: Compress and encrypt image
         if: needs.steps.check_artifact_key.outputs.do_encryption == 'true'

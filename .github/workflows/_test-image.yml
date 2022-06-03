@@ -56,7 +56,7 @@ jobs:
       - name: Check data artifact key secret
         id: check_data_artifact_key
         run: |
-          if [ -n "${{ secrets.data_artifact_key }}" ]; then
+          if [ -z "${{ secrets.data_artifact_key }}" ]; then
             echo "::warning::Set the data_artifact_key secret."
             exit 1
           fi
@@ -64,9 +64,9 @@ jobs:
         id: check_image_artifact_key
         run: |
           if [ -n "${{ secrets.image_artifact_key }}" ]; then
-            echo ::set-output name=do_encryption::false
-          else
             echo ::set-output name=do_encryption::true
+          else
+            echo ::set-output name=do_encryption::false
           fi
       - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - id: setup-python
