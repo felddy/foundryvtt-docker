@@ -33,7 +33,7 @@ jobs:
     #     A comma separated list of Docker tags to be applied to the image. For
     #     more information about these tags, see the metadata-action
     #     documentation: https://github.com/docker/metadata-action#tags-input
-    name: "Prepare build variables"
+    name: "Calculate variables"
     runs-on: ubuntu-latest
     outputs:
       docker_labels: ${{ steps.docker_meta.outputs.labels }}
