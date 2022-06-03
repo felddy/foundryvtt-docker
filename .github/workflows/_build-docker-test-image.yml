@@ -10,10 +10,6 @@ on:
         required: true
         type: string
       # Optional inputs
-      build_args:
-        description: "Build args to pass to the Dockerfile"
-        required: false
-        type: string
       buildx_cache_dir:
         description: "The buildx cache directory"
         default: ~/.cache/buildx
@@ -36,6 +32,9 @@ on:
     secrets:
       artifact_key:
         description: "Enables encryption of the image archive if specified"
+        required: false
+      build_args:
+        description: "Build args to pass to the Dockerfile"
         required: false
 
 env:
