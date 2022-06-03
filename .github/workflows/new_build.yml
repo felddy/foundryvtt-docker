@@ -39,6 +39,8 @@ jobs:
 
   metadata:
     uses: ./.github/workflows/_metadata.yml
+    with:
+      image_name: felddy/ci-testing
 
   lint:
     uses: ./.github/workflows/_lint.yml
