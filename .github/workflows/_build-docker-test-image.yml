@@ -44,7 +44,7 @@ jobs:
   build:
     # Builds a single test image for the native platform.  This image is saved
     # as an artifact and loaded by the test job.
-    name: "Build image for testing"
+    name: "Build image"
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
