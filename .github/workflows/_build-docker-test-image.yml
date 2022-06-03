@@ -46,7 +46,6 @@ jobs:
     # as an artifact and loaded by the test job.
     name: "Build image for testing"
     runs-on: ubuntu-latest
-    needs: [prepare]
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
