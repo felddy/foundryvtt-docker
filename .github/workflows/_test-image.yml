@@ -54,11 +54,19 @@ jobs:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
       - name: Check data artifact key secret
-        id: check_artifact_key
+        id: check_data_artifact_key
         run: |
           if [ -n "${{ secrets.data_artifact_key }}" ]; then
             echo "::warning::Set the data_artifact_key secret."
             exit 1
+          fi
+      - name: Check if image artifact key is available
+        id: check_image_artifact_key
+        run: |
+          if [ -n "${{ secrets.image_artifact_key }}" ]; then
+            echo ::set-output name=do_encryption::false
+          else
+            echo ::set-output name=do_encryption::true
           fi
       - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
       - id: setup-python
@@ -87,11 +95,11 @@ jobs:
           name: ${{ inputs.image_artifact_name }}
           path: ${{ env.ARTIFACT_WORK_DIR }}
       - name: Load unencrypted image
-        if: ${{ !secrets.image_artifact_key }}
+        if: needs.steps.check_image_artifact_key.outputs.do_encryption == 'false'
         run: |
           docker load < ${{ env.ARTIFACT_WORK_DIR }}/image.tar
       - name: Load encrypted image
-        if: secrets.image_artifact_key
+        if: needs.steps.check_image_artifact_key.outputs.do_encryption == 'true'
         run: |
           7za x -p${{ secrets.image_artifact_key }} -so \
           ${{ env.ARTIFACT_WORK_DIR }}/image.tar.7z | docker load
