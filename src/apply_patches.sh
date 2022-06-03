@@ -1,7 +1,7 @@
 #! /bin/bash
 
 if [[ "${CONTAINER_PATCH_URLS:-}" ]]; then
-  source ./logging.sh
+  source logging.sh
 
   log_warn "CONTAINER_PATCH_URLS is set:  Only use patch URLs from trusted sources!"
   for url in ${CONTAINER_PATCH_URLS}; do
