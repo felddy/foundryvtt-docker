@@ -15,24 +15,27 @@ permissions:
   contents: read
 
 env:
-  GO_VERSION: '1.16'
   NORMAL_DATA_ARTIFACT_NAME: normal-data
   NORMAL_IMAGE_ARTIFACT_NAME: normal-test-image
   PRE_INSTALLED_DATA_ARTIFACT_NAME: pre-installed-data
   PRE_INSTALLED_IMAGE_ARTIFACT_NAME: pre-installed-test-image
-  PYTHON_VERSION: '3.9'
-  SHFMT_VERSION: 'v3.4.3'
 
 jobs:
+  variables:
+    run: |
+      echo ::set-output name=go_version::1.16
+      echo ::set-output name=python_version::3.9
+      echo ::set-output name=shfmt_version::v3.4.3
+
   metadata:
     uses: ./.github/workflows/_metadata.yml
 
   lint:
     uses: ./.github/workflows/_lint.yml
     with:
-      go_version: ${{ env.GO_VERSION }}
-      python_version: ${{ env.PYTHON_VERSION }}
-      shfmt_version: ${{ env.SHFMT_VERSION }}
+      go_version: ${{ needs.steps.variables.outputs.go_version }}
+      python_version: ${{ needs.steps.variables.outputs.python_version }}
+      shfmt_version: ${{ needs.steps.variables.outputs.shfmt_version }}
 
   build-normal-test-image:
     uses: ./.github/workflows/_build-docker-test-image.yml
