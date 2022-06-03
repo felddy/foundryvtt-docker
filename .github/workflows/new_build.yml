@@ -43,16 +43,17 @@ jobs:
       image_name: felddy/ci-testing
 
   lint:
+    needs: [config]
     uses: ./.github/workflows/_lint.yml
     with:
-      go_version: ${{ needs.steps.config.outputs.go_version }}
-      python_version: ${{ needs.steps.config.outputs.python_version }}
-      shfmt_version: ${{ needs.steps.config.outputs.shfmt_version }}
+      go_version: ${{ needs.config.outputs.go_version }}
+      python_version: ${{ needs.config.outputs.python_version }}
+      shfmt_version: ${{ needs.config.outputs.shfmt_version }}
 
   build-normal-test-image:
     uses: ./.github/workflows/_build-docker-test-image.yml
     with:
-      artifact_name: ${{ needs.steps.config.outputs.normal_image_artifact_name }}
+      artifact_name: ${{ needs.config.outputs.normal_image_artifact_name }}
     secrets:
       build_args: |
         VERSION=${{ needs.metadata.outputs.source_version }}
@@ -60,7 +61,7 @@ jobs:
   build-pre-installed-test-image:
     uses: ./.github/workflows/_build-docker-test-image.yml
     with:
-      artifact_name: ${{ needs.steps.config.outputs.pre_installed_image_artifact_name }}
+      artifact_name: ${{ needs.config.outputs.pre_installed_image_artifact_name }}
     secrets:
       artifact_key: ${{ secrets.ARTIFACT_KEY }}
       build_args: |
@@ -72,8 +73,8 @@ jobs:
     needs: [build-normal-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
-      data_artifact_name: ${{ needs.steps.config.outputs.normal_data_artifact_name }}
-      image_artifact_name: ${{ needs.steps.config.outputs.normal_image_artifact_name }}
+      data_artifact_name: ${{ needs.config.outputs.normal_data_artifact_name }}
+      image_artifact_name: ${{ needs.config.outputs.normal_image_artifact_name }}
     secrets:
       data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
       foundry_password: ${{ secrets.FOUNDRY_PASSWORD }}
@@ -83,8 +84,8 @@ jobs:
     needs: [build-pre-installed-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
-      data_artifact_name: ${{ needs.steps.config.outputs.pre_installed_data_artifact_name }}
-      image_artifact_name: ${{ needs.steps.config.outputs.pre_installed_image_artifact_name }}
+      data_artifact_name: ${{ needs.config.outputs.pre_installed_data_artifact_name }}
+      image_artifact_name: ${{ needs.config.outputs.pre_installed_image_artifact_name }}
     secrets:
       data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
       image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
