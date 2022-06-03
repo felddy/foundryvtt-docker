@@ -3,35 +3,35 @@ name: lint
 
 on:
   workflow_call:
-  inputs:
-    buildx_cache_dir:
-      default: ~/.cache/buildx
-      required: false
-      type: string
-    curl_cache_dir:
-      default: ~/.cache/curl
-      required: false
-      type: string
-    pip_cache_dir:
-      default: ~/.cache/pip
-      required: false
-      type: string
-    pre_commit_cache_dir:
-      default: ~/.cache/pre-commit
-      required: false
-      type: string
-    go_version:
-      default: '1.16'
-      required: false
-      type: string
-    python_version:
-      default: '3.9'
-      required: false
-      type: string 
-    shfmt_version:
-      default: 'v3.4.3'
-      required: false
-      type: string
+    inputs:
+      buildx_cache_dir:
+        default: ~/.cache/buildx
+        required: false
+        type: string
+      curl_cache_dir:
+        default: ~/.cache/curl
+        required: false
+        type: string
+      pip_cache_dir:
+        default: ~/.cache/pip
+        required: false
+        type: string
+      pre_commit_cache_dir:
+        default: ~/.cache/pre-commit
+        required: false
+        type: string
+      go_version:
+        default: '1.16'
+        required: false
+        type: string
+      python_version:
+        default: '3.9'
+        required: false
+        type: string 
+      shfmt_version:
+        default: 'v3.4.3'
+        required: false
+        type: string
 
 env:
   PIP_CACHE_DIR: ${{ inputs.pip_cache_dir }}
