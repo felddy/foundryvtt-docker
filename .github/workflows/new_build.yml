@@ -28,7 +28,7 @@ jobs:
     uses: ./.github/workflows/_metadata.yml
 
   lint:
-    uses: ./.github/workflows/lint.yml
+    uses: ./.github/workflows/_lint.yml
     with:
       go_version: ${{ env.GO_VERSION }}
       python_version: ${{ env.PYTHON_VERSION }}
