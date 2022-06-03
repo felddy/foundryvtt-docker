@@ -22,8 +22,14 @@ env:
 
 jobs:
   variables:
+    runs-on: ubuntu-latest
+    outputs:
+      go_version: ${{ steps.store.outputs.go_version }}
+      python_version: ${{ steps.store.outputs.python_version }}
+      shfmt_version: ${{ steps.store.outputs.shfmt_version }}
     steps:
     - name: Store values
+      id: store
       run: |
         echo ::set-output name=go_version::1.16
         echo ::set-output name=python_version::3.9
