@@ -91,17 +91,17 @@ jobs:
             echo ::set-output name=do_encryption::true
           fi
       - name: Compress and encrypt image
-        if: needs.steps.check_artifact_key.outputs.do_encryption == "true"
+        if: needs.steps.check_artifact_key.outputs.do_encryption == 'true'
         run: |
           7za a -p${{ secrets.artifact_key }} ${{ env.ARTIFACT_WORK_DIR }}/image.tar.7z ${{ env.ARTIFACT_WORK_DIR }}/image.tar
       - name: Upload encrypted artifacts
-        if: needs.steps.check_artifact_key.outputs.do_encryption == "true"
+        if: needs.steps.check_artifact_key.outputs.do_encryption == 'true'
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: ${{ inputs.artifact_name }}
           path: ${{ env.ARTIFACT_WORK_DIR }}/image.tar.7z
       - name: Upload unencrypted artifacts
-        if: needs.steps.check_artifact_key.outputs.do_encryption == "false"
+        if: needs.steps.check_artifact_key.outputs.do_encryption == 'false'
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
         with:
           name: ${{ inputs.artifact_name }}
