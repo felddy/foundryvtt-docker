@@ -55,6 +55,7 @@ jobs:
 
   build-normal-test-image:
     name: "Normal"
+    needs: [config]
     uses: ./.github/workflows/_build-docker-test-image.yml
     with:
       artifact_name: ${{ needs.config.outputs.normal_image_artifact_name }}
@@ -64,6 +65,7 @@ jobs:
 
   build-pre-installed-test-image:
     name: "Pre-installed"
+    needs: [config]
     uses: ./.github/workflows/_build-docker-test-image.yml
     with:
       artifact_name: ${{ needs.config.outputs.pre_installed_image_artifact_name }}
@@ -76,6 +78,7 @@ jobs:
 
   test-normal-image:
     name: "Normal"
+    needs: [config]
     needs: [build-normal-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
@@ -88,6 +91,7 @@ jobs:
 
   test-pre-installed-image:
     name: "Pre-installed"
+    needs: [config]
     needs: [build-pre-installed-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
