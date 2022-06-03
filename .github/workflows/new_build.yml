@@ -78,8 +78,7 @@ jobs:
 
   test-normal-image:
     name: "Normal"
-    needs: [config]
-    needs: [build-normal-test-image]
+    needs: [config,build-normal-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
       data_artifact_name: ${{ needs.config.outputs.normal_data_artifact_name }}
@@ -91,8 +90,7 @@ jobs:
 
   test-pre-installed-image:
     name: "Pre-installed"
-    needs: [config]
-    needs: [build-pre-installed-test-image]
+    needs: [config,build-pre-installed-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
       data_artifact_name: ${{ needs.config.outputs.pre_installed_data_artifact_name }}
