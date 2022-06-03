@@ -14,17 +14,15 @@ permissions:
   actions: read
   contents: read
 
-env:
-  NORMAL_DATA_ARTIFACT_NAME: normal-data
-  NORMAL_IMAGE_ARTIFACT_NAME: normal-test-image
-  PRE_INSTALLED_DATA_ARTIFACT_NAME: pre-installed-data
-  PRE_INSTALLED_IMAGE_ARTIFACT_NAME: pre-installed-test-image
-
 jobs:
-  variables:
+  config:
     runs-on: ubuntu-latest
     outputs:
       go_version: ${{ steps.store.outputs.go_version }}
+      normal_data_artifact_name: ${{ steps.store.outputs.normal_data_artifact_name }}
+      normal_image_artifact_name: ${{ steps.store.outputs.normal_image_artifact_name }}
+      pre_installed_data_artifact_name: ${{ steps.store.outputs.pre_installed_data_artifact_name }}
+      pre_installed_image_artifact_name: ${{ steps.store.outputs.pre_installed_image_artifact_name }}
       python_version: ${{ steps.store.outputs.python_version }}
       shfmt_version: ${{ steps.store.outputs.shfmt_version }}
     steps:
@@ -32,6 +30,10 @@ jobs:
       id: store
       run: |
         echo ::set-output name=go_version::1.16
+        echo ::set-output name=normal_data_artifact_name::normal-data
+        echo ::set-output name=normal_image_artifact_name::normal-test-image
+        echo ::set-output name=pre_installed_data_artifact_name::pre-installed-data
+        echo ::set-output name=pre_installed_image_artifact_name::pre-installed-test-image
         echo ::set-output name=python_version::3.9
         echo ::set-output name=shfmt_version::v3.4.3
 
@@ -41,25 +43,25 @@ jobs:
   lint:
     uses: ./.github/workflows/_lint.yml
     with:
-      go_version: ${{ needs.steps.variables.outputs.go_version }}
-      python_version: ${{ needs.steps.variables.outputs.python_version }}
-      shfmt_version: ${{ needs.steps.variables.outputs.shfmt_version }}
+      go_version: ${{ needs.steps.config.outputs.go_version }}
+      python_version: ${{ needs.steps.config.outputs.python_version }}
+      shfmt_version: ${{ needs.steps.config.outputs.shfmt_version }}
 
   build-normal-test-image:
     uses: ./.github/workflows/_build-docker-test-image.yml
     with:
-      artifact_name: ${{ env.NORMAL_IMAGE_ARTIFACT_NAME }}
+      artifact_name: ${{ needs.steps.config.outputs.normal_image_artifact_name }}
       build_args: |
-        VERSION=${{ needs.prepare.outputs.source_version }}
+        VERSION=${{ needs.metadata.outputs.source_version }}
 
   build-pre-installed-test-image:
     uses: ./.github/workflows/_build-docker-test-image.yml
     with:
-      artifact_name: ${{ env.PRE_INSTALLED_IMAGE_ARTIFACT_NAME }}
+      artifact_name: ${{ needs.steps.config.outputs.pre_installed_image_artifact_name }}
       build_args: |
         FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
         FOUNDRY_USERNAME=${{ secrets.FOUNDRY_USERNAME }}
-        VERSION=${{ needs.prepare.outputs.source_version }}
+        VERSION=${{ needs.metadata.outputs.source_version }}
     secrets:
       artifact_key: ${{ secrets.ARTIFACT_KEY }}
 
@@ -67,8 +69,8 @@ jobs:
     needs: [build-normal-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
-      data_artifact_name: ${{ env.NORMAL_DATA_ARTIFACT_NAME}}
-      image_artifact_name: ${{ env.NORMAL_IMAGE_ARTIFACT_NAME }}
+      data_artifact_name: ${{ needs.steps.config.outputs.normal_data_artifact_name }}
+      image_artifact_name: ${{ needs.steps.config.outputs.normal_image_artifact_name }}
     secrets:
       data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
       foundry_password: ${{ secrets.FOUNDRY_PASSWORD }}
@@ -78,8 +80,8 @@ jobs:
     needs: [build-pre-installed-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
-      data_artifact_name: ${{ env.PRE_INSTALLED_DATA_ARTIFACT_NAME}}
-      image_artifact_name: ${{ env.PRE_INSTALLED_IMAGE_ARTIFACT_NAME }}
+      data_artifact_name: ${{ needs.steps.config.outputs.pre_installed_data_artifact_name }}
+      image_artifact_name: ${{ needs.steps.config.outputs.pre_installed_image_artifact_name }}
     secrets:
       data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
       image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
