@@ -2,6 +2,8 @@
 # Disable line-length check for readability large output references.
 # yamllint disable rule:line-length
 
+name: build
+
 on:
   push:
     branches:
@@ -28,8 +30,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       go_version: ${{ steps.store.outputs.go_version }}
+      image_name: ${{ steps.store.outputs.image_name }}
       normal_data_artifact_name: ${{ steps.store.outputs.normal_data_artifact_name }}
       normal_image_artifact_name: ${{ steps.store.outputs.normal_image_artifact_name }}
+      platforms: ${{ steps.store.outputs.platforms }}
       pre_installed_data_artifact_name: ${{ steps.store.outputs.pre_installed_data_artifact_name }}
       pre_installed_image_artifact_name: ${{ steps.store.outputs.pre_installed_image_artifact_name }}
       python_version: ${{ steps.store.outputs.python_version }}
