@@ -35,8 +35,8 @@ jobs:
     name: "Calculate variables"
     runs-on: ubuntu-latest
     outputs:
-      docker_labels: ${{ steps.docker_meta.outputs.labels }}
-      docker_tags: ${{ steps.docker_meta.outputs.tags }}
+      image_labels: ${{ steps.docker_meta.outputs.labels }}
+      image_tags: ${{ steps.docker_meta.outputs.tags }}
       source_version: ${{ steps.source_values.outputs.source_version }}
       tags: ${{ steps.prep.outputs.tags }}
     steps:
