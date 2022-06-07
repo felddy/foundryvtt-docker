@@ -1,25 +1,20 @@
 ---
+# Disable line-length check for readability large output references.
+# yamllint disable rule:line-length
+
 name: build
-# https://github.com/docker/build-push-action#complete-workflow
 
 on:
-  # push:
-  #   branches:
-  #     - '**'
-  #   tags:
-  #     - 'v*.*.*'
-  # pull_request:
-  # schedule:
-  #   - cron: '0 10 * * *'  # everyday at 10am
-  # repository_dispatch:
-  #   # Respond to rebuild requests. See: https://github.com/cisagov/action-apb/
-  #   types: [apb]
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*.*.*'
+  pull_request:
+  schedule:
+    - cron: '0 10 * * *'  # everyday at 10am
   workflow_dispatch:
     inputs:
-      remote-shell:
-        description: "Debug with remote shell"
-        required: true
-        default: false
       dispatch-tag:
         description: "Tag to apply to pushed images"
         required: true
@@ -29,477 +24,112 @@ permissions:
   actions: read
   contents: read
 
-env:
-  BUILDX_CACHE_DIR: ~/.cache/buildx
-  CURL_CACHE_DIR: ~/.cache/curl
-  IMAGE_NAME: felddy/ci-testing
-  PIP_CACHE_DIR: ~/.cache/pip
-  PLATFORMS: "linux/amd64,linux/arm/v6,linux/arm/v7,\
-  linux/arm64,linux/ppc64le,linux/s390x"
-  PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
-  RUN_TMATE: ${{ secrets.RUN_TMATE }}
-
 jobs:
-  lint:
-    # Checks out the source and runs pre-commit hooks.  Detects coding errors
-    # and style deviations.
-    name: "Lint sources"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
-        with:
-          # TODO: change to 'egress-policy: block' after couple of runs
-          egress-policy: audit
-
-      - id: setup-env
-        uses: cisagov/setup-env-github-action@a1913cd974407cd92d5b015342aa6d28d36539b8
-      - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
-      - id: setup-python
-        uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
-        with:
-          python-version: 3.9
-      # We need the Go version and Go cache location for the actions/cache step,
-      # so the Go installation must happen before that.
-      - uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923
-        with:
-          go-version: '1.16'
-      - name: Store installed Go version
-        id: go-version
-        run: |
-          echo "::set-output name=version::"\
-          "$(go version | sed 's/^go version go\([0-9.]\+\) .*/\1/')"
-      - name: Lookup Go cache directory
-        id: go-cache
-        run: |
-          echo "::set-output name=dir::$(go env GOCACHE)"
-      - uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
-        env:
-          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-\
-            go${{ steps.go-version.outputs.version }}-\
-            packer${{ steps.setup-env.outputs.packer-version }}-\
-            tf${{ steps.setup-env.outputs.terraform-version }}-"
-        with:
-          path: |
-            ${{ env.PIP_CACHE_DIR }}
-            ${{ env.PRE_COMMIT_CACHE_DIR }}
-            ${{ env.CURL_CACHE_DIR }}
-            ${{ steps.go-cache.outputs.dir }}
-          key: "${{ env.BASE_CACHE_KEY }}\
-            ${{ hashFiles('**/requirements-test.txt') }}-\
-            ${{ hashFiles('**/requirements.txt') }}-\
-            ${{ hashFiles('**/.pre-commit-config.yaml') }}"
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Setup curl cache
-        run: mkdir -p ${{ env.CURL_CACHE_DIR }}
-      - name: Install shfmt
-        env:
-          PACKAGE_URL: mvdan.cc/sh/v3/cmd/shfmt
-          PACKAGE_VERSION: ${{ steps.setup-env.outputs.shfmt-version }}
-        run: go install ${PACKAGE_URL}@${PACKAGE_VERSION}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade --requirement requirements-test.txt
-      - name: Set up pre-commit hook environments
-        run: pre-commit install-hooks
-      - name: Run pre-commit on all files
-        run: pre-commit run --all-files
-      - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
-        if: env.RUN_TMATE
-  prepare:
-    # Calculates and publishes outputs that are used by other jobs.
-    #
-    # Outputs:
-    #   source_version:
-    #     The source version as reported by the `bump_version.sh show` command.
-    #   labels:
-    #     A list of image labels to apply to the image.
-    #   tags:
-    #     A comma separated list of Docker tags to be applied to the image. For
-    #     more information about these tags, see the metadata-action
-    #     documentation: https://github.com/docker/metadata-action#tags-input
-    name: "Prepare build variables"
+  config:
+    name: "Store configuration outputs"
     runs-on: ubuntu-latest
     outputs:
-      created: ${{ steps.prep.outputs.created }}
-      docker_labels: ${{ steps.docker_meta.outputs.labels }}
-      docker_tags: ${{ steps.docker_meta.outputs.tags }}
-      source_version: ${{ steps.source_values.outputs.source_version }}
-      tags: ${{ steps.prep.outputs.tags }}
+      go_version: ${{ steps.store.outputs.go_version }}
+      image_name: ${{ steps.store.outputs.image_name }}
+      normal_data_artifact_name: ${{ steps.store.outputs.normal_data_artifact_name }}
+      normal_image_artifact_name: ${{ steps.store.outputs.normal_image_artifact_name }}
+      platforms: ${{ steps.store.outputs.platforms }}
+      pre_installed_data_artifact_name: ${{ steps.store.outputs.pre_installed_data_artifact_name }}
+      pre_installed_image_artifact_name: ${{ steps.store.outputs.pre_installed_image_artifact_name }}
+      python_version: ${{ steps.store.outputs.python_version }}
+      shfmt_version: ${{ steps.store.outputs.shfmt_version }}
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
-        with:
-          # TODO: change to 'egress-policy: block' after couple of runs
-          egress-policy: audit
-      - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
-      - name: Dump context
-        uses: crazy-max/ghaction-dump-context@v1
-      - name: Calculate values from source
-        id: source_values
+      - name: Store values
+        id: store
         run: |
-          echo ::set-output name=source_version::$(./bump_version.sh show)
-      - name: Calculate Docker metadata
-        id: docker_meta
-        uses: docker/metadata-action@69f6fc9d46f2f8bf0d5491e4aabe0bb8c6a4678a
-        with:
-          flavor: |
-            latest=false
-          images: |
-            ${{ env.IMAGE_NAME }}
-            ghcr.io/${{ env.IMAGE_NAME }}
-          # Disable line-length check for readability of labels and tags.
-          # yamllint disable rule:line-length
-          labels: |
-            org.opencontainers.image.version=${{ steps.source_values.outputs.source_version }}
-          tags: |
-            type=edge
-            type=raw,event=workflow_dispatch,value=${{ github.event.inputs.dispatch-tag}}
-            type=ref,event=branch
-            type=ref,event=pr
-            type=schedule,pattern=nightly
-            type=semver,pattern=latest,enable=${{ github.base_ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-            type=semver,pattern=release,enable=${{ github.base_ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-            type=semver,pattern=prerelease,enable=${{ github.base_ref == format('refs/heads/{0}', 'prerelease') }}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha
-          # yamllint enable rule:line-length
-      - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
-        if: github.event.inputs.remote-shell == 'true' || env.RUN_TMATE
-  check-artifact-secrets:
-    name: "Check artifact secrets"
-    runs-on: ubuntu-latest
-    steps:
-      - name: check-secrets
-        run: |
-          if [ -z "${{ secrets.ARTIFACT_KEY }}" ]; then
-            echo "::warning::Set ARTIFACT_KEY secrets."
-            exit 1
-          fi
-  check-docker-secrets:
-    name: "Check Docker secrets"
-    runs-on: ubuntu-latest
-    steps:
-      - name: check-secrets
-        run: |
-          if [ -z "${{ secrets.DOCKER_USERNAME }}" ] ||
-            [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
-            echo "::warning::Set DOCKER_USERNAME and DOCKER_PASSWORD secrets."
-            exit 1
-          fi
-  check-foundry-secrets:
-    name: "Check Foundry secrets"
-    runs-on: ubuntu-latest
-    steps:
-      - name: check-secrets
-        run: |
-          if [ -z "${{ secrets.FOUNDRY_USERNAME }}" ] ||
-            [ -z "${{ secrets.FOUNDRY_PASSWORD }}" ]; then
-            echo "::warning::Set FOUNDRY_USERNAME and FOUNDRY_PASSWORD secrets."
-            exit 1
-          fi
-  build-normal:
-    # Builds a single test image for the native platform.  This image is saved
-    # as an artifact and loaded by the test job.
-    name: "Build normal test image"
-    runs-on: ubuntu-latest
-    needs: [prepare]
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
-        with:
-          # TODO: change to 'egress-policy: block' after couple of runs
-          egress-policy: audit
-      - name: Checkout
-        uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
-      - name: Cache Docker layers
-        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
-        env:
-          BASE_CACHE_KEY: buildx-${{ runner.os }}-
-        with:
-          path: ${{ env.BUILDX_CACHE_DIR }}
-          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Create dist directory
-        run: mkdir -p dist
-      - name: Build image
-        id: docker_build
-        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
-        with:
-          build-args: |
-            VERSION=${{ needs.prepare.outputs.source_version }}
-          cache-from: type=local,src=${{ env.BUILDX_CACHE_DIR }}
-          cache-to: type=local,dest=${{ env.BUILDX_CACHE_DIR }}
-          context: .
-          file: ./Dockerfile
-          outputs: type=docker,dest=dist/image.tar
-          tags: ${{ env.IMAGE_NAME }}:latest  # not to be pushed
-          labels: ${{ needs.prepare.outputs.docker_labels }}
-      - name: Compress and encrypt image
-        run: |
-          7za a -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z dist/image.tar
-      - name: Upload artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
-        with:
-          name: dist-normal
-          path: dist/image.tar
-      - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
-        if: env.RUN_TMATE
-  build-pre-install:
-    name: "Build pre-installed test image"
-    runs-on: ubuntu-latest
-    needs: [prepare, check-artifact-secrets, check-foundry-secrets]
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
-        with:
-          # TODO: change to 'egress-policy: block' after couple of runs
-          egress-policy: audit
-      - name: Checkout
-        uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
-      - name: Cache Docker layers
-        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
-        env:
-          BASE_CACHE_KEY: buildx-${{ runner.os }}-
-        with:
-          path: ${{ env.BUILDX_CACHE_DIR }}
-          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Create dist directory
-        run: mkdir -p dist
-      - name: Build image
-        id: docker_build
-        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
-        with:
-          build-args: |
-            FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
-            FOUNDRY_USERNAME=${{ secrets.FOUNDRY_USERNAME }}
-            VERSION=${{ needs.prepare.outputs.source_version }}
-          cache-from: type=local,src=${{ env.BUILDX_CACHE_DIR }}
-          cache-to: type=local,dest=${{ env.BUILDX_CACHE_DIR }}
-          context: .
-          file: ./Dockerfile
-          outputs: type=docker,dest=dist/image.tar
-          tags: ${{ env.IMAGE_NAME }}:latest  # not to be pushed
-          labels: ${{ needs.prepare.outputs.docker_labels }}
-      - name: Compress and encrypt image
-        run: |
-          7za a -p${{ secrets.ARTIFACT_KEY }} dist/image.tar.7z dist/image.tar
-      - name: Upload artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
-        with:
-          name: dist-pre-install
-          path: dist/image.tar.7z
-      - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
-        if: env.RUN_TMATE
-  test-normal:
-    # Executes tests on the single-platform image created in the "build" job.
-    name: "Test normal image"
-    runs-on: ubuntu-latest
-    needs: [build-normal, check-artifact-secrets, check-foundry-secrets]
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
-        with:
-          # TODO: change to 'egress-policy: block' after couple of runs
-          egress-policy: audit
-      - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
-      - id: setup-python
-        uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
-        with:
-          python-version: 3.9
-      - name: Cache testing environments
-        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
-        env:
-          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-"
-        with:
-          path: ${{ env.PIP_CACHE_DIR }}
-          key: "${{ env.BASE_CACHE_KEY }}\
-            ${{ hashFiles('**/requirements-test.txt') }}-\
-            ${{ hashFiles('**/requirements.txt') }}"
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade --requirement requirements-test.txt
-      - name: Download docker image artifact
-        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
-        with:
-          name: dist-normal
-          path: dist
-      - name: Load docker image
-        run: |
-          docker load < dist/image.tar
-      - name: Set data directory permissions
-        run: |
-          chmod a+rwx data
-      - name: Run tests
-        env:
-          FOUNDRY_PASSWORD: ${{ secrets.FOUNDRY_PASSWORD }}
-          FOUNDRY_USERNAME: ${{ secrets.FOUNDRY_USERNAME }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: pytest --runslow
-      - name: Compress and encrypt data directory
-        if: ${{ always() }}
-        run: |
-          tar cf - data | 7za a -p${{ secrets.ARTIFACT_KEY }} -si data.tar.7z
-      - name: Upload data artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
-        with:
-          name: data-normal
-          path: data.tar.7z
-      - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
-        if: env.RUN_TMATE
-  test-pre-install:
-    # Executes tests on the single-platform image created in the "build" job.
-    name: "Test pre-installed image"
-    runs-on: ubuntu-latest
-    needs: [build-pre-install, check-artifact-secrets]
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
-        with:
-          # TODO: change to 'egress-policy: block' after couple of runs
-          egress-policy: audit
-      - uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
-      - id: setup-python
-        uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
-        with:
-          python-version: 3.9
-      - name: Cache testing environments
-        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
-        env:
-          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-"
-        with:
-          path: ${{ env.PIP_CACHE_DIR }}
-          key: "${{ env.BASE_CACHE_KEY }}\
-            ${{ hashFiles('**/requirements-test.txt') }}-\
-            ${{ hashFiles('**/requirements.txt') }}"
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade --requirement requirements-test.txt
-      - name: Download docker image artifact
-        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
-        with:
-          name: dist-pre-install
-          path: dist
-      - name: Load docker image
-        run: |
-          7za x -p${{ secrets.ARTIFACT_KEY }} -so \
-          dist/image.tar.7z | docker load
-      - name: Set data directory permissions
-        run: |
-          chmod a+rwx data
-      - name: Run tests
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: pytest --runslow
-      - name: Compress and encrypt data directory
-        if: ${{ always() }}
-        run: |
-          tar cf - data | 7za a -p${{ secrets.ARTIFACT_KEY }} -si data.tar.7z
-      - name: Upload data artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
-        with:
-          name: data-pre-install
-          path: data.tar.7z
-      - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
-        if: env.RUN_TMATE
-  build-push-all:
-    # Builds the final set of images for each of the platforms listed in
-    # PLATFORMS environment variable.  These images are tagged with the Docker
-    # tags calculated in the "prepare" job and pushed to Docker Hub and the
-    # GitHub Container Registry.  The contents of README.md are pushed as the
-    # image's description to Docker Hub.  This job is skipped when the
-    # triggering event is a pull request.
-    name: "Build and push all platforms"
-    runs-on: ubuntu-latest
+          echo ::set-output name=go_version::1.16
+          echo ::set-output name=image_name::felddy/ci-testing
+          echo ::set-output name=normal_data_artifact_name::normal-data
+          echo ::set-output name=normal_image_artifact_name::normal-test-image
+          echo ::set-output name=platforms::linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
+          echo ::set-output name=pre_installed_data_artifact_name::pre-installed-data
+          echo ::set-output name=pre_installed_image_artifact_name::pre-installed-test-image
+          echo ::set-output name=python_version::3.9
+          echo ::set-output name=shfmt_version::v3.4.3
+
+  metadata:
+    name: "Metadata"
+    needs: [config]
+    uses: ./.github/workflows/_metadata.yml
+    with:
+      image_name: ${{ needs.config.outputs.image_name }}
+
+  lint:
+    name: "Lint"
+    needs: [config]
+    uses: ./.github/workflows/_lint.yml
+    with:
+      go_version: ${{ needs.config.outputs.go_version }}
+      python_version: ${{ needs.config.outputs.python_version }}
+      shfmt_version: ${{ needs.config.outputs.shfmt_version }}
+
+  build-normal-test-image:
+    name: "Normal"
+    needs: [config, metadata]
+    uses: ./.github/workflows/_build-docker-test-image.yml
+    with:
+      artifact_name: ${{ needs.config.outputs.normal_image_artifact_name }}
+      image_labels: ${{ needs.metadata.outputs.image_labels }}
+    secrets:
+      build_args: |
+        VERSION=${{ needs.metadata.outputs.source_version }}
+
+  build-pre-installed-test-image:
+    name: "Pre-installed"
+    needs: [config, metadata]
+    uses: ./.github/workflows/_build-docker-test-image.yml
+    with:
+      artifact_name: ${{ needs.config.outputs.pre_installed_image_artifact_name }}
+      image_labels: ${{ needs.metadata.outputs.image_labels }}
+    secrets:
+      artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      build_args: |
+        FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
+        FOUNDRY_USERNAME=${{ secrets.FOUNDRY_USERNAME }}
+        VERSION=${{ needs.metadata.outputs.source_version }}
+
+  test-normal-image:
+    name: "Normal"
+    needs: [config, build-normal-test-image]
+    uses: ./.github/workflows/_test-image.yml
+    with:
+      data_artifact_name: ${{ needs.config.outputs.normal_data_artifact_name }}
+      image_artifact_name: ${{ needs.config.outputs.normal_image_artifact_name }}
+    secrets:
+      data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      foundry_password: ${{ secrets.FOUNDRY_PASSWORD }}
+      foundry_username: ${{ secrets.FOUNDRY_USERNAME }}
+
+  test-pre-installed-image:
+    name: "Pre-installed"
+    needs: [config, build-pre-installed-test-image]
+    uses: ./.github/workflows/_test-image.yml
+    with:
+      data_artifact_name: ${{ needs.config.outputs.pre_installed_data_artifact_name }}
+      image_artifact_name: ${{ needs.config.outputs.pre_installed_image_artifact_name }}
+    secrets:
+      data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+
+  build-and-push:
+    needs: [config, lint, metadata, test-normal-image, test-pre-installed-image]
+    if: github.event_name != 'pull_request'
+    name: "Publish"
     permissions:
       packages: write
-    needs: [lint, prepare, test-normal, test-pre-install, check-docker-secrets]
-    if: github.event_name != 'pull_request'
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
-        with:
-          # TODO: change to 'egress-policy: block' after couple of runs
-          egress-policy: audit
-      - name: Login to Docker Hub
-        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Checkout
-        uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
-      - name: Cache Docker layers
-        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
-        env:
-          BASE_CACHE_KEY: buildx-${{ runner.os }}-
-        with:
-          path: ${{ env.BUILDX_CACHE_DIR }}
-          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Create cross-platform support Dockerfile-x
-        run: ./buildx-dockerfile.sh
-      - name: Build and push platform images to registries
-        id: docker_build
-        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
-        with:
-          build-args: |
-            VERSION=${{ needs.prepare.outputs.source_version }}
-          cache-from: type=local,src=${{ env.BUILDX_CACHE_DIR }}
-          cache-to: type=local,dest=${{ env.BUILDX_CACHE_DIR }}
-          context: .
-          file: ./Dockerfile-x
-          platforms: ${{ env.PLATFORMS }}
-          push: true
-          tags: ${{ needs.prepare.outputs.docker_tags }}
-          labels: ${{ needs.prepare.outputs.docker_labels }}
-      - name: Publish README.md to Docker Hub
-        env:
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        run: ./push_readme.sh
-      - name: Setup tmate debug session
-        uses: mxschmitt/action-tmate@8b4e4ac71822ed7e0ad5fb3d1c33483e9e8fb270
-        if: env.RUN_TMATE
+    uses: ./.github/workflows/_build-push-all.yml
+    with:
+      build_args: |
+        VERSION=${{ needs.metadata.outputs.source_version }}
+      image_labels: ${{ needs.metadata.outputs.image_labels }}
+      image_name: ${{ needs.config.outputs.image_name }}
+      image_tags: ${{ needs.metadata.outputs.image_tags }}
+      platforms: ${{ needs.config.outputs.platforms }}
+    secrets:
+      docker_password: ${{ secrets.DOCKER_PASSWORD }}
+      docker_username: ${{ secrets.DOCKER_USERNAME }}
