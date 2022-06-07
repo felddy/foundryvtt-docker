@@ -73,7 +73,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
         with:
-          build-args: ${{ inputs.build_args }}
+          build-args: ${{ secrets.build_args }}
           cache-from: type=local,src=${{ inputs.buildx_cache_dir }}
           cache-to: type=local,dest=${{ inputs.buildx_cache_dir }}
           context: .
