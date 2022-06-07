@@ -119,7 +119,7 @@ jobs:
     name: "Publish"
     permissions:
       packages: write
-    uses: ./.github/workflows/_build-and-push.yml
+    uses: ./.github/workflows/_build-push-all.yml
     with:
       build_args: |
         VERSION=${{ needs.metadata.outputs.source_version }}
