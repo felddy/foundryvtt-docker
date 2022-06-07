@@ -113,7 +113,7 @@ jobs:
       image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
 
   build-and-push:
-    needs: [config, lint, metadata, test-normal, test-pre-install]
+    needs: [config, lint, metadata, test-normal-image, test-pre-installed-image]
     if: github.event_name != 'pull_request'
     name: "Publish"
     permissions:
