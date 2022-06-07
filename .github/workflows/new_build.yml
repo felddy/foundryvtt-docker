@@ -11,10 +11,20 @@ on:
   pull_request:
   schedule:
     - cron: '0 10 * * *'  # everyday at 10am
+  workflow_dispatch:
+    inputs:
+      dispatch-tag:
+        description: "Tag to apply to pushed images"
+        required: true
+        default: dispatch
 
 permissions:
   actions: read
   contents: read
+
+env:
+  IMAGE_NAME: felddy/ci-testing
+  PLATFORMS: "linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x"
 
 jobs:
   config:
@@ -44,7 +54,7 @@ jobs:
     name: "Metadata"
     uses: ./.github/workflows/_metadata.yml
     with:
-      image_name: felddy/ci-testing
+      image_name: ${{ env.IMAGE_NAME }}
 
   lint:
     name: "Lint"
@@ -103,5 +113,20 @@ jobs:
       data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
       image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
 
-# build-and-push:
-#   needs: [lint, prepare, test-normal, test-pre-install, check-docker-secrets]
+  build-and-push:
+    needs: [lint, metadata, test-normal, test-pre-install]
+    if: github.event_name != 'pull_request'
+    name: "Publish"
+    permissions:
+      packages: write
+    uses: ./.github/workflows/_build-and-push.yml
+    with:
+      build_args: |
+        VERSION=${{ needs.metadata.outputs.source_version }}
+      image_labels: ${{ needs.metadata.outputs.image_labels }}
+      image_name: ${{ env.IMAGE_NAME }}
+      image_tags: ${{ needs.metadata.outputs.image_tags }}
+      platforms: ${{ env.PLATFORMS }}
+    secrets:
+      docker_password: ${{ secrets.DOCKER_PASSWORD }}
+      docker_username: ${{ secrets.DOCKER_USERNAME }}

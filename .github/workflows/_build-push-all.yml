@@ -1,0 +1,114 @@
+---
+name: Build and push
+
+on:
+  workflow_call:
+    inputs:
+      # Required inputs
+      image_name:
+        description: "The Docker image name"
+        required: true
+        type: string
+      platforms:
+        description: "The list of platforms to build images for"
+        required: true
+        type: string
+      # Optional inputs
+      build_args:
+        description: "Build args to pass to the Dockerfile"
+        required: false
+        type: string
+      buildx_cache_dir:
+        description: "The buildx cache directory"
+        default: ~/.cache/buildx
+        required: false
+        type: string
+      docker_file:
+        description: "The Dockerfile to use"
+        default: ./Dockerfile
+        required: false
+        type: string
+      image_labels:
+        description: "Image labels to apply to the image"
+        required: false
+        type: string
+      image_tags:
+        description: "The tags to apply to the image"
+        default: local/test-image:latest
+        required: false
+        type: string
+    secrets:
+      docker_password:
+        description: "The password for the Docker hub account"
+        required: true
+      docker_username:
+        description: "The username for the Docker hub account"
+        required: true
+
+jobs:
+  build-push-all:
+    # Builds the final set of images for each of the platforms listed in
+    # PLATFORMS environment variable.  These images are tagged with the Docker
+    # tags calculated in the "prepare" job and pushed to Docker Hub and the
+    # GitHub Container Registry.  The contents of README.md are pushed as the
+    # image's description to Docker Hub.  This job is skipped when the
+    # triggering event is a pull request.
+
+    # This workflow requires the caller to declare:
+    #   permissions:
+    #     packages: write
+
+    name: "Build and push all platforms"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+      - name: Login to Docker Hub
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          username: ${{ secrets.docker_username }}
+          password: ${{ secrets.docker_password }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@8b122486cedac8393e77aa9734c3528886e4a1a8
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
+      - name: Cache Docker layers
+        uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
+        env:
+          BASE_CACHE_KEY: buildx-${{ runner.os }}-
+        with:
+          path: ${{ inputs.buildx_cache_dir }}
+          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
+          restore-keys: |
+            ${{ env.BASE_CACHE_KEY }}
+      - name: Create cross-platform support Dockerfile-x
+        run: ./buildx-dockerfile.sh
+      - name: Build and push platform images to registries
+        id: docker_build
+        uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
+        with:
+          build-args: ${{ inputs.build_args }}
+          cache-from: type=local,src=${{ inputs.buildx_cache_dir }}
+          cache-to: type=local,dest=${{ inputs.buildx_cache_dir }}
+          context: .
+          file: ${{ inputs.docker_file}}
+          labels: ${{ inputs.image_labels }}
+          platforms: ${{ input.platforms }}
+          push: true
+          tags: ${{ inputs.image_tags }}
+      - name: Publish README.md to Docker Hub
+        env:
+          DOCKER_PASSWORD: ${{ secrets.docker_password }}
+          DOCKER_USERNAME: ${{ secrets.docker_username }}
+        run: ./push_readme.sh

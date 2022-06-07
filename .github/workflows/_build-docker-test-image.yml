@@ -78,9 +78,9 @@ jobs:
           cache-to: type=local,dest=${{ inputs.buildx_cache_dir }}
           context: .
           file: ${{ inputs.docker_file}}
+          labels: ${{ inputs.image_labels }}
           outputs: type=docker,dest=${{ env.ARTIFACT_WORK_DIR }}/image.tar
           tags: ${{ inputs.image_tags }}
-          labels: ${{ inputs.image_labels }}
       - name: Check if artifact key is available
         id: check_artifact_key
         run: |
