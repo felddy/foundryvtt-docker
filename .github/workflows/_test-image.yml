@@ -106,6 +106,10 @@ jobs:
       - name: Set data directory permissions
         run: |
           chmod a+rwx data
+      - name: Debug secret passing
+        run: |
+          echo "p: $(echo ${{ secrets.foundry_password }} | shasum )"
+          echo "u: $(echo ${{ secrets.foundry_username }} | shasum )"
       - name: Run tests
         env:
           FOUNDRY_PASSWORD: ${{ secrets.foundry_password }}
