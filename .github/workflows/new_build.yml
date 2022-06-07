@@ -27,16 +27,16 @@ jobs:
       python_version: ${{ steps.store.outputs.python_version }}
       shfmt_version: ${{ steps.store.outputs.shfmt_version }}
     steps:
-    - name: Store values
-      id: store
-      run: |
-        echo ::set-output name=go_version::1.16
-        echo ::set-output name=normal_data_artifact_name::normal-data
-        echo ::set-output name=normal_image_artifact_name::normal-test-image
-        echo ::set-output name=pre_installed_data_artifact_name::pre-installed-data
-        echo ::set-output name=pre_installed_image_artifact_name::pre-installed-test-image
-        echo ::set-output name=python_version::3.9
-        echo ::set-output name=shfmt_version::v3.4.3
+      - name: Store values
+        id: store
+        run: |
+          echo ::set-output name=go_version::1.16
+          echo ::set-output name=normal_data_artifact_name::normal-data
+          echo ::set-output name=normal_image_artifact_name::normal-test-image
+          echo ::set-output name=pre_installed_data_artifact_name::pre-installed-data
+          echo ::set-output name=pre_installed_image_artifact_name::pre-installed-test-image
+          echo ::set-output name=python_version::3.9
+          echo ::set-output name=shfmt_version::v3.4.3
 
   metadata:
     name: "Metadata"
@@ -78,7 +78,7 @@ jobs:
 
   test-normal-image:
     name: "Normal"
-    needs: [config,build-normal-test-image]
+    needs: [config, build-normal-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
       data_artifact_name: ${{ needs.config.outputs.normal_data_artifact_name }}
@@ -90,7 +90,7 @@ jobs:
 
   test-pre-installed-image:
     name: "Pre-installed"
-    needs: [config,build-pre-installed-test-image]
+    needs: [config, build-pre-installed-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
       data_artifact_name: ${{ needs.config.outputs.pre_installed_data_artifact_name }}

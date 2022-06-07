@@ -27,7 +27,7 @@ on:
       python_version:
         default: '3.9'
         required: false
-        type: string 
+        type: string
       shfmt_version:
         default: 'v3.4.3'
         required: false
@@ -98,4 +98,3 @@ jobs:
         run: pre-commit install-hooks
       - name: Run pre-commit on all files
         run: pre-commit run --all-files
-        

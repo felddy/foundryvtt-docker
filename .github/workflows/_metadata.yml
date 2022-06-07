@@ -5,10 +5,9 @@ on:
     inputs:
       # Required inputs
       image_name:
-        description: "The Docker image name"     
+        description: "The Docker image name"
         required: true
         type: string
-      # Optional inputs
     outputs:
       image_labels:
         description: "The calculated image labels"

@@ -6,7 +6,7 @@ on:
     inputs:
       # Required inputs
       artifact_name:
-        description: "The artifact name used to store the image archive"     
+        description: "The artifact name used to store the image archive"
         required: true
         type: string
       # Optional inputs
