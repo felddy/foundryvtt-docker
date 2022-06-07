@@ -1,4 +1,6 @@
 ---
+# Disable line-length check for readability large output references.
+# yamllint disable rule:line-length
 
 on:
   push:
@@ -101,5 +103,5 @@ jobs:
       data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
       image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
 
-  # build-and-push:
-  #   needs: [lint, prepare, test-normal, test-pre-install, check-docker-secrets]
+# build-and-push:
+#   needs: [lint, prepare, test-normal, test-pre-install, check-docker-secrets]
