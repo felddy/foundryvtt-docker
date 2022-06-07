@@ -6,11 +6,11 @@ on:
     inputs:
       # Required inputs
       image_artifact_name:
-        description: "The artifact name used to load the image archive"     
+        description: "The artifact name used to load the image archive"
         required: true
         type: string
       data_artifact_name:
-        description: "The artifact name used to store the data archive"     
+        description: "The artifact name used to store the data archive"
         required: true
         type: string
       # Optional inputs
