@@ -111,7 +111,7 @@ jobs:
           FOUNDRY_PASSWORD: ${{ secrets.foundry_password }}
           FOUNDRY_USERNAME: ${{ secrets.foundry_username }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: pytest --runslow
+        run: pytest --verbose --runslow
       - name: Compress and encrypt data directory
         if: ${{ always() }}
         run: |
