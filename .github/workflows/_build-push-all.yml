@@ -111,4 +111,5 @@ jobs:
         env:
           DOCKER_PASSWORD: ${{ secrets.docker_password }}
           DOCKER_USERNAME: ${{ secrets.docker_username }}
+          IMAGE_NAME: ${{ inputs.image_name }}
         run: ./push_readme.sh
