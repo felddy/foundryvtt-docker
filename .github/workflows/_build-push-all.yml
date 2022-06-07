@@ -104,7 +104,7 @@ jobs:
           context: .
           file: ${{ inputs.docker_file}}
           labels: ${{ inputs.image_labels }}
-          platforms: ${{ input.platforms }}
+          platforms: ${{ inputs.platforms }}
           push: true
           tags: ${{ inputs.image_tags }}
       - name: Publish README.md to Docker Hub
