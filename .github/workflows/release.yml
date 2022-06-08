@@ -32,9 +32,9 @@ jobs:
             org.opencontainers.image.version=1.2.3
           tags: |
             type=edge
-            type=raw,event=published,value=latest,enable={{ !github.event.release.prerelease }}
-            type=raw,event=published,value=prerelease,enable={{ github.event.release.prerelease }}
-            type=raw,event=published,value=release,enable={{ !github.event.release.prerelease }}
+            type=raw,event=published,value=latest,enable=${{ !github.event.release.prerelease }}
+            type=raw,event=published,value=prerelease,enable=${{ github.event.release.prerelease }}
+            type=raw,event=published,value=release,enable=${{ !github.event.release.prerelease }}
             type=raw,event=workflow_dispatch,value=${{ github.event.inputs.dispatch-tag}}
             type=ref,event=branch
             type=ref,event=pr
