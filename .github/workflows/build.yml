@@ -103,6 +103,7 @@ jobs:
     with:
       build_args: |
         VERSION=${{ needs.metadata.outputs.source_version }}
+      do_publish_readme: ${{ github.event_name == 'release' && !github.event.release.prerelease}}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
       image_name: ${{ needs.config.outputs.image_name }}
       image_tags: ${{ needs.metadata.outputs.image_tags }}
