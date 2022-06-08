@@ -108,6 +108,7 @@ jobs:
           push: true
           tags: ${{ inputs.image_tags }}
       - name: Publish README.md to Docker Hub
+        if: github.event_name == 'release' && !github.event.release.prerelease
         env:
           DOCKER_PASSWORD: ${{ secrets.docker_password }}
           DOCKER_USERNAME: ${{ secrets.docker_username }}
