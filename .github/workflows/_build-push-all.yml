@@ -64,6 +64,8 @@ jobs:
     #     packages: write
 
     name: "Build and push all platforms"
+    env:
+      DOCKERFILE_X: /tmp/Dockerfile-x
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
@@ -98,7 +100,9 @@ jobs:
           restore-keys: |
             ${{ env.BASE_CACHE_KEY }}
       - name: Create cross-platform support Dockerfile-x
-        run: ./buildx-dockerfile.sh
+        run: |
+          ./buildx-dockerfile.sh ${{ inputs.docker_file }} \
+          ${{ env.DOCKERFILE_X }}
       - name: Build and push platform images to registries
         id: docker_build
         uses: docker/build-push-action@e551b19e49efd4e98792db7592c17c09b89db8d8
@@ -107,7 +111,7 @@ jobs:
           cache-from: type=local,src=${{ inputs.buildx_cache_dir }}
           cache-to: type=local,dest=${{ inputs.buildx_cache_dir }}
           context: .
-          file: ${{ inputs.docker_file}}
+          file: ${{ env.DOCKERFILE_X }}
           labels: ${{ inputs.image_labels }}
           platforms: ${{ inputs.platforms }}
           push: true
