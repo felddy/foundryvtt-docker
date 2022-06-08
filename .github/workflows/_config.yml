@@ -6,6 +6,34 @@ name: config
 
 on:
   workflow_call:
+    outputs:
+      go_version:
+        description: "The go version"
+        value: ${{ jobs.config.outputs.go_version }}
+      image_name:
+        description: "The Docker image name"
+        value: ${{ jobs.config.outputs.image_name }}
+      normal_data_artifact_name:
+        description: "The name of the normal data artifact"
+        value: ${{ jobs.config.outputs.normal_data_artifact_name }}
+      normal_image_artifact_name:
+        description: "The name of the normal image artifact"
+        value: ${{ jobs.config.outputs.normal_image_artifact_name }}
+      platforms:
+        description: "The platforms to build"
+        value: ${{ jobs.config.outputs.platforms }}
+      pre_installed_data_artifact_name:
+        description: "The name of the pre-installed data artifact"
+        value: ${{ jobs.config.outputs.pre_installed_data_artifact_name }}
+      pre_installed_image_artifact_name:
+        description: "The name of the pre-installed image artifact"
+        value: ${{ jobs.config.outputs.pre_installed_image_artifact_name }}
+      python_version:
+        description: "The Python version"
+        value: ${{ jobs.config.outputs.python_version }}
+      shfmt_version:
+        description: "The shfmt version"
+        value: ${{ jobs.config.outputs.shfmt_version }}
 
 jobs:
   config:
