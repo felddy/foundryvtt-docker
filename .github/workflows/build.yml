@@ -8,9 +8,9 @@ on:
   push:
     branches:
       - '**'
-    tags:
-      - 'v*.*.*'
   pull_request:
+  release:
+    types: [edited, published]
   schedule:
     - cron: '0 10 * * *'  # everyday at 10am
   workflow_dispatch:
