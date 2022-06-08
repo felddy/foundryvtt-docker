@@ -36,3 +36,9 @@ on:
         value: v3.4.3
 
 jobs:
+  diagnostics:
+    name: "Diagnostics"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump context
+        uses: crazy-max/ghaction-dump-context@v1

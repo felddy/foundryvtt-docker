@@ -11,13 +11,6 @@ permissions:
   contents: read
 
 jobs:
-  diagnostics:
-    name: "Diagnostics"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dump context
-        uses: crazy-max/ghaction-dump-context@v1
-
   config:
     name: "Config"
     uses: ./.github/workflows/_config.yml
