@@ -4,42 +4,27 @@ name: release
 
 on:
   release:
-    types: [published]
+    types: [edited, published]
 
 permissions:
   actions: read
   contents: read
 
 jobs:
-  test:
-    name: "Release test"
+  diagnostics:
+    name: "Diagnostics"
     runs-on: ubuntu-latest
     steps:
       - name: Dump context
         uses: crazy-max/ghaction-dump-context@v1
-      - name: Calculate Docker metadata
-        id: docker_meta
-        uses: docker/metadata-action@69f6fc9d46f2f8bf0d5491e4aabe0bb8c6a4678a
-        with:
-          flavor: |
-            latest=false
-          images: |
-            felddy/ci-testing
-            ghcr.io/felddy/ci-testing
-          # Disable line-length check for readability of labels and tags.
-          # yamllint disable rule:line-length
-          labels: |
-            org.opencontainers.image.version=1.2.3
-          tags: |
-            type=edge
-            type=raw,event=published,value=latest,enable=${{ !github.event.release.prerelease }}
-            type=raw,event=published,value=prerelease,enable=${{ github.event.release.prerelease }}
-            type=raw,event=published,value=release,enable=${{ !github.event.release.prerelease }}
-            type=raw,event=workflow_dispatch,value=${{ github.event.inputs.dispatch-tag}}
-            type=ref,event=branch
-            type=ref,event=pr
-            type=schedule,pattern=nightly
-            type=semver,pattern={{major}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{version}}
-            type=sha
+
+  config:
+    name: "Config"
+    uses: ./.github/workflows/_config.yml
+
+  metadata:
+    name: "Metadata"
+    needs: [config]
+    uses: ./.github/workflows/_metadata.yml
+    with:
+      image_name: ${{ needs.config.outputs.image_name }}
