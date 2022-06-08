@@ -1,0 +1,44 @@
+---
+# Disable line-length check for readability large output references.
+# yamllint disable rule:line-length
+
+name: config
+
+on:
+  workflow_call:
+    outputs:
+      go_version:
+        description: "The go version"
+        value: '1.16'
+      image_name:
+        description: "The Docker image name"
+        value: felddy/ci-testing
+      normal_data_artifact_name:
+        description: "The name of the normal data artifact"
+        value: normal-data
+      normal_image_artifact_name:
+        description: "The name of the normal image artifact"
+        value: normal-test-image
+      platforms:
+        description: "The platforms to build"
+        value: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
+      pre_installed_data_artifact_name:
+        description: "The name of the pre-installed data artifact"
+        value: pre-installed-data
+      pre_installed_image_artifact_name:
+        description: "The name of the pre-installed image artifact"
+        value: pre-installed-test-image
+      python_version:
+        description: "The Python version"
+        value: '3.9'
+      shfmt_version:
+        description: "The shfmt version"
+        value: v3.4.3
+
+jobs:
+  diagnostics:
+    name: "Diagnostics"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump context
+        uses: crazy-max/ghaction-dump-context@516dbb0c760f39b4cdd750ae095f1688780f68f4
