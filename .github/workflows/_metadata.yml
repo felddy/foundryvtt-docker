@@ -65,15 +65,15 @@ jobs:
             org.opencontainers.image.version=${{ steps.source_values.outputs.source_version }}
           tags: |
             type=edge
+            type=raw,event=release,value=latest,enable=${{ !github.event.release.prerelease }}
+            type=raw,event=release,value=prerelease,enable=${{ github.event.release.prerelease }}
+            type=raw,event=release,value=release,enable=${{ !github.event.release.prerelease }}
             type=raw,event=workflow_dispatch,value=${{ github.event.inputs.dispatch-tag}}
             type=ref,event=branch
             type=ref,event=pr
             type=schedule,pattern=nightly
-            type=semver,pattern=latest,enable=${{ github.base_ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-            type=semver,pattern=release,enable=${{ github.base_ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
-            type=semver,pattern=prerelease,enable=${{ github.base_ref == format('refs/heads/{0}', 'prerelease') }}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{version}}
             type=sha
           # yamllint enable rule:line-length
