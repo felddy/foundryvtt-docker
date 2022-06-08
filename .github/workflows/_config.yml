@@ -9,56 +9,30 @@ on:
     outputs:
       go_version:
         description: "The go version"
-        value: ${{ jobs.config.outputs.go_version }}
+        value: '1.16'
       image_name:
         description: "The Docker image name"
-        value: ${{ jobs.config.outputs.image_name }}
+        value: felddy/ci-testing
       normal_data_artifact_name:
         description: "The name of the normal data artifact"
-        value: ${{ jobs.config.outputs.normal_data_artifact_name }}
+        value: normal-data
       normal_image_artifact_name:
         description: "The name of the normal image artifact"
-        value: ${{ jobs.config.outputs.normal_image_artifact_name }}
+        value: normal-test-image
       platforms:
         description: "The platforms to build"
-        value: ${{ jobs.config.outputs.platforms }}
+        value: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
       pre_installed_data_artifact_name:
         description: "The name of the pre-installed data artifact"
-        value: ${{ jobs.config.outputs.pre_installed_data_artifact_name }}
+        value: pre-installed-data
       pre_installed_image_artifact_name:
         description: "The name of the pre-installed image artifact"
-        value: ${{ jobs.config.outputs.pre_installed_image_artifact_name }}
+        value: pre-installed-test-image
       python_version:
         description: "The Python version"
-        value: ${{ jobs.config.outputs.python_version }}
+        value: '3.9'
       shfmt_version:
         description: "The shfmt version"
-        value: ${{ jobs.config.outputs.shfmt_version }}
+        value: v3.4.3
 
 jobs:
-  config:
-    name: "Store outputs"
-    runs-on: ubuntu-latest
-    outputs:
-      go_version: ${{ steps.store.outputs.go_version }}
-      image_name: ${{ steps.store.outputs.image_name }}
-      normal_data_artifact_name: ${{ steps.store.outputs.normal_data_artifact_name }}
-      normal_image_artifact_name: ${{ steps.store.outputs.normal_image_artifact_name }}
-      platforms: ${{ steps.store.outputs.platforms }}
-      pre_installed_data_artifact_name: ${{ steps.store.outputs.pre_installed_data_artifact_name }}
-      pre_installed_image_artifact_name: ${{ steps.store.outputs.pre_installed_image_artifact_name }}
-      python_version: ${{ steps.store.outputs.python_version }}
-      shfmt_version: ${{ steps.store.outputs.shfmt_version }}
-    steps:
-      - name: Store values
-        id: store
-        run: |
-          echo ::set-output name=go_version::1.16
-          echo ::set-output name=image_name::felddy/ci-testing
-          echo ::set-output name=normal_data_artifact_name::normal-data
-          echo ::set-output name=normal_image_artifact_name::normal-test-image
-          echo ::set-output name=platforms::linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
-          echo ::set-output name=pre_installed_data_artifact_name::pre-installed-data
-          echo ::set-output name=pre_installed_image_artifact_name::pre-installed-test-image
-          echo ::set-output name=python_version::3.9
-          echo ::set-output name=shfmt_version::v3.4.3
