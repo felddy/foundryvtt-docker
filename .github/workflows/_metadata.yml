@@ -65,9 +65,9 @@ jobs:
             org.opencontainers.image.version=${{ steps.source_values.outputs.source_version }}
           tags: |
             type=edge
-            type=raw,event=release,value=latest,enable=${{ !github.event.release.prerelease }}
-            type=raw,event=release,value=prerelease,enable=${{ github.event.release.prerelease }}
-            type=raw,event=release,value=release,enable=${{ !github.event.release.prerelease }}
+            type=raw,event=release,value=latest,enable=${{ github.event.release.prerelease == false }}
+            type=raw,event=release,value=prerelease,enable=${{ github.event.release.prerelease == true }}
+            type=raw,event=release,value=release,enable=${{ github.event.release.prerelease == false }}
             type=raw,event=workflow_dispatch,value=${{ github.event.inputs.dispatch-tag}}
             type=ref,event=branch
             type=ref,event=pr
