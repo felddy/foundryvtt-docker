@@ -1,6 +1,4 @@
 ---
-# Disable line-length check for readability large output references.
-# yamllint disable rule:line-length
 
 name: Build
 

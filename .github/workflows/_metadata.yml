@@ -59,8 +59,6 @@ jobs:
           images: |
             ${{ inputs.image_name }}
             ghcr.io/${{ inputs.image_name }}
-          # Disable line-length check for readability of labels and tags.
-          # yamllint disable rule:line-length
           labels: |
             org.opencontainers.image.version=${{ steps.source_values.outputs.source_version }}
           tags: |
@@ -76,4 +74,3 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
             type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
             type=sha
-          # yamllint enable rule:line-length
