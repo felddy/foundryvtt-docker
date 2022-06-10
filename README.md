@@ -347,7 +347,7 @@ Docker:
 1. Create the `Dockerfile-x` file with `buildx` platform support:
 
     ```console
-    ./buildx-dockerfile.sh
+    ./buildx-dockerfile.sh Dockerfile Dockerfile-x
     ```
 
 1. Build the image using `buildx`:
