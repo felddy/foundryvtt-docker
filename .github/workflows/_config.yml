@@ -1,6 +1,4 @@
 ---
-# Disable line-length check for readability large output references.
-# yamllint disable rule:line-length
 
 name: config
 
@@ -40,5 +38,16 @@ jobs:
     name: "Diagnostics"
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
+        with:  # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+
+      - name: Check GitHub Status
+        uses: crazy-max/ghaction-github-status@11800cf081427ec689e7f34f287f9e0c85ae6826
+        with:
+          overall_threshold: major
+          packages_threshold: major_outage
+
       - name: Dump context
         uses: crazy-max/ghaction-dump-context@516dbb0c760f39b4cdd750ae095f1688780f68f4
