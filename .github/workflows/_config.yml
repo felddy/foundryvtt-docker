@@ -12,7 +12,7 @@ on:
         value: '1.16'
       image_name:
         description: "The Docker image name"
-        value: felddy/ci-testing
+        value: felddy/foundryvtt
       normal_data_artifact_name:
         description: "The name of the normal data artifact"
         value: normal-data
