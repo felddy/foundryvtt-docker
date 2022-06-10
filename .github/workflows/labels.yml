@@ -1,0 +1,30 @@
+---
+
+name: Labels
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - .github/labels.yml
+      - .github/workflows/labels.yml
+
+permissions:
+  contents: read
+
+jobs:
+  labeler:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      issues: write  # for crazy-max/ghaction-github-labeler to create, rename, update and delete label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
+        with:
+          egress-policy: audit  # TODO: change to 'egress-policy: block' after couple of runs
+      - name: Checkout
+        uses: actions/checkout@d0651293c4a5a52e711f25b41b05b2212f385d28
+      - name: Run Labeler
+        uses: crazy-max/ghaction-github-labeler@f8d36db286402ecb67054c6a14ec17ba2cd681a0
