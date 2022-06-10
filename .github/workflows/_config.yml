@@ -1,0 +1,53 @@
+---
+
+name: config
+
+on:
+  workflow_call:
+    outputs:
+      go_version:
+        description: "The go version"
+        value: '1.16'
+      image_name:
+        description: "The Docker image name"
+        value: felddy/foundryvtt
+      normal_data_artifact_name:
+        description: "The name of the normal data artifact"
+        value: normal-data
+      normal_image_artifact_name:
+        description: "The name of the normal image artifact"
+        value: normal-test-image
+      platforms:
+        description: "The platforms to build"
+        value: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
+      pre_installed_data_artifact_name:
+        description: "The name of the pre-installed data artifact"
+        value: pre-installed-data
+      pre_installed_image_artifact_name:
+        description: "The name of the pre-installed image artifact"
+        value: pre-installed-test-image
+      python_version:
+        description: "The Python version"
+        value: '3.9'
+      shfmt_version:
+        description: "The shfmt version"
+        value: v3.4.3
+
+jobs:
+  diagnostics:
+    name: "Diagnostics"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
+        with:  # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+
+      - name: Check GitHub Status
+        uses: crazy-max/ghaction-github-status@11800cf081427ec689e7f34f287f9e0c85ae6826
+        with:
+          overall_threshold: major
+          packages_threshold: major_outage
+
+      - name: Dump context
+        uses: crazy-max/ghaction-dump-context@516dbb0c760f39b4cdd750ae095f1688780f68f4
