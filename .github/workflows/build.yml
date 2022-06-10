@@ -2,7 +2,7 @@
 # Disable line-length check for readability large output references.
 # yamllint disable rule:line-length
 
-name: build
+name: Build
 
 on:
   push:
