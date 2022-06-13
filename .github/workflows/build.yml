@@ -236,9 +236,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Cache Docker layers
         uses: actions/cache@v3
         env:
@@ -252,7 +252,7 @@ jobs:
         run: mkdir -p dist
       - name: Build image
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
@@ -290,7 +290,7 @@ jobs:
       - name: Compress image
         run: gzip dist/image.tar
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist
@@ -325,7 +325,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade --requirement requirements-test.txt
       - name: Download docker image artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: dist
           path: dist
@@ -351,12 +351,12 @@ jobs:
     if: github.event_name != 'pull_request'
     steps:
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -364,9 +364,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Cache Docker layers
         uses: actions/cache@v3
         env:
@@ -380,7 +380,7 @@ jobs:
         run: ./buildx-dockerfile.sh
       - name: Build and push platform images to registries
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
