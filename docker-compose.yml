@@ -1,7 +1,7 @@
 ---
 version: "3.7"
 
-# This docker-compose file is used to build and test the container
+# This Docker composition file is used to build and test the container
 
 secrets:
   quote_txt:
@@ -19,7 +19,7 @@ services:
     init: true
     restart: "no"
     environment:
-      - ECHO_MESSAGE=Hello World from docker-compose!
+      - ECHO_MESSAGE=Hello World from docker compose!
     ports:
       - target: 8080
         published: 8080
