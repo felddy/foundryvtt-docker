@@ -4,12 +4,12 @@ name: build
 on:
   push:
     branches:
-      - '**'
+      - "**"
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   pull_request:
   schedule:
-    - cron: '0 10 * * *'  # everyday at 10am
+    - cron: "0 10 * * *"  # everyday at 10am
   repository_dispatch:
     # Respond to rebuild requests. See: https://github.com/cisagov/action-apb/
     types: [apb]
@@ -18,11 +18,11 @@ on:
       remote-shell:
         description: "Debug with remote shell"
         required: true
-        default: false
+        default: "false"
       image-tag:
         description: "Tag to apply to pushed images"
         required: true
-        default: dispatch
+        default: "dispatch"
 
 env:
   BUILDX_CACHE_DIR: ~/.cache/buildx
@@ -43,16 +43,16 @@ jobs:
     steps:
       - id: setup-env
         uses: cisagov/setup-env-github-action@develop
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
-          python-version: 3.9
+          python-version: "3.10"
       # We need the Go version and Go cache location for the actions/cache step,
       # so the Go installation must happen before that.
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.16'
+          go-version: "1.16"
       - name: Store installed Go version
         id: go-version
         run: |
@@ -62,7 +62,7 @@ jobs:
         id: go-cache
         run: |
           echo "::set-output name=dir::$(go env GOCACHE)"
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
             py${{ steps.setup-python.outputs.python-version }}-\
@@ -175,7 +175,7 @@ jobs:
       source_version: ${{ steps.prep.outputs.source_version }}
       tags: ${{ steps.prep.outputs.tags }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Gather repository metadata
         id: repo
         uses: actions/github-script@v5
@@ -234,13 +234,13 @@ jobs:
     needs: [prepare]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
@@ -252,7 +252,7 @@ jobs:
         run: mkdir -p dist
       - name: Build image
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
@@ -290,7 +290,7 @@ jobs:
       - name: Compress image
         run: gzip dist/image.tar
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dist
           path: dist
@@ -303,13 +303,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: 3.9
       - name: Cache testing environments
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
             py${{ steps.setup-python.outputs.python-version }}-"
@@ -325,7 +325,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade --requirement requirements-test.txt
       - name: Download docker image artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: dist
           path: dist
@@ -351,24 +351,24 @@ jobs:
     if: github.event_name != 'pull_request'
     steps:
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
@@ -380,7 +380,7 @@ jobs:
         run: ./buildx-dockerfile.sh
       - name: Build and push platform images to registries
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |
             VERSION=${{ needs.prepare.outputs.source_version }}
