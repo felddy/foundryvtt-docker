@@ -50,7 +50,7 @@ jobs:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
       - id: setup-python
-        uses: actions/setup-python@98f2ad02fd48d057ee3b4d4f66525b231c3e52b6
+        uses: actions/setup-python@d09bd5e6005b175076f227b13d9730d56e9dcfcb
         with:
           python-version: ${{ inputs.python_version }}
       # We need the Go version and Go cache location for the actions/cache step,
