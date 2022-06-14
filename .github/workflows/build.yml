@@ -35,6 +35,8 @@ jobs:
       image_name: ${{ needs.config.outputs.image_name }}
 
   foundry-secrets:
+    name: "Foundry secrets"
+    runs-on: ubuntu-latest
     steps:
       - name: Check foundry.com credentials
         run: |
@@ -50,6 +52,8 @@ jobs:
           exit $return_code
 
   docker-secrets:
+    name: "Docker secrets"
+    runs-on: ubuntu-latest
     steps:
       - name: Check docker.com credentials
         run: |
@@ -65,6 +69,8 @@ jobs:
           exit $return_code
 
   artifact-key:
+    name: "Artifact key"
+    runs-on: ubuntu-latest
     steps:
       - name: Check artifact key
         run: |
