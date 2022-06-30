@@ -34,6 +34,51 @@ jobs:
     with:
       image_name: ${{ needs.config.outputs.image_name }}
 
+  foundry-secrets:
+    name: "Foundry secrets"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check foundry.com credentials
+        run: |
+          return_code=0
+          if [ -z "${{ secrets.FOUNDRY_USERNAME }}" ]; then
+            echo "::warning::Set the FOUNDRY_USERNAME secret."
+            return_code=1
+          fi
+          if [ -z "${{ secrets.FOUNDRY_PASSWORD }}" ]; then
+            echo "::warning::Set the FOUNDRY_PASSWORD secret."
+            return_code=1
+          fi
+          exit $return_code
+
+  docker-secrets:
+    name: "Docker secrets"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check docker.com credentials
+        run: |
+          return_code=0
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "::warning::Set the DOCKER_USERNAME secret."
+            return_code=1
+          fi
+          if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "::warning::Set the DOCKER_PASSWORD secret."
+            return_code=1
+          fi
+          exit $return_code
+
+  artifact-key:
+    name: "Artifact key"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check artifact key
+        run: |
+          if [ -z "${{ secrets.ARTIFACT_KEY }}" ]; then
+            echo "::warning::Set the ARTIFACT_KEY secret."
+            exit 1
+          fi
+
   lint:
     name: "Lint"
     needs: [config]
@@ -56,7 +101,7 @@ jobs:
 
   build-pre-installed-test-image:
     name: "Pre-installed"
-    needs: [config, metadata]
+    needs: [artifact-key, config, foundry-secrets, metadata]
     uses: ./.github/workflows/_build-test-image.yml
     with:
       artifact_name: ${{ needs.config.outputs.pre_installed_image_artifact_name }}
@@ -70,7 +115,7 @@ jobs:
 
   test-normal-image:
     name: "Normal"
-    needs: [config, build-normal-test-image]
+    needs: [artifact-key, build-normal-test-image, config, foundry-secrets]
     uses: ./.github/workflows/_test-image.yml
     with:
       data_artifact_name: ${{ needs.config.outputs.normal_data_artifact_name }}
@@ -82,7 +127,7 @@ jobs:
 
   test-pre-installed-image:
     name: "Pre-installed"
-    needs: [config, build-pre-installed-test-image]
+    needs: [artifact-key, config, build-pre-installed-test-image]
     uses: ./.github/workflows/_test-image.yml
     with:
       data_artifact_name: ${{ needs.config.outputs.pre_installed_data_artifact_name }}
@@ -92,7 +137,7 @@ jobs:
       image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
 
   build-and-push:
-    needs: [config, lint, metadata, test-normal-image, test-pre-installed-image]
+    needs: [config, docker-secrets, lint, metadata, test-normal-image, test-pre-installed-image]
     if: github.event_name != 'pull_request'
     name: "Publish"
     permissions:
