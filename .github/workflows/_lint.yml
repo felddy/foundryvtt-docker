@@ -45,17 +45,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@248ae51c2e8cc9622ecf50685c8bf7150c6e8813
+        uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504
         with:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
       - id: setup-python
-        uses: actions/setup-python@d09bd5e6005b175076f227b13d9730d56e9dcfcb
+        uses: actions/setup-python@c4e89fac7e8767b327bbad6cb4d859eda999cf08
         with:
           python-version: ${{ inputs.python_version }}
       # We need the Go version and Go cache location for the actions/cache step,
       # so the Go installation must happen before that.
-      - uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923
+      - uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a
         with:
           go-version: ${{ inputs.go_version }}
       - name: Store installed Go version
