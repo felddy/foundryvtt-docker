@@ -246,7 +246,13 @@ fi
 
 # ensure the permissions are set correctly
 log "Setting data directory permissions."
-find /data -regex "${CONTAINER_PRESERVE_OWNER:-}" -prune -o -exec chown "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" {} +
+FOUNDRY_UID="${FOUNDRY_UID:-foundry}"
+FOUNDRY_GID="${FOUNDRY_GID:-foundry}"
+# skip files matching CONTAINER_PRESERVE_OWNER or already belonging to the right user and group
+find /data \
+  -regex "${CONTAINER_PRESERVE_OWNER:-}" -prune -or \
+  "(" -user "${FOUNDRY_UID}" -and -group "${FOUNDRY_GID}" ")" -or \
+  -exec chown "${FOUNDRY_UID}:${FOUNDRY_GID}" {} +
 log_debug "Completed setting directory permissions."
 
 if [ "$1" = "--root-shell" ]; then
@@ -256,17 +262,17 @@ if [ "$1" = "--root-shell" ]; then
 fi
 
 # drop privileges and handoff to launcher
-log "Starting launcher with uid:gid as ${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}."
+log "Starting launcher with uid:gid as ${FOUNDRY_UID}:${FOUNDRY_GID}."
 export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
   FOUNDRY_DEMO_CONFIG FOUNDRY_HOSTNAME FOUNDRY_IP_DISCOVERY FOUNDRY_LANGUAGE \
   FOUNDRY_LOCAL_HOSTNAME FOUNDRY_MINIFY_STATIC_FILES FOUNDRY_PASSWORD_SALT \
   FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT \
   FOUNDRY_SSL_KEY FOUNDRY_UPNP FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
-su-exec "${FOUNDRY_UID:-foundry}:${FOUNDRY_GID:-foundry}" ./launcher.sh "$@" \
+su-exec "${FOUNDRY_UID}:${FOUNDRY_GID}" ./launcher.sh "$@" \
   || log_error "Launcher exited with error code: $?"
 
 # If the container requested a new S3 URL but disabled the cache
-# we are going to sleep forever to prevent a downlaod loop.
+# we are going to sleep forever to prevent a download loop.
 if [[ "${requested_s3_url}" == "true" && "${CONTAINER_CACHE:-}" == "" ]]; then
   log_warn "Server exited after downloading a release while the CONTAINER_CACHE was disabled."
   log_warn "This configuration could lead to a restart loop putting excessive load on the release server."
