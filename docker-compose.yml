@@ -46,7 +46,7 @@ services:
       # - FOUNDRY_UID=foundry
       # - FOUNDRY_UPNP=false
       # - FOUNDRY_UPNP_LEASE_DURATION=
-      # - FOUNDRY_VERSION=10.275
+      # - FOUNDRY_VERSION=10.276
       # - FOUNDRY_WORLD=
       # - TIMEZONE=US/Eastern
     ports:
