@@ -48,6 +48,7 @@ let options: object = {
   minifyStaticFiles: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
   passwordSalt: process.env.FOUNDRY_PASSWORD_SALT || null,
   port: FOUNDRY_PORT,
+  protocol: process.env.FOUNDRY_PROTOCOL || null,
   proxyPort: clampEnv(
     process.env.FOUNDRY_PROXY_PORT,
     MINIMUM_PORT,
