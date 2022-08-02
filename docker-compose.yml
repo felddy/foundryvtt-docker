@@ -37,6 +37,7 @@ services:
       # - FOUNDRY_LICENSE_KEY=
       # - FOUNDRY_MINIFY_STATIC_FILES=
       # - FOUNDRY_PASSWORD_SALT=
+      # - FOUNDRY_PROTOCOL=
       # - FOUNDRY_PROXY_PORT=
       # - FOUNDRY_PROXY_SSL=false
       # - FOUNDRY_RELEASE_URL=
