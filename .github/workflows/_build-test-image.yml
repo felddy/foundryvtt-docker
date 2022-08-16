@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@74b568e8591fbb3115c70f3436a0c6b0909a8504
+        uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95
         with:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
@@ -71,7 +71,7 @@ jobs:
         run: mkdir -p ${{ env.ARTIFACT_WORK_DIR }}
       - name: Build image
         id: docker_build
-        uses: docker/build-push-action@1cb9d22b932e4832bb29793b7777ec860fc1cde0
+        uses: docker/build-push-action@c84f38281176d4c9cdb1626ffafcd6b3911b5d94
         with:
           build-args: ${{ secrets.build_args }}
           cache-from: type=local,src=${{ inputs.buildx_cache_dir }}
