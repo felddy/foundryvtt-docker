@@ -55,7 +55,7 @@ jobs:
           python-version: ${{ inputs.python_version }}
       # We need the Go version and Go cache location for the actions/cache step,
       # so the Go installation must happen before that.
-      - uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a
+      - uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f
         with:
           go-version: ${{ inputs.go_version }}
       - name: Store installed Go version
