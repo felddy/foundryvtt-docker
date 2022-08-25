@@ -6,18 +6,34 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "bot"
+      - "dependencies"
+      - "docker"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "bot"
+      - "dependencies"
+      - "github-actions"
 
   - package-ecosystem: "npm"
-    directory: "src"
+    directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "bot"
+      - "dependencies"
+      - "javascript"
 
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "bot"
+      - "dependencies"
+      - "python"
