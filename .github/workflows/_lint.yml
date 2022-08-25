@@ -55,7 +55,7 @@ jobs:
           python-version: ${{ inputs.python_version }}
       # We need the Go version and Go cache location for the actions/cache step,
       # so the Go installation must happen before that.
-      - uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a
+      - uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f
         with:
           go-version: ${{ inputs.go_version }}
       - name: Store installed Go version
@@ -67,7 +67,7 @@ jobs:
         id: go-cache
         run: |
           echo "::set-output name=dir::$(go env GOCACHE)"
-      - uses: actions/cache@730dc31003a72af3c3b4bf51268c167ad4c67ad6
+      - uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
             py${{ inputs.python_version }}-\
@@ -89,7 +89,7 @@ jobs:
       - name: Install shfmt
         run: go install mvdan.cc/sh/v3/cmd/shfmt@${{ inputs.shfmt_version }}
       - name: Checkout source
-        uses: actions/checkout@3df53dd32d858478710a6127bcd8b9d8b7182e16
+        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
