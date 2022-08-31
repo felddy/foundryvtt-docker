@@ -61,13 +61,13 @@ fi
 
 # Space seperated list of regex rules which environment variables must meet to
 # be carried over to the new environment, which Node/Foundry will be running in.
-ENV_VAR_WHITELIST='^HOME$ ^NODE_.+$'
+ENV_VAR_PASSLIST_REGEX='^HOME$ ^NODE_.+$'
 # Build list of environment variables to carry over into a clean environment
 ENV_VAR_CARRY_LIST=''
 # shellcheck disable=SC3045
 # busybox read supports the -rd option
 while IFS='=' read -rd '' ENV_VAR_NAME ENV_VAR_VALUE; do
-  for VAR_REGEX in $ENV_VAR_WHITELIST; do
+  for VAR_REGEX in $ENV_VAR_PASSLIST_REGEX; do
     if [[ $ENV_VAR_NAME =~ ${VAR_REGEX} ]]; then
       ENV_VAR_CARRY_LIST="${ENV_VAR_CARRY_LIST} ${ENV_VAR_NAME}=${ENV_VAR_VALUE}"
       break

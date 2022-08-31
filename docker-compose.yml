@@ -37,6 +37,7 @@ services:
       # - FOUNDRY_LICENSE_KEY=
       # - FOUNDRY_MINIFY_STATIC_FILES=
       # - FOUNDRY_PASSWORD_SALT=
+      # - FOUNDRY_PROTOCOL=
       # - FOUNDRY_PROXY_PORT=
       # - FOUNDRY_PROXY_SSL=false
       # - FOUNDRY_RELEASE_URL=
@@ -46,7 +47,7 @@ services:
       # - FOUNDRY_UID=foundry
       # - FOUNDRY_UPNP=false
       # - FOUNDRY_UPNP_LEASE_DURATION=
-      # - FOUNDRY_VERSION=9.280
+      # - FOUNDRY_VERSION=10.282
       # - FOUNDRY_WORLD=
       # - TIMEZONE=US/Eastern
     ports:
