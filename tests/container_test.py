@@ -40,6 +40,8 @@ def test_wait_for_ready(main_container):
     # This could take a while, as we download the application.
     TIMEOUT = 180
     for i in range(TIMEOUT):
+        # Verify the container is still running
+        assert main_container.is_running is True, "The container unexpectedly exited."
         logs = main_container.logs().decode("utf-8")
         if READY_MESSAGE in logs:
             break
@@ -58,6 +60,8 @@ def test_wait_for_healthy(main_container):
     # This could take a while
     TIMEOUT = 180
     for i in range(TIMEOUT):
+        # Verify the container is still running
+        assert main_container.is_running is True, "The container unexpectedly exited."
         inspect = main_container.inspect()
         status = inspect["State"]["Health"]["Status"]
         assert status != "unhealthy", "The container became unhealthy."
@@ -70,11 +74,9 @@ def test_wait_for_healthy(main_container):
         )
 
 
-def test_wait_for_exits(main_container, version_container):
-    """Wait for containers to exit."""
-    assert (
-        version_container.wait() == 0
-    ), "Container service (version) did not exit cleanly"
+def test_wait_for_version_container_exit(version_container):
+    """Wait for version container to exit cleanly."""
+    assert version_container.wait() == 0, "The version container did not exit cleanly"
 
 
 @pytest.mark.skipif(
@@ -104,6 +106,12 @@ def test_log_version(version_container):
     ), f"Container version output to log does not match project version file {VERSION_FILE}"
 
 
+# The container version label is added during the GitHub Actions build workflow.
+# It will not be present if the container is built locally.
+# Skip this check if we are not running in GitHub Actions.
+@pytest.mark.skipif(
+    os.environ.get("GITHUB_ACTIONS") != "true", reason="not running in GitHub Actions"
+)
 def test_container_version_label_matches(version_container):
     """Verify the container version label is the correct version."""
     pkg_vars = {}
@@ -112,4 +120,4 @@ def test_container_version_label_matches(version_container):
     project_version = pkg_vars["__version__"]
     assert (
         version_container.labels["org.opencontainers.image.version"] == project_version
-    ), "Dockerfile version label does not match project version"
+    ), "Container version label does not match project version"

@@ -3,28 +3,28 @@ name: 💥 Regression Report
 about: Report unexpected behavior that worked in previous versions
 ---
 
-# 💥 Regression Report
+# 💥 Regression Report #
 
 A clear and concise description of what the regression is.
 
-## Last working version
+## Last working version ##
 
 Worked up to version:
 
 Stopped working in version:
 
-## To Reproduce
+## To Reproduce ##
 
 Steps to reproduce the behavior:
 
 - Do this
 - Then this
 
-## Expected behavior
+## Expected behavior ##
 
 A clear and concise description of what you expected to happen.
 
-## Any helpful log output
+## Any helpful log output ##
 
 Please run this command:
 

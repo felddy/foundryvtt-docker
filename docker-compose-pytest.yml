@@ -5,7 +5,7 @@ version: "3.8"
 services:
   foundry:
     # Run the container normally
-    image: felddy/foundryvtt:latest
+    image: local/test-image:latest
     hostname: felddy_foundryvtt
     init: true
     restart: "no"
@@ -22,14 +22,14 @@ services:
       - FOUNDRY_USERNAME  # pass through
       - TIMEZONE=US/Eastern
     ports:
-      - target: "30000"
-        published: "30001"
+      - target: 30000
+        published: 30001
         protocol: tcp
         mode: host
 
   foundry-version:
     # Run the container to collect version information
-    image: felddy/foundryvtt:latest
+    image: local/test-image:latest
     init: true
     restart: "no"
     command: --version

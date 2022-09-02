@@ -6,18 +6,34 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "bot :robot:"
+      - "dependencies :game_die:"
+      - "docker :whale:"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "bot :robot:"
+      - "dependencies :game_die:"
+      - "github-actions :octocat:"
 
   - package-ecosystem: "npm"
-    directory: "src"
+    directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "bot :robot:"
+      - "dependencies :game_die:"
+      - "javascript :coffee:"
 
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "daily"
+    labels:
+      - "bot :robot:"
+      - "dependencies :game_die:"
+      - "python :snake:"

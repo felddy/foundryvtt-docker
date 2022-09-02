@@ -1,0 +1,126 @@
+---
+name: Test Docker image
+
+on:
+  workflow_call:
+    inputs:
+      # Required inputs
+      image_artifact_name:
+        description: "The artifact name used to load the image archive"
+        required: true
+        type: string
+      data_artifact_name:
+        description: "The artifact name used to store the data archive"
+        required: true
+        type: string
+      # Optional inputs
+      pip_cache_dir:
+        description: "The pip cache directory"
+        default: ~/.cache/pip
+        required: false
+        type: string
+      python_version:
+        description: "The Python version to use"
+        default: '3.9'
+        required: false
+        type: string
+    secrets:
+      data_artifact_key:
+        description: "Enables encryption of the data artifact if specified"
+        required: true
+      image_artifact_key:
+        description: "Enables decryption of the image artifact if specified"
+        required: false
+      foundry_password:
+        description: "The password for the foundryvtt.com account"
+        required: false
+      foundry_username:
+        description: "The username for the foundryvtt.com account"
+        required: false
+
+env:
+  PIP_CACHE_DIR: ${{ inputs.pip_cache_dir }}
+  ARTIFACT_WORK_DIR: /tmp/artifact-work
+
+jobs:
+  test:
+    # Executes tests on the single-platform image created in the "build" job.
+    name: "Test image"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95
+        with:
+          # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: audit
+      - name: Check data artifact key secret
+        id: check_data_artifact_key
+        run: |
+          if [ -z "${{ secrets.data_artifact_key }}" ]; then
+            echo "::warning::Set the data_artifact_key secret."
+            exit 1
+          fi
+      - name: Check if image artifact key is available
+        id: check_image_artifact_key
+        run: |
+          if [ -n "${{ secrets.image_artifact_key }}" ]; then
+            echo ::set-output name=do_encryption::true
+          else
+            echo ::set-output name=do_encryption::false
+          fi
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+      - id: setup-python
+        uses: actions/setup-python@b55428b1882923874294fa556849718a1d7f2ca5
+        with:
+          python-version: ${{ inputs.python_version }}
+      - name: Cache testing environments
+        uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77
+        env:
+          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-"
+        with:
+          path: ${{ env.PIP_CACHE_DIR }}
+          key: "${{ env.BASE_CACHE_KEY }}\
+            ${{ hashFiles('**/requirements-test.txt') }}-\
+            ${{ hashFiles('**/requirements.txt') }}"
+          restore-keys: |
+            ${{ env.BASE_CACHE_KEY }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade --requirement requirements-test.txt
+      - name: Download docker image artifact
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
+        with:
+          name: ${{ inputs.image_artifact_name }}
+          path: ${{ env.ARTIFACT_WORK_DIR }}
+      - name: Load unencrypted image
+        if: steps.check_image_artifact_key.outputs.do_encryption == 'false'
+        run: |
+          docker load < ${{ env.ARTIFACT_WORK_DIR }}/image.tar
+      - name: Load encrypted image
+        if: steps.check_image_artifact_key.outputs.do_encryption == 'true'
+        run: |
+          7za x -p${{ secrets.image_artifact_key }} -so \
+          ${{ env.ARTIFACT_WORK_DIR }}/image.tar.7z | docker load
+      - name: Set data directory permissions
+        run: |
+          chmod a+rwx data
+      - name: Run tests
+        env:
+          FOUNDRY_PASSWORD: ${{ secrets.foundry_password }}
+          FOUNDRY_USERNAME: ${{ secrets.foundry_username }}
+          PYTEST_DOCKERC_LOGPATH: data/pytest-dockerc.log
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: pytest --verbose --runslow
+      - name: Compress and encrypt data directory
+        if: ${{ always() }}
+        run: |
+          tar cf - data | \
+          7za a -p${{ secrets.data_artifact_key }} -si data.tar.7z
+      - name: Upload data artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
+        with:
+          name: ${{ inputs.data_artifact_name }}
+          path: data.tar.7z

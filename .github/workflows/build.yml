@@ -1,484 +1,156 @@
 ---
-name: build
-# https://github.com/docker/build-push-action#complete-workflow
+
+name: Build
 
 on:
   push:
     branches:
       - '**'
-    tags:
-      - 'v*.*.*'
   pull_request:
+  release:
+    types: [edited, published]
   schedule:
     - cron: '0 10 * * *'  # everyday at 10am
-  repository_dispatch:
-    # Respond to rebuild requests. See: https://github.com/cisagov/action-apb/
-    types: [apb]
   workflow_dispatch:
     inputs:
-      remote-shell:
-        description: "Debug with remote shell"
-        required: true
-        default: false
-      image-tag:
+      dispatch-tag:
         description: "Tag to apply to pushed images"
         required: true
         default: dispatch
 
-env:
-  BUILDX_CACHE_DIR: ~/.cache/buildx
-  IMAGE_NAME: felddy/foundryvtt
-  PIP_CACHE_DIR: ~/.cache/pip
-  PLATFORMS: "linux/amd64,linux/arm/v6,linux/arm/v7,\
-  linux/arm64,linux/ppc64le,linux/s390x"
-  PRE_COMMIT_CACHE_DIR: ~/.cache/pre-commit
+permissions:
+  actions: read
+  contents: read
 
 jobs:
+  config:
+    name: "Config"
+    uses: ./.github/workflows/_config.yml
+
+  metadata:
+    name: "Metadata"
+    needs: [config]
+    uses: ./.github/workflows/_metadata.yml
+    with:
+      image_name: ${{ needs.config.outputs.image_name }}
+
+  foundry-secrets:
+    name: "Foundry secrets"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check foundry.com credentials
+        run: |
+          return_code=0
+          if [ -z "${{ secrets.FOUNDRY_USERNAME }}" ]; then
+            echo "::warning::Set the FOUNDRY_USERNAME secret."
+            return_code=1
+          fi
+          if [ -z "${{ secrets.FOUNDRY_PASSWORD }}" ]; then
+            echo "::warning::Set the FOUNDRY_PASSWORD secret."
+            return_code=1
+          fi
+          exit $return_code
+
+  docker-secrets:
+    name: "Docker secrets"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check docker.com credentials
+        run: |
+          return_code=0
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "::warning::Set the DOCKER_USERNAME secret."
+            return_code=1
+          fi
+          if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "::warning::Set the DOCKER_PASSWORD secret."
+            return_code=1
+          fi
+          exit $return_code
+
+  artifact-key:
+    name: "Artifact key"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check artifact key
+        run: |
+          if [ -z "${{ secrets.ARTIFACT_KEY }}" ]; then
+            echo "::warning::Set the ARTIFACT_KEY secret."
+            exit 1
+          fi
+
   lint:
-    # Checks out the source and runs pre-commit hooks.  Detects coding errors
-    # and style deviations.
-    name: "Lint sources"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - id: setup-python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - uses: actions/cache@v2
-        env:
-          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-"
-        with:
-          path: |
-            ${{ env.PIP_CACHE_DIR }}
-            ${{ env.PRE_COMMIT_CACHE_DIR }}
-          key: "${{ env.BASE_CACHE_KEY }}\
-            ${{ hashFiles('**/requirements-test.txt') }}-\
-            ${{ hashFiles('**/requirements.txt') }}-\
-            ${{ hashFiles('**/.pre-commit-config.yaml') }}"
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade --requirement requirements-test.txt
-      - name: Set up pre-commit hook environments
-        run: pre-commit install-hooks
-      - name: Run pre-commit on all files
-        run: pre-commit run --all-files
+    name: "Lint"
+    needs: [config]
+    uses: ./.github/workflows/_lint.yml
+    with:
+      go_version: ${{ needs.config.outputs.go_version }}
+      python_version: ${{ needs.config.outputs.python_version }}
+      shfmt_version: ${{ needs.config.outputs.shfmt_version }}
 
-  prepare:
-    # Calculates and publishes outputs that are used by other jobs.
-    #
-    # Outputs:
-    #   created:
-    #     The current date-time in RFC3339 format.
-    #   repometa:
-    #     The json metadata describing this repository.
-    #   source_version:
-    #     The source version as reported by the `bump_version.sh show` command.
-    #   tags:
-    #     A comma separated list of Docker tags to be applied to the images on
-    #     DockerHub.  The tags will vary depending on:
-    #     - The event that triggered the build.
-    #     - The branch the build is based upon.
-    #     - The git tag the build is based upon.
-    #
-    #     When a build is based on a git tag of the form `v*.*.*` the image will
-    #     be tagged on DockerHub with multiple levels of version specificity.
-    #     For example, a git tag of `v1.2.3+a` will generate Docker tags of
-    #     `:1.2.3_a`, `:1.2.3`, `:1.2`, `:1`, and `:latest`.
-    #
-    #     Builds targeting the default branch will be tagged with `:edge`.
-    #
-    #     Builds from other branches will be tagged with the branch name. Solidi
-    #     (`/` characters - commonly known as slashes) in branch names are
-    #     replaced with hyphen-minuses (`-` characters) in the Docker tag.  For
-    #     more information about the solidus see these links:
-    #       * https://www.compart.com/en/unicode/U+002F
-    #       * https://en.wikipedia.org/wiki/Slash_(punctuation)#Encoding
-    #
-    #     Builds triggered by a push event are tagged with a short hash in the
-    #     form: sha-12345678
-    #
-    #     Builds triggered by a pull request are tagged with the pull request
-    #     number in the form pr-123.
-    #
-    #     Builds triggered using the GitHub GUI (workflow_dispatch) are tagged
-    #     with the value specified by the user.
-    #
-    #     Scheduled builds are tagged with `:nightly`.
-    name: "Prepare build variables"
-    runs-on: ubuntu-latest
-    outputs:
-      created: ${{ steps.prep.outputs.created }}
-      repometa: ${{ steps.repo.outputs.result }}
-      source_version: ${{ steps.prep.outputs.source_version }}
-      tags: ${{ steps.prep.outputs.tags }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Gather repository metadata
-        id: repo
-        uses: actions/github-script@v4
-        with:
-          script: |
-            const repo = await github.repos.get(context.repo)
-            return repo.data
-      - name: Calculate output values
-        id: prep
-        run: |
-          VERSION=noop
-          SEMVER="^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$"
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            VERSION=nightly
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION=${{ github.event.inputs.image-tag }}
-          elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/}
-          elif [[ $GITHUB_REF == refs/heads/* ]]; then
-            VERSION=$(echo ${GITHUB_REF#refs/heads/} | sed -r 's#/+#-#g')
-            if [ "${{ github.event.repository.default_branch }}" = "$VERSION" ];
-              then
-              VERSION=edge
-            fi
-          elif [[ $GITHUB_REF == refs/pull/* ]]; then
-            VERSION=pr-${{ github.event.number }}
-          fi
-          if [[ $VERSION =~ $SEMVER ]]; then
-            VERSION_NO_V=${VERSION#v}
-            MAJOR="${BASH_REMATCH[1]}"
-            MINOR="${BASH_REMATCH[2]}"
-            PATCH="${BASH_REMATCH[3]}"
-            TAGS="${IMAGE_NAME}:${VERSION_NO_V//+/_},${IMAGE_NAME}:${MAJOR}.${MINOR}.${PATCH},${IMAGE_NAME}:${MAJOR}.${MINOR},${IMAGE_NAME}:${MAJOR}"
-            source image_tags.sh
-          else
-            TAGS="${IMAGE_NAME}:${VERSION}"
-          fi
-          if [ "${{ github.event_name }}" = "push" ]; then
-            TAGS="${TAGS},${IMAGE_NAME}:sha-${GITHUB_SHA::8}"
-          fi
-          for i in ${TAGS//,/ }
-          do
-            TAGS="${TAGS},ghcr.io/${i}"
-          done
-          echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          echo ::set-output name=source_version::$(./bump_version.sh show)
-          echo ::set-output name=tags::${TAGS}
-          echo tags=${TAGS}
-      - name: Setup debug session remote shell
-        uses: mxschmitt/action-tmate@v3
-        if: github.event.inputs.remote-shell == 'true'
-  build-normal:
-    name: "Build normal test image"
-    runs-on: ubuntu-latest
-    needs: [prepare]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        env:
-          BASE_CACHE_KEY: buildx-${{ runner.os }}-
-        with:
-          path: ${{ env.BUILDX_CACHE_DIR }}
-          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Create dist directory
-        run: mkdir -p dist
-      - name: Build image
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          build-args: |
-            VERSION=${{ needs.prepare.outputs.source_version }}
-          cache-from: type=local,src=${{ env.BUILDX_CACHE_DIR }}
-          cache-to: type=local,dest=${{ env.BUILDX_CACHE_DIR }}
-          context: .
-          file: ./Dockerfile
-          outputs: type=docker,dest=dist/image.tar
-          tags: ${{ env.IMAGE_NAME }}:latest  # not to be pushed
-          # For a list of pre-defined annotation keys and value types see:
-          # https://github.com/opencontainers/image-spec/blob/master/annotations.md
-          labels: "\
-            org.opencontainers.image.created=${{
-              needs.prepare.outputs.created }}
+  build-normal-test-image:
+    name: "Normal"
+    needs: [config, metadata]
+    uses: ./.github/workflows/_build-test-image.yml
+    with:
+      artifact_name: ${{ needs.config.outputs.normal_image_artifact_name }}
+      image_labels: ${{ needs.metadata.outputs.image_labels }}
+    secrets:
+      build_args: |
+        VERSION=${{ needs.metadata.outputs.source_version }}
 
-            org.opencontainers.image.description=${{
-              fromJson(needs.prepare.outputs.repometa).description }}
+  build-pre-installed-test-image:
+    name: "Pre-installed"
+    needs: [artifact-key, config, foundry-secrets, metadata]
+    uses: ./.github/workflows/_build-test-image.yml
+    with:
+      artifact_name: ${{ needs.config.outputs.pre_installed_image_artifact_name }}
+      image_labels: ${{ needs.metadata.outputs.image_labels }}
+    secrets:
+      artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      build_args: |
+        FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
+        FOUNDRY_USERNAME=${{ secrets.FOUNDRY_USERNAME }}
+        VERSION=${{ needs.metadata.outputs.source_version }}
 
-            org.opencontainers.image.licenses=${{
-              fromJson(needs.prepare.outputs.repometa).license.spdx_id }}
+  test-normal-image:
+    name: "Normal"
+    needs: [artifact-key, build-normal-test-image, config, foundry-secrets]
+    uses: ./.github/workflows/_test-image.yml
+    with:
+      data_artifact_name: ${{ needs.config.outputs.normal_data_artifact_name }}
+      image_artifact_name: ${{ needs.config.outputs.normal_image_artifact_name }}
+    secrets:
+      data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      foundry_password: ${{ secrets.FOUNDRY_PASSWORD }}
+      foundry_username: ${{ secrets.FOUNDRY_USERNAME }}
 
-            org.opencontainers.image.revision=${{ github.sha }}
+  test-pre-installed-image:
+    name: "Pre-installed"
+    needs: [artifact-key, config, build-pre-installed-test-image]
+    uses: ./.github/workflows/_test-image.yml
+    with:
+      data_artifact_name: ${{ needs.config.outputs.pre_installed_data_artifact_name }}
+      image_artifact_name: ${{ needs.config.outputs.pre_installed_image_artifact_name }}
+    secrets:
+      data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
 
-            org.opencontainers.image.source=${{
-              fromJson(needs.prepare.outputs.repometa).clone_url }}
-
-            org.opencontainers.image.title=${{
-              fromJson(needs.prepare.outputs.repometa).name }}
-
-            org.opencontainers.image.url=${{
-              fromJson(needs.prepare.outputs.repometa).html_url }}
-
-            org.opencontainers.image.version=${{
-              needs.prepare.outputs.source_version }}"
-      - name: Compress image
-        run: gzip dist/image.tar
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist-normal
-          path: dist
-  build-pre-install:
-    name: "Build pre-installed test image"
-    runs-on: ubuntu-latest
-    needs: [prepare]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        env:
-          BASE_CACHE_KEY: buildx-${{ runner.os }}-
-        with:
-          path: ${{ env.BUILDX_CACHE_DIR }}
-          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Create dist directory
-        run: mkdir -p dist
-      - name: Build image
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          build-args: |
-            FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
-            FOUNDRY_USERNAME=${{ secrets.FOUNDRY_USERNAME }}
-            VERSION=${{ needs.prepare.outputs.source_version }}
-          cache-from: type=local,src=${{ env.BUILDX_CACHE_DIR }}
-          cache-to: type=local,dest=${{ env.BUILDX_CACHE_DIR }}
-          context: .
-          file: ./Dockerfile
-          outputs: type=docker,dest=dist/image.tar
-          tags: ${{ env.IMAGE_NAME }}:latest  # not to be pushed
-          # For a list of pre-defined annotation keys and value types see:
-          # https://github.com/opencontainers/image-spec/blob/master/annotations.md
-          labels: "\
-            org.opencontainers.image.created=${{
-              needs.prepare.outputs.created }}
-
-            org.opencontainers.image.description=${{
-              fromJson(needs.prepare.outputs.repometa).description }}
-
-            org.opencontainers.image.licenses=${{
-              fromJson(needs.prepare.outputs.repometa).license.spdx_id }}
-
-            org.opencontainers.image.revision=${{ github.sha }}
-
-            org.opencontainers.image.source=${{
-              fromJson(needs.prepare.outputs.repometa).clone_url }}
-
-            org.opencontainers.image.title=${{
-              fromJson(needs.prepare.outputs.repometa).name }}
-
-            org.opencontainers.image.url=${{
-              fromJson(needs.prepare.outputs.repometa).html_url }}
-
-            org.opencontainers.image.version=${{
-              needs.prepare.outputs.source_version }}"
-      - name: Compress image
-        run: gzip dist/image.tar
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist-pre-install
-          path: dist
-  test-normal:
-    # Executes tests on the single-platform image created in the "build" job.
-    name: "Test normal image"
-    runs-on: ubuntu-latest
-    needs: [build-normal]
-    steps:
-      - uses: actions/checkout@v2
-      - id: setup-python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - name: Cache testing environments
-        uses: actions/cache@v2
-        env:
-          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-"
-        with:
-          path: ${{ env.PIP_CACHE_DIR }}
-          key: "${{ env.BASE_CACHE_KEY }}\
-            ${{ hashFiles('**/requirements-test.txt') }}-\
-            ${{ hashFiles('**/requirements.txt') }}"
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade --requirement requirements-test.txt
-      - name: Download docker image artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: dist-normal
-          path: dist-normal
-      - name: Load docker image
-        run: docker load < dist-normal/image.tar.gz
-      - name: Set data directory permissions
-        run: |
-          chmod a+rwx data
-      - name: Run tests
-        env:
-          FOUNDRY_PASSWORD: ${{ secrets.FOUNDRY_PASSWORD }}
-          FOUNDRY_USERNAME: ${{ secrets.FOUNDRY_USERNAME }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: pytest --runslow
-      - name: Upload data artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: data-normal
-          path: data
-  test-pre-install:
-    # Executes tests on the single-platform image created in the "build" job.
-    name: "Test pre-installed image"
-    runs-on: ubuntu-latest
-    needs: [build-pre-install]
-    steps:
-      - uses: actions/checkout@v2
-      - id: setup-python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - name: Cache testing environments
-        uses: actions/cache@v2
-        env:
-          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
-            py${{ steps.setup-python.outputs.python-version }}-"
-        with:
-          path: ${{ env.PIP_CACHE_DIR }}
-          key: "${{ env.BASE_CACHE_KEY }}\
-            ${{ hashFiles('**/requirements-test.txt') }}-\
-            ${{ hashFiles('**/requirements.txt') }}"
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade --requirement requirements-test.txt
-      - name: Download docker image artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: dist-pre-install
-          path: dist-pre-install
-      - name: Load docker image
-        run: docker load < dist-pre-install/image.tar.gz
-      - name: Set data directory permissions
-        run: |
-          chmod a+rwx data
-      - name: Run tests
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: pytest --runslow
-      - name: Upload data artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: data-pre-install
-          path: data
-  build-push-all:
-    # Builds the final set of images for each of the platforms listed in
-    # PLATFORMS environment variable.  These images are tagged with the Docker
-    # tags calculated in the "prepare" job and pushed to DockerHub and the
-    # GitHub Container Registry.  The contents of README.md is pushed as the
-    # image's description to DockerHub.  This job is skipped when the triggering
-    # event is a pull request.
-    name: "Build and push all platforms"
-    runs-on: ubuntu-latest
-    needs: [lint, prepare, test-normal, test-pre-install]
+  build-and-push:
+    needs: [config, docker-secrets, lint, metadata, test-normal-image, test-pre-installed-image]
     if: github.event_name != 'pull_request'
-    steps:
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        env:
-          BASE_CACHE_KEY: buildx-${{ runner.os }}-
-        with:
-          path: ${{ env.BUILDX_CACHE_DIR }}
-          key: ${{ env.BASE_CACHE_KEY }}${{ github.sha }}
-          restore-keys: |
-            ${{ env.BASE_CACHE_KEY }}
-      - name: Create cross-platform support Dockerfile-x
-        run: ./buildx-dockerfile.sh
-      - name: Build and push platform images to registries
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          build-args: |
-            VERSION=${{ needs.prepare.outputs.source_version }}
-          cache-from: type=local,src=${{ env.BUILDX_CACHE_DIR }}
-          cache-to: type=local,dest=${{ env.BUILDX_CACHE_DIR }}
-          context: .
-          file: ./Dockerfile-x
-          platforms: ${{ env.PLATFORMS }}
-          push: true
-          tags: ${{ needs.prepare.outputs.tags }}
-          # For a list of pre-defined annotation keys and value types see:
-          # https://github.com/opencontainers/image-spec/blob/master/annotations.md
-          labels: "\
-            org.opencontainers.image.created=${{
-              needs.prepare.outputs.created }}
-
-            org.opencontainers.image.description=${{
-              fromJson(needs.prepare.outputs.repometa).description }}
-
-            org.opencontainers.image.licenses=${{
-              fromJson(needs.prepare.outputs.repometa).license.spdx_id }}
-
-            org.opencontainers.image.revision=${{ github.sha }}
-
-            org.opencontainers.image.source=${{
-              fromJson(needs.prepare.outputs.repometa).clone_url }}
-
-            org.opencontainers.image.title=${{
-              fromJson(needs.prepare.outputs.repometa).name }}
-
-            org.opencontainers.image.url=${{
-              fromJson(needs.prepare.outputs.repometa).html_url }}
-
-            org.opencontainers.image.version=${{
-              needs.prepare.outputs.source_version }}"
-      - name: Publish README.md to Docker Hub
-        env:
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        run: ./push_readme.sh
+    name: "Publish"
+    permissions:
+      packages: write
+    uses: ./.github/workflows/_build-push-all.yml
+    with:
+      build_args: |
+        VERSION=${{ needs.metadata.outputs.source_version }}
+      do_publish_readme: ${{ github.event_name == 'release' && !github.event.release.prerelease}}
+      image_labels: ${{ needs.metadata.outputs.image_labels }}
+      image_name: ${{ needs.config.outputs.image_name }}
+      image_tags: ${{ needs.metadata.outputs.image_tags }}
+      platforms: ${{ needs.config.outputs.platforms }}
+    secrets:
+      docker_password: ${{ secrets.DOCKER_PASSWORD }}
+      docker_username: ${{ secrets.DOCKER_USERNAME }}

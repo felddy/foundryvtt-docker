@@ -4,12 +4,14 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
-USAGE=$(cat << 'END_OF_LINE'
-Configure a developement environment for this repository.
+USAGE=$(
+  cat << 'END_OF_LINE'
+Configure a development environment for this repository.
 
 It does the following:
   - Verifies pyenv and pyenv-virtualenv are installed.
   - Creates a Python virtual environment.
+  - Creates a Node.js virtual environment.
   - Configures the activation of the virtual enviroment for the repo directory.
   - Installs the requirements needed for development.
   - Installs git pre-commit hooks.
@@ -35,17 +37,17 @@ FORCE=0
 PARAMS=""
 
 # Parse command line arguments
-while (( "$#" )); do
+while (("$#")); do
   case "$1" in
-    -f|--force)
+    -f | --force)
       FORCE=1
       shift
       ;;
-    -h|--help)
+    -h | --help)
       echo "${USAGE}"
       exit 0
       ;;
-    -i|--install-hooks)
+    -i | --install-hooks)
       INSTALL_HOOKS=1
       shift
       ;;
@@ -156,11 +158,18 @@ done
 # Install git pre-commit hooks now or later.
 pre-commit install ${INSTALL_HOOKS:+"--install-hooks"}
 
+# Create Node.js virtual environment within the Python virtual environment.
+nodeenv --python-virtualenv
+
+# Install project node dependencies.
+npm install
+
 # Setup git remotes from lineage configuration
 # This could fail if the remotes are already setup, but that is ok.
 set +o errexit
 
-eval "$(python3 << 'END_OF_LINE'
+eval "$(
+  python3 << 'END_OF_LINE'
 from pathlib import Path
 import yaml
 import sys
