@@ -9,7 +9,7 @@
     "fetch-cookie": "^2.1.0",
     "node-fetch": "^3.2.10",
     "tough-cookie-file-store": "^2.0.3",
-    "winston": "^3.8.1"
+    "winston": "^3.8.2"
   },
   "description": "Utilities to help boot a FoundryVTT server.",
   "devDependencies": {
