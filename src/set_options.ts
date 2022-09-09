@@ -46,6 +46,7 @@ let options: object = {
   language: process.env.FOUNDRY_LANGUAGE || LANGUAGE,
   localHostname: process.env.FOUNDRY_LOCAL_HOSTNAME || null,
   minifyStaticFiles: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
+  compressStatic: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
   passwordSalt: process.env.FOUNDRY_PASSWORD_SALT || null,
   port: FOUNDRY_PORT,
   protocol: process.env.FOUNDRY_PROTOCOL || null,
