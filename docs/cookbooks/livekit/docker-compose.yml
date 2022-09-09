@@ -1,0 +1,61 @@
+---
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    volumes:
+      - type: bind
+        source: ./Caddyfile
+        target: /etc/caddy/Caddyfile
+      - type: bind
+        source: ./volumes/caddy_data
+        target: /data
+      - type: bind
+        source: ./volumes/caddy_config
+        target: /config
+    environment:
+      - LETSENCRYPT_EMAIL=<your_email@example.com>
+      - FOUNDRY_ADDRESS=<vtt.example.com>
+      - TURN_ADDRESS=<turn.example.com>
+    ports:
+      - target: 443
+        published: 443
+        protocol: tcp
+      - target: 80
+        published: 80
+        protocol: tcp
+
+  foundry:
+    image: felddy/foundryvtt:release
+    hostname: foundry_host
+    init: true
+    restart: "no"
+    volumes:
+      - type: bind
+        source: ./volumes/foundry_data
+        target: /data
+    environment:
+      - CONTAINER_CACHE=/data/container_cache
+      - CONTAINER_VERBOSE=true
+      - FOUNDRY_ADMIN_KEY=<admin_password>
+      - FOUNDRY_HOSTNAME=<vtt.example.com>
+      - FOUNDRY_PASSWORD=<password>
+      - FOUNDRY_PROXY_SSL=true
+      - FOUNDRY_USERNAME=<username>
+
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./livekit.yaml
+        target: /etc/livekit.yaml
+
+  redis:
+    image: redis:6-alpine
+    command: redis-server /etc/redis.conf
+    volumes:
+      - type: bind
+        source: ./redis.conf
+        target: /etc/redis.conf

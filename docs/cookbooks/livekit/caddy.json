@@ -1,0 +1,65 @@
+{
+  "apps": {
+    "http": {
+      "servers": {
+        "srv0": {
+          "listen": [
+            ":443"
+          ],
+          "routes": [
+            {
+              "handle": [
+                {
+                  "handler": "subroute",
+                  "routes": [
+                    {
+                      "handle": [
+                        {
+                          "handler": "reverse_proxy",
+                          "upstreams": [
+                            {
+                              "dial": "foundry:30000"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "match": [
+                {
+                  "host": [
+                    "{foo.bar.com}"
+                  ]
+                }
+              ],
+              "terminal": true
+            }
+          ]
+        }
+      }
+    },
+    "tls": {
+      "automation": {
+        "policies": [
+          {
+            "issuers": [
+              {
+                "email": "{baz@foo.bar.com}",
+                "module": "acme"
+              },
+              {
+                "email": "{baz@foo.bar.com}",
+                "module": "zerossl"
+              }
+            ],
+            "subjects": [
+              "{foo.bar.com}"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

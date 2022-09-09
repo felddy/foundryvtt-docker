@@ -1,0 +1,22 @@
+---
+port: 7880
+rtc:
+    tcp_port: 7881
+    port_range_start: 50000
+    port_range_end: 60000
+    use_external_ip: true
+redis:
+    address: localhost:6379
+    username: ""
+    password: ""
+    db: 0
+turn:
+    enabled: true
+    domain: livekit-turn.example.com
+    cert_file: ""
+    key_file: ""
+    tls_port: 5349
+    udp_port: 443
+    external_tls: true
+keys:
+    APIxxx: XXXX
