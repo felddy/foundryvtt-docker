@@ -1,0 +1,61 @@
+---
+name: 🚀 Feature Proposal
+description: Submit a proposal for a new feature
+labels: ["feature request :bulb:"]
+assignees:
+  - felddy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature proposal!
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature description
+      description: A clear and concise description of what the feature is.
+      placeholder: |
+        Add both purple and cyan colors to the color picker.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Please outline the motivation for the proposal.
+      placeholder: |
+        - I like purple and cyan colors.
+        - The colors in the current color selector are limited to mostly reds and greens.
+        - I would like the ability to select more colors that I like.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example
+      description: Please provide an example for how this feature would be used.
+      placeholder: |
+        - Select an object on the page.
+        - Right-click on the selected object.
+        - Choose a color from the color change popup menu.
+        - Click on the new purple color selection.
+        - Notice the object turns a beautifuly shade of purple.
+    validations:
+      required: true
+  - type: textarea
+    id: pitch
+    attributes:
+      label: Pitch
+      description: Why does this feature belong in this project?
+      placeholder: |
+        There are a lot of people that enjoy both purple and cyan.
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/felddy/foundryvtt-docker/blob/develop/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
