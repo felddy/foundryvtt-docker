@@ -1,0 +1,35 @@
+---
+name: Label and close stale issues
+
+on:
+  schedule:
+    - cron: '0 10 * * *'  # everyday at 10am
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95
+        with:
+          egress-policy: audit  # TODO: change to 'egress-policy: block' after couple of runs
+
+      - uses: actions/stale@99b6c709598e2b0d0841cd037aaf1ba07a4410bd
+        with:
+          days-before-stale: 28
+          days-before-close: 7
+          stale-issue-message: >-
+            This issue has been automatically marked as stale because it has been
+            inactive for 28 days. To reactivate the issue, simply post a comment
+            with the requested information to help us diagnose this issue. If this
+            issue remains inactive for another 7 days, it will be automatically
+            closed.
+          close-issue-message: >-
+            This issue has been automatically closed due to inactivity. If you are
+            still experiencing problems, please open a new issue.
+          stale-issue-label: "stale :skull:"
+          only-labels: "needs more info :thinking:"
