@@ -76,7 +76,7 @@ async function fetchLicenses(username: string): Promise<string[]> {
   const body = await response.text();
   const $ = await cheerio.load(body);
 
-  const licenses: string[] = $("pre.license-key code")
+  const licenses: string[] = $("pre.key-code code")
     .map(function (this: cheerio.Element) {
       return $(this).text().replace(/-/g, ""); // remove dashes
     })
