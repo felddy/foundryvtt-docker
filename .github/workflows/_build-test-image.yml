@@ -59,7 +59,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@dc7b9719a96d48369863986a06765841d7ea23f6
       - name: Cache Docker layers
-        uses: actions/cache@ac8075791e805656e71b4ba23325ace9e3421120
+        uses: actions/cache@56461b9eb0f8438fd15c7a9968e3c9ebb18ceff1
         env:
           BASE_CACHE_KEY: buildx-${{ runner.os }}-
         with:
