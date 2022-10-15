@@ -14,6 +14,7 @@ services:
         source: ./data
         target: /data
     environment:
+      - CONTAINER_URL_FETCH_RETRY=5
       - CONTAINER_VERBOSE=true
       - FOUNDRY_ADMIN_KEY=atropos
       - FOUNDRY_GID=foundry
