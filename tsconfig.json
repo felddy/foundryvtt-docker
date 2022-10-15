@@ -12,6 +12,7 @@
     "outDir": "dist",
     "removeComments": true,
     "skipLibCheck": true,
+    "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
     "target": "es2021"
