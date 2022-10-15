@@ -22,7 +22,8 @@ Options:
                          "warn", and "error". [default: info]
   --user-agent=USERAGENT If specified, then the user-agent header will be set to
                          the specified value. [default: node-fetch]
-
+  --retry=COUNT          If specified, then the number of retries that will be
+                         attempted before giving up. [default: 0]
 `;
 
 // Imports
@@ -50,29 +51,68 @@ const HEADERS: Headers = new Headers({
   "User-Agent": "node-fetch",
 });
 
+const INITIAL_RETRY_DELAY_S = 60; // 1 minute
+const SLEEP_INTERVAL = 15; // 15 seconds
+
+/**
+ * sleepWithProgress - Exponential sleep back off based on attempt number.
+ * Logs a messages during sleep to indicate progress.
+ * @param  {number} attempt Attempt number.
+ */
+async function sleepWithProgress(attempt: number): Promise<void> {
+  const delay: number = Math.floor(
+    INITIAL_RETRY_DELAY_S * 2 ** (attempt - 1) +
+      Math.random() * INITIAL_RETRY_DELAY_S
+  );
+  logger.info(`Sleeping for ${delay} seconds before retrying...`);
+  // Calculate the end of the sleep period
+  const end = Date.now() + delay * 1000;
+  // Sleep in increments, logging time remaining
+  while (Date.now() < end) {
+    await new Promise((resolve) => setTimeout(resolve, SLEEP_INTERVAL * 1000));
+    logger.info(`${Math.ceil((end - Date.now()) / 1000)} seconds remaining...`);
+  }
+}
+
 /**
  * fetchReleaseURL - Fetch the pre-signed S3 URL.
  *
  * @param  {string} build Build to download.
+ * @param  {number} retries Number of retries to attempt.
  * @return {string} The URL of the requested build.
  */
-async function fetchReleaseURL(build: string): Promise<string | null> {
+async function fetchReleaseURL(
+  build: string,
+  retries: number
+): Promise<string | null> {
   logger.info(`Fetching S3 pre-signed release URL for build ${build}...`);
   const release_url: string = `${BASE_URL}/releases/download?build=${build}&platform=linux`;
-  logger.debug(`Fetching: ${release_url}`);
-  const response: Response = await fetch(release_url, {
-    method: "GET",
-    headers: HEADERS,
-    redirect: "manual",
-  });
-  // Expect a redirect status
-  if (!(response.status >= 300 && response.status < 400)) {
-    throw new Error(`Unexpected response ${response.statusText}`);
-  }
-  const s3_url: string | null = response.headers.get("location");
-  logger.debug(`S3 presigned URL: ${s3_url}`);
+  for (var attempt = 1; attempt <= 1 + retries; attempt++) {
+    logger.debug(`Attempt ${attempt} of ${1 + retries}`);
+    // If this is not the first attempt, wait a bit before trying again.
+    if (attempt > 1) {
+      await sleepWithProgress(attempt);
+    }
+    logger.debug(`Fetching: ${release_url}`);
+    const response: Response = await fetch(release_url, {
+      method: "GET",
+      headers: HEADERS,
+      redirect: "manual",
+    });
+    // Expect a redirect status
+    if (!(response.status >= 300 && response.status < 400)) {
+      logger.warn(
+        `Unexpected response ${response.status}: ${response.statusText}`
+      );
+      continue;
+    }
 
-  return s3_url;
+    const s3_url: string | null = response.headers.get("location");
+    logger.debug(`S3 presigned URL: ${s3_url}`);
+
+    return s3_url;
+  }
+  throw new Error(`Failed to fetch release URL.`);
 }
 
 /**
@@ -88,6 +128,7 @@ async function main(): Promise<number> {
   const cookiejar_filename: string = options["<cookiejar>"];
   const foundry_version: string = options["<version>"];
   const log_level: string = options["--log-level"].toLowerCase();
+  const retries: number = parseInt(options["--retry"]);
   HEADERS.set("User-Agent", options["--user-agent"]);
 
   // Setup logging.
@@ -112,7 +153,10 @@ async function main(): Promise<number> {
   }
 
   // Generate an S3 pre-signed URL and print it to stdout.
-  const releaseURL: string | null = await fetchReleaseURL(foundry_build);
+  const releaseURL: string | null = await fetchReleaseURL(
+    foundry_build,
+    retries
+  );
 
   if (releaseURL) {
     process.stdout.write(releaseURL);
