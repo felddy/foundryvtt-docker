@@ -52,6 +52,7 @@ RUN \
 FROM node:${NODE_IMAGE_VERSION} as final-stage
 
 ARG FOUNDRY_UID=421
+ARG FOUNDRY_GID=421
 ARG FOUNDRY_VERSION
 ARG TARGETPLATFORM
 ARG VERSION
@@ -75,7 +76,7 @@ COPY \
   src/launcher.sh \
   src/logging.sh \
   ./
-RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
+RUN addgroup --system --gid ${FOUNDRY_GID} foundry \
   && adduser --system --uid ${FOUNDRY_UID} --ingroup foundry foundry \
   && apk --update --no-cache add \
   curl \
