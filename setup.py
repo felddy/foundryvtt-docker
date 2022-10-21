@@ -56,6 +56,8 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Games/Entertainment :: Role-Playing",
     ],
     python_requires=">=3.6",
@@ -64,21 +66,21 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
-    install_requires=["docker-compose", "semver", "setuptools >= 24.2.0", "wheel"],
+    install_requires=[
+        "docker-compose == 1.29.2",
+        "semver == 2.13.0",
+        "setuptools == 65.5.0",
+        "wheel == 0.37.1",
+    ],
     extras_require={
         "test": [
-            "pre-commit",
-            # coveralls 1.11.0 added a service number for calls from
-            # GitHub Actions. This caused a regression which resulted in a 422
-            # response from the coveralls API with the message:
-            # Unprocessable Entity for url: https://coveralls.io/api/v1/jobs
-            # 1.11.1 fixed this issue, but to ensure expected behavior we'll pin
-            # to never grab the regression version.
-            "coveralls != 1.11.0",
-            "coverage",
-            "pytest-dockerc",
-            "pytest-cov",
-            "pytest",
+            "coverage == 6.5.0",
+            "coveralls == 3.3.1",
+            "docker == 6.0.0",
+            "pre-commit == 2.20.0",
+            "pytest == 7.1.3",
+            "pytest-cov == 4.0.0",
+            "pytest-lazy-fixture == 0.6.3",
         ]
     },
 )

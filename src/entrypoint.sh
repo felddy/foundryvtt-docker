@@ -114,7 +114,6 @@ if [ $install_required = true ]; then
       # CONTAINER_VERBOSE default value should not be quoted.
       # shellcheck disable=SC2086
       s3_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} \
-        ${CONTAINER_URL_FETCH_RETRY+--retry=${CONTAINER_URL_FETCH_RETRY}} \
         --user-agent="${node_user_agent}" \
         "${cookiejar_file}" "${FOUNDRY_VERSION}")
       requested_s3_url=true
