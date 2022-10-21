@@ -51,7 +51,7 @@ const HEADERS: Headers = new Headers({
   "User-Agent": "node-fetch",
 });
 
-const INITIAL_RETRY_DELAY_S = 60; // 1 minute
+const INITIAL_RETRY_DELAY_S = 120; // 2 minutes
 const SLEEP_INTERVAL = 15; // 15 seconds
 
 /**
