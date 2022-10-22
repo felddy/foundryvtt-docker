@@ -29,6 +29,7 @@ def main_container():
         IMAGE_NAME,
         detach=True,
         environment={
+            "CONTAINER_URL_FETCH_RETRY": 5,
             "CONTAINER_VERBOSE": True,
             "FOUNDRY_ADMIN_KEY": "atropos",
             "FOUNDRY_GID": "foundry",
