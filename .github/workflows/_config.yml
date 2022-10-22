@@ -44,7 +44,7 @@ jobs:
           egress-policy: audit
 
       - name: Check GitHub Status
-        uses: crazy-max/ghaction-github-status@11800cf081427ec689e7f34f287f9e0c85ae6826
+        uses: crazy-max/ghaction-github-status@8d1f141b985510f36a0376b75b4dc8b0cfc90e8a
         with:
           overall_threshold: major
           packages_threshold: major_outage
