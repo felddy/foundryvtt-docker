@@ -108,6 +108,7 @@ jobs:
           chmod a+rwx data
       - name: Run tests
         env:
+          CONTAINER_URL_FETCH_RETRY: 5
           FOUNDRY_PASSWORD: ${{ secrets.foundry_password }}
           FOUNDRY_USERNAME: ${{ secrets.foundry_username }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
