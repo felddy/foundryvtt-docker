@@ -69,7 +69,9 @@ def test_wait_for_ready(main_container, redacted_printer):
     NO_LOG_TIMEOUT = 60
     tailer = LogTailer(main_container, since=1)
     timeout: float = time.time() + NO_LOG_TIMEOUT
-    while main_container.status == "running" and time.time() < timeout:
+    while (not tailer.empty()) or (
+        main_container.status == "running" and time.time() < timeout
+    ):
         log_line = tailer.read()
         if log_line is None:
             # No new log lines, wait a bit
@@ -87,9 +89,6 @@ def test_wait_for_ready(main_container, redacted_printer):
         print(
             f"Test ending... container status: {main_container.status}, log timeout: {time.time() - timeout}"
         )
-        print("Dumping any remaining log lines:")
-        for log_line in tailer:
-            redacted_printer.print(log_line, end="")
         assert main_container.status == "running", "The container unexpectedly exited."
         assert (
             False

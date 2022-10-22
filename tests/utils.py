@@ -30,6 +30,10 @@ class LogTailer(object):
             return None
         return self.queue.get()
 
+    def empty(self):
+        """Return if the queue is empty."""
+        return self.queue.empty()
+
 
 class RedactedPrinter(object):
     """Prints lines to stdout with redactions applied."""
