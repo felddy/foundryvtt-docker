@@ -83,10 +83,17 @@ def test_wait_for_ready(main_container, redacted_printer):
             return  # success
         main_container.reload()
     else:
-        raise Exception(
-            f"Container does not seem ready.  "
-            f'Expected "{READY_MESSAGE}" in the log, but log stopped for {NO_LOG_TIMEOUT} seconds.'
+        # The container exited or we timed out
+        print(
+            f"Test ending... container status: {main_container.status}, log timeout: {time.time() - timeout}"
         )
+        print("Dumping any remaining log lines:")
+        for log_line in tailer:
+            redacted_printer.print(log_line, end="")
+        assert main_container.status == "running", "The container unexpectedly exited."
+        assert (
+            False
+        ), "Logging stopped for {NO_LOG_TIMEOUT} seconds, and did not contain the ready message."
 
 
 @pytest.mark.slow
@@ -106,16 +113,9 @@ def test_wait_for_healthy(main_container):
             break
         time.sleep(1)
     else:
-        raise Exception(
-            f"Container status did not transition to 'healthy' within {TIMEOUT} seconds."
-        )
-
-
-def test_dump_container_logs(main_container, redacted_printer):
-    """Dump container logs to stdout."""
-    logs = main_container.logs().decode("utf-8")
-    print("Container logs:")
-    redacted_printer.print(logs)
+        assert (
+            False
+        ), f"Container status did not transition to 'healthy' within {TIMEOUT} seconds."
 
 
 @pytest.mark.skipif(
