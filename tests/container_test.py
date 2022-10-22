@@ -8,22 +8,30 @@ import time
 # Third-Party Libraries
 import pytest
 
+from .utils import LogTailer
+
 READY_MESSAGE = "Server started and listening on port"
-RELEASE_TAG = os.getenv("RELEASE_TAG")
-VERSION_FILE = "src/_version.py"
+RETRY_INITIAL_DELAY = 120
 
 
-def test_container_count(dockerc):
-    """Verify the test composition and container."""
-    # stopped parameter allows non-running containers in results
-    assert (
-        len(dockerc.containers(stopped=True)) == 2
-    ), "Wrong number of containers were started."
+@pytest.mark.parametrize(
+    "container",
+    [pytest.lazy_fixture("main_container"), pytest.lazy_fixture("version_container")],
+)
+def test_container_running(container):
+    """Test that the container has started."""
+    # Wait until the container is running or timeout.
+    for _ in range(10):
+        container.reload()
+        if container.status != "created":
+            break
+        time.sleep(1)
+    assert container.status in ("exited", "running")
 
 
 @pytest.mark.xfail
-def test_environment_credentials(main_container):
-    """Verify enironment is set correctly."""
+def test_environment_credentials():
+    """Verify environment is set correctly."""
     # Check for credential variables.
     # These are not required for pre-built images.
     assert (
@@ -34,76 +42,90 @@ def test_environment_credentials(main_container):
     ), "FOUNDRY_PASSWORD was not in the environment"
 
 
+def test_wait_for_version_container_exit(version_container):
+    """Wait for version container to exit cleanly."""
+    assert (
+        version_container.wait()["StatusCode"] == 0
+    ), "The version container did not exit cleanly"
+
+
+def test_log_version(version_container, project_version):
+    """Verify the container outputs the correct version to the logs."""
+    version_container.wait()  # make sure container exited if running test isolated
+    log_output = version_container.logs().decode("utf-8").strip()
+    assert (
+        log_output == project_version
+    ), "Container version output to log does not match project version file"
+
+
 @pytest.mark.slow
-def test_wait_for_ready(main_container):
-    """Wait for container to be ready."""
-    # This could take a while, as we download the application.
-    TIMEOUT = 180
-    for i in range(TIMEOUT):
-        # Verify the container is still running
-        assert main_container.is_running is True, "The container unexpectedly exited."
-        logs = main_container.logs().decode("utf-8")
-        if READY_MESSAGE in logs:
-            break
-        time.sleep(1)
+def test_wait_for_ready(main_container, redacted_printer):
+    """
+    Wait for Foundry to be ready.
+
+    This could take a while if we have to back off due to rate limiting.
+    If the logs stop updating for too long, or the container exits, fail.
+    """
+    NO_LOG_TIMEOUT = 60
+    tailer = LogTailer(main_container, since=1)
+    timeout: float = time.time() + NO_LOG_TIMEOUT
+    while (not tailer.empty()) or (
+        main_container.status == "running" and time.time() < timeout
+    ):
+        log_line = tailer.read()
+        if log_line is None:
+            # No new log lines, wait a bit
+            time.sleep(1)
+            continue
+        else:
+            # The log is still alive, reset the timeout
+            timeout = time.time() + NO_LOG_TIMEOUT
+        redacted_printer.print(log_line, end="")
+        if READY_MESSAGE in log_line:
+            return  # success
+        main_container.reload()
     else:
-        raise Exception(
-            f"Container does not seem ready.  "
-            f'Expected "{READY_MESSAGE}" in the log within {TIMEOUT} seconds.'
-            f"\nLog output follows:\n{logs}"
+        # The container exited or we timed out
+        print(
+            f"Test ending... container status: {main_container.status}, log timeout: {time.time() - timeout}"
         )
+        assert main_container.status == "running", "The container unexpectedly exited."
+        assert (
+            False
+        ), "Logging stopped for {NO_LOG_TIMEOUT} seconds, and did not contain the ready message."
 
 
 @pytest.mark.slow
 def test_wait_for_healthy(main_container):
     """Wait for container to be healthy."""
-    # This could take a while
+    # It could already in an unhealthy state when we start as we may have been
+    # rate limited.
     TIMEOUT = 180
-    for i in range(TIMEOUT):
+    api_client = main_container.client.api
+    for _ in range(TIMEOUT):
         # Verify the container is still running
-        assert main_container.is_running is True, "The container unexpectedly exited."
-        inspect = main_container.inspect()
+        main_container.reload()
+        assert main_container.status == "running", "The container unexpectedly exited."
+        inspect = api_client.inspect_container(main_container.name)
         status = inspect["State"]["Health"]["Status"]
-        assert status != "unhealthy", "The container became unhealthy."
         if status == "healthy":
             break
         time.sleep(1)
     else:
-        raise Exception(
-            f"Container status did transition to 'healthy' within {TIMEOUT} seconds."
-        )
-
-
-def test_wait_for_version_container_exit(version_container):
-    """Wait for version container to exit cleanly."""
-    assert version_container.wait() == 0, "The version container did not exit cleanly"
+        assert (
+            False
+        ), f"Container status did not transition to 'healthy' within {TIMEOUT} seconds."
 
 
 @pytest.mark.skipif(
-    RELEASE_TAG in [None, ""], reason="this is not a release (RELEASE_TAG not set)"
+    os.environ.get("RELEASE_TAG") in [None, ""],
+    reason="this is not a release (RELEASE_TAG not set)",
 )
-def test_release_version():
+def test_release_version(project_version):
     """Verify that release tag version agrees with the module version."""
-    pkg_vars = {}
-    with open(VERSION_FILE) as f:
-        exec(f.read(), pkg_vars)  # nosec
-    project_version = pkg_vars["__version__"]
     assert (
-        RELEASE_TAG == f"v{project_version}"
+        os.getenv("RELEASE_TAG") == f"v{project_version}"
     ), "RELEASE_TAG does not match the project version"
-
-
-def test_log_version(version_container):
-    """Verify the container outputs the correct version to the logs."""
-    version_container.wait()  # make sure container exited if running test isolated
-    log_output = version_container.logs().decode("utf-8").strip()
-    pkg_vars = {}
-    with open(VERSION_FILE) as f:
-        exec(f.read(), pkg_vars)  # nosec
-    project_version = pkg_vars["__version__"]
-    assert (
-        log_output == project_version
-    ), f"Container version output to log does not match project version file {VERSION_FILE}"
 
 
 # The container version label is added during the GitHub Actions build workflow.
@@ -112,12 +134,8 @@ def test_log_version(version_container):
 @pytest.mark.skipif(
     os.environ.get("GITHUB_ACTIONS") != "true", reason="not running in GitHub Actions"
 )
-def test_container_version_label_matches(version_container):
+def test_container_version_label_matches(version_container, project_version):
     """Verify the container version label is the correct version."""
-    pkg_vars = {}
-    with open(VERSION_FILE) as f:
-        exec(f.read(), pkg_vars)  # nosec
-    project_version = pkg_vars["__version__"]
     assert (
         version_container.labels["org.opencontainers.image.version"] == project_version
     ), "Container version label does not match project version"

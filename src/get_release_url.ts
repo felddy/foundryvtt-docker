@@ -51,8 +51,7 @@ const HEADERS: Headers = new Headers({
   "User-Agent": "node-fetch",
 });
 
-const INITIAL_RETRY_DELAY_S = 60; // 1 minute
-const SLEEP_INTERVAL = 15; // 15 seconds
+const INITIAL_RETRY_DELAY_S = 120; // 2 minutes
 
 /**
  * sleepWithProgress - Exponential sleep back off based on attempt number.
@@ -60,7 +59,7 @@ const SLEEP_INTERVAL = 15; // 15 seconds
  * @param  {number} attempt Attempt number.
  */
 async function sleepWithProgress(attempt: number): Promise<void> {
-  const delay: number = Math.floor(
+  const delay: number = Math.ceil(
     INITIAL_RETRY_DELAY_S * 2 ** (attempt - 1) +
       Math.random() * INITIAL_RETRY_DELAY_S
   );
@@ -69,8 +68,11 @@ async function sleepWithProgress(attempt: number): Promise<void> {
   const end = Date.now() + delay * 1000;
   // Sleep in increments, logging time remaining
   while (Date.now() < end) {
-    await new Promise((resolve) => setTimeout(resolve, SLEEP_INTERVAL * 1000));
-    logger.info(`${Math.ceil((end - Date.now()) / 1000)} seconds remaining...`);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    var time_remaining = Math.ceil((end - Date.now()) / 1000);
+    if (time_remaining % 10 == 0 || time_remaining < 10) {
+      logger.info(`${time_remaining} seconds remaining...`);
+    }
   }
 }
 
@@ -88,11 +90,11 @@ async function fetchReleaseURL(
   logger.info(`Fetching S3 pre-signed release URL for build ${build}...`);
   const release_url: string = `${BASE_URL}/releases/download?build=${build}&platform=linux`;
   for (var attempt = 1; attempt <= 1 + retries; attempt++) {
-    logger.debug(`Attempt ${attempt} of ${1 + retries}`);
     // If this is not the first attempt, wait a bit before trying again.
     if (attempt > 1) {
       await sleepWithProgress(attempt);
     }
+    logger.debug(`Attempt ${attempt} of ${1 + retries}`);
     logger.debug(`Fetching: ${release_url}`);
     const response: Response = await fetch(release_url, {
       method: "GET",
