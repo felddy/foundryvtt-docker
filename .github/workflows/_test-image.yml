@@ -110,6 +110,7 @@ jobs:
         env:
           FOUNDRY_PASSWORD: ${{ secrets.foundry_password }}
           FOUNDRY_USERNAME: ${{ secrets.foundry_username }}
+          PYTHONUNBUFFERED: 1
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: pytest | tee data/pytests.log
       - name: Compress and encrypt data directory
