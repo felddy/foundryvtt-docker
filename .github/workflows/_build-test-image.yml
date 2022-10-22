@@ -97,13 +97,13 @@ jobs:
           ${{ env.ARTIFACT_WORK_DIR }}/image.tar
       - name: Upload encrypted artifacts
         if: steps.check_artifact_key.outputs.do_encryption == 'true'
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
         with:
           name: ${{ inputs.artifact_name }}
           path: ${{ env.ARTIFACT_WORK_DIR }}/image.tar.7z
       - name: Upload unencrypted artifacts
         if: steps.check_artifact_key.outputs.do_encryption == 'false'
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
         with:
           name: ${{ inputs.artifact_name }}
           path: ${{ env.ARTIFACT_WORK_DIR }}/image.tar
