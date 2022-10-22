@@ -110,9 +110,8 @@ jobs:
         env:
           FOUNDRY_PASSWORD: ${{ secrets.foundry_password }}
           FOUNDRY_USERNAME: ${{ secrets.foundry_username }}
-          PYTEST_DOCKERC_LOGPATH: data/pytest-dockerc.log
           RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: pytest --verbose --runslow
+        run: pytest | tee data/pytests.log
       - name: Compress and encrypt data directory
         if: ${{ always() }}
         run: |

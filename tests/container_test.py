@@ -2,16 +2,14 @@
 """Tests for foundry container."""
 
 # Standard Python Libraries
-from datetime import datetime
 import os
 import time
 
 # Third-Party Libraries
 import pytest
 
-from .utils import LogTailer, sleep_with_progress
+from .utils import LogTailer
 
-RATE_LIMIT_MESSAGE = "429: Too Many Requests"
 READY_MESSAGE = "Server started and listening on port"
 RETRY_INITIAL_DELAY = 120
 
@@ -62,49 +60,39 @@ def test_log_version(version_container, project_version):
 
 @pytest.mark.slow
 def test_wait_for_ready(main_container, redacted_printer):
-    """Wait for Foundry to be ready."""
-    ATTEMPT_TIMEOUT = 180
-    MAX_ATTEMPTS = 5
-    log_start_time = 1
-    # There is a rate limit on generating S3 URLs.  If multiple containers are
-    # under test this limit can be reached.  This will cause the container to
-    # exit with a non-zero exit code.  So we will retry a few times, with an
-    # exponential backoff.
-    for attempt in range(MAX_ATTEMPTS):
-        if attempt > 0:
-            sleep_with_progress(attempt, RETRY_INITIAL_DELAY)
-            log_start_time = datetime.utcnow()
-            main_container.restart()
-        print(f"Attempt {attempt + 1} of {MAX_ATTEMPTS}")
-        tailer = LogTailer(main_container, since=log_start_time)
-        attempt_start_time = time.time()
-        while (
-            main_container.status == "running"
-            and time.time() < attempt_start_time + ATTEMPT_TIMEOUT
-        ):
-            # Verify the container is still running
-            log_line = tailer.read()
-            if log_line is None:
-                # No new log lines, wait a bit
-                time.sleep(1)
-                continue
-            redacted_printer.print(log_line, end="")
-            if READY_MESSAGE in log_line:
-                return  # success
-            if RATE_LIMIT_MESSAGE in log_line:
-                print("Rate limiting detected.")
-                break  # start a new attempt
-            main_container.reload()
+    """
+    Wait for Foundry to be ready.
+
+    This could take a while if we have to back off due to rate limiting.
+    If the logs stop updating for too long, or the container exits, fail.
+    """
+    NO_LOG_TIMEOUT = 60
+    tailer = LogTailer(main_container, since=1)
+    timeout: float = time.time() + NO_LOG_TIMEOUT
+    while (not tailer.empty()) or (
+        main_container.status == "running" and time.time() < timeout
+    ):
+        log_line = tailer.read()
+        if log_line is None:
+            # No new log lines, wait a bit
+            time.sleep(1)
+            continue
         else:
-            raise Exception(
-                f"Container does not seem ready.  "
-                f'Expected "{READY_MESSAGE}" in the log within {ATTEMPT_TIMEOUT} seconds.'
-            )
+            # The log is still alive, reset the timeout
+            timeout = time.time() + NO_LOG_TIMEOUT
+        redacted_printer.print(log_line, end="")
+        if READY_MESSAGE in log_line:
+            return  # success
+        main_container.reload()
     else:
-        raise Exception(
-            f"Container does not seem ready.  "
-            f'Expected "{READY_MESSAGE}" in the log within {MAX_ATTEMPTS} attempts.'
+        # The container exited or we timed out
+        print(
+            f"Test ending... container status: {main_container.status}, log timeout: {time.time() - timeout}"
         )
+        assert main_container.status == "running", "The container unexpectedly exited."
+        assert (
+            False
+        ), "Logging stopped for {NO_LOG_TIMEOUT} seconds, and did not contain the ready message."
 
 
 @pytest.mark.slow
@@ -124,16 +112,9 @@ def test_wait_for_healthy(main_container):
             break
         time.sleep(1)
     else:
-        raise Exception(
-            f"Container status did not transition to 'healthy' within {TIMEOUT} seconds."
-        )
-
-
-def test_dump_container_logs(main_container, redacted_printer):
-    """Dump container logs to stdout."""
-    logs = main_container.logs().decode("utf-8")
-    print("Container logs:")
-    redacted_printer.print(logs)
+        assert (
+            False
+        ), f"Container status did not transition to 'healthy' within {TIMEOUT} seconds."
 
 
 @pytest.mark.skipif(

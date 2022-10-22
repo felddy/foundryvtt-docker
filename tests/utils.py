@@ -1,29 +1,9 @@
 """Helper utilities for pytest."""
 
 # Standard Python Libraries
-from datetime import datetime, timedelta
+from datetime import datetime
 from queue import Queue
-import random
 import threading
-import time
-
-
-def sleep_with_progress(attempt, initial_delay=120):
-    """
-    Exponential sleep back off based on attempt number.
-
-    Logs messages during sleep to indicate progress.
-    """
-    delay = int(
-        initial_delay * 2 ** (attempt - 1) + random.randint(0, initial_delay)  # nosec
-    )
-    for i in range(delay, 0, -1):
-        if i % 10 == 0 or i == delay:
-            print(
-                f"\x1b[2KRestarting container in {str(timedelta(seconds=i))}", end="\r"
-            )
-        time.sleep(1)
-    print("\x1b[2K", end="\r")
 
 
 class LogTailer(object):
@@ -49,6 +29,10 @@ class LogTailer(object):
         if self.queue.empty():
             return None
         return self.queue.get()
+
+    def empty(self):
+        """Return if the queue is empty."""
+        return self.queue.empty()
 
 
 class RedactedPrinter(object):
