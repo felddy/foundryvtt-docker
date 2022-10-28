@@ -24,6 +24,7 @@ on:
 
 jobs:
   publish:
+    runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34
