@@ -23,11 +23,6 @@ on:
         default: ~/.cache/buildx
         required: false
         type: string
-      do_publish_readme:
-        description: "Whether to publish the README"
-        default: true
-        required: false
-        type: boolean
       docker_file:
         description: "The Dockerfile to use"
         default: ./Dockerfile
@@ -116,10 +111,3 @@ jobs:
           platforms: ${{ inputs.platforms }}
           push: true
           tags: ${{ inputs.image_tags }}
-      - name: Publish README.md to Docker Hub
-        if: inputs.do_publish_readme
-        env:
-          DOCKER_PASSWORD: ${{ secrets.docker_password }}
-          DOCKER_USERNAME: ${{ secrets.docker_username }}
-          IMAGE_NAME: ${{ inputs.image_name }}
-        run: ./push_readme.sh
