@@ -78,7 +78,7 @@ setup(
             "coveralls == 3.3.1",
             "docker == 6.0.0",
             "pre-commit == 2.20.0",
-            "pytest == 7.1.3",
+            "pytest == 7.2.0",
             "pytest-cov == 4.0.0",
             "pytest-lazy-fixture == 0.6.3",
         ]
