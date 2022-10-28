@@ -49,7 +49,7 @@ jobs:
       - name: Calculate values from source
         id: source_values
         run: |
-          echo ::set-output name=source_version::$(./bump_version.sh show)
+          echo "source_version=$(./bump_version.sh show)" >> $GITHUB_OUTPUT
       - name: Calculate Docker metadata
         id: docker_meta
         uses: docker/metadata-action@57396166ad8aefe6098280995947635806a0e6ea
