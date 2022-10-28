@@ -10,8 +10,8 @@ on:
         type: string
       # Optional inputs
       filepath:
+        default: ./README.md
         description: "The path to the file to publish"
-        default: README.md
         required: false
         type: string
     secrets:
