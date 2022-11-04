@@ -4,9 +4,12 @@ FROM python:3.10.1-alpine
 
 ARG VERSION
 
+###
 # For a list of pre-defined annotation keys and value types see:
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
+#
 # Note: Additional labels are added by the build workflow.
+###
 LABEL org.opencontainers.image.authors="mark.feldhousen@cisa.dhs.gov"
 LABEL org.opencontainers.image.vendor="Cybersecurity and Infrastructure Security Agency"
 
