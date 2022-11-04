@@ -21,7 +21,6 @@ ARG CISA_UID=${CISA_GID}
 ENV CISA_USER="cisa"
 ENV CISA_GROUP=${CISA_USER}
 ENV CISA_HOME="/home/cisa"
-ENV ECHO_MESSAGE="Hello World from Dockerfile"
 
 ###
 # Unprivileged user setup dependencies
@@ -92,6 +91,7 @@ RUN wget --output-document sourcecode.tgz \
 ###
 # Prepare to run
 ###
+ENV ECHO_MESSAGE="Hello World from Dockerfile"
 USER cisa
 EXPOSE 8080/TCP
 VOLUME ["/var/log"]
