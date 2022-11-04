@@ -75,14 +75,24 @@ RUN pip install --no-cache-dir --upgrade pip setuptools
 
 WORKDIR ${CISA_HOME}
 
-RUN wget -O sourcecode.tgz https://github.com/cisagov/skeleton-python-library/archive/v${VERSION}.tar.gz && \
-  tar xzf sourcecode.tgz --strip-components=1 && \
-  pip install --requirement requirements.txt && \
-  ln -snf /run/secrets/quote.txt src/example/data/secret.txt && \
-  rm sourcecode.tgz
+###
+# Install Python dependencies
+#
+# Note that we use pip --no-cache-dir to avoid writing to a local
+# cache.  This results in a smaller final image, at the cost of
+# slightly longer install times.
+###
+RUN wget --output-document sourcecode.tgz \
+    https://github.com/cisagov/skeleton-python-library/archive/v${VERSION}.tar.gz && \
+    tar --extract --gzip --file sourcecode.tgz --strip-components=1 && \
+    pip install --no-cache-dir --requirement requirements.txt && \
+    ln -snf /run/secrets/quote.txt src/example/data/secret.txt && \
+    rm sourcecode.tgz
 
+###
+# Prepare to run
+###
 USER cisa
-
 EXPOSE 8080/TCP
 VOLUME ["/var/log"]
 ENTRYPOINT ["example"]
