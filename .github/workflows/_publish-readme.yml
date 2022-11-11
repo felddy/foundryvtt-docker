@@ -31,6 +31,9 @@ jobs:
         with:
           egress-policy: audit  # TODO: change to 'egress-policy: block' after couple of runs
 
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@14881160433a81f9ebc838a253d4edd9e8fc35f1
         with:
