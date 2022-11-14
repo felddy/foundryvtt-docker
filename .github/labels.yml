@@ -17,6 +17,9 @@
 - color: "0366d6"
   description: Pull requests that update a dependency file
   name: dependencies
+- color: "2497ed"
+  description: Pull requests that update Docker code
+  name: docker
 - color: "5319e7"
   description: This issue or pull request improves or adds to documentation
   name: documentation
