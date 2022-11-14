@@ -32,6 +32,7 @@ updates:
       # - dependency-name: docker/login-action
       # - dependency-name: docker/setup-buildx-action
       # - dependency-name: docker/setup-qemu-action
+      # - dependency-name: github/codeql-action
 
   - package-ecosystem: "pip"
     directory: "/"
