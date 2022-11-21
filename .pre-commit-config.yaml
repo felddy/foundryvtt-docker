@@ -82,6 +82,7 @@ repos:
       - id: shell-lint
 
   # Python hooks
+  # Run bandit on the "tests" tree with a configuration
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.4
     hooks:
@@ -90,7 +91,7 @@ repos:
         files: tests
         args:
           - --config=.bandit.yml
-  # Run bandit everything but tests directory
+  # Run bandit on everything except the "tests" tree
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.4
     hooks:
