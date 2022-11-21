@@ -92,7 +92,7 @@ repos:
           - --config=.bandit.yml
   # Run bandit everything but tests directory
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.0
+    rev: 1.7.4
     hooks:
       - id: bandit
         name: bandit (everything else)
