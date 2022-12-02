@@ -17,7 +17,7 @@
     "@types/docopt": "^0.6.33",
     "@types/tough-cookie": "^4.0.2",
     "@types/tough-cookie-file-store": "^2.0.1",
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.3"
   },
   "homepage": "https://github.com/felddy/foundryvtt-docker#readme",
   "keywords": [
