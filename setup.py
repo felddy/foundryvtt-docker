@@ -69,8 +69,8 @@ setup(
     install_requires=[
         "docker-compose == 1.29.2",
         "semver == 2.13.0",
-        "setuptools == 65.5.0",
-        "wheel == 0.37.1",
+        "setuptools == 65.6.3",
+        "wheel == 0.38.4",
     ],
     extras_require={
         "test": [
