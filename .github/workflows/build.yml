@@ -155,7 +155,7 @@ jobs:
       docker_username: ${{ secrets.DOCKER_USERNAME }}
 
   publish-readme:
-    needs: [build-and-push]
+    needs: [build-and-push, config]
     if: github.event_name == 'release' && !github.event.release.prerelease
     name: "Publish docs"
     uses: ./.github/workflows/_publish-readme.yml
