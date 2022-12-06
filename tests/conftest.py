@@ -11,7 +11,6 @@ import pytest
 
 from .utils import RedactedPrinter
 
-IMAGE_NAME = "local/test-image:latest"
 MAIN_SERVICE_NAME = "foundry"
 REDACTION_REGEXES = [
     re.compile(r"AWSAccessKeyId=(.*?)&Signature=(.*?)&"),
@@ -23,10 +22,10 @@ client = docker.from_env()
 
 
 @pytest.fixture(scope="session")
-def main_container():
+def main_container(image_tag):
     """Fixture for the main Foundry container."""
     container = client.containers.run(
-        IMAGE_NAME,
+        image_tag,
         detach=True,
         environment={
             "CONTAINER_URL_FETCH_RETRY": 5,
@@ -47,10 +46,10 @@ def main_container():
 
 
 @pytest.fixture(scope="session")
-def version_container():
+def version_container(image_tag):
     """Fixture for the version container."""
     container = client.containers.run(
-        IMAGE_NAME,
+        image_tag,
         command="--version",
         detach=True,
         name=VERSION_SERVICE_NAME,
@@ -79,6 +78,18 @@ def pytest_addoption(parser):
     parser.addoption(
         "--runslow", action="store_true", default=False, help="run slow tests"
     )
+    parser.addoption(
+        "--image-tag",
+        action="store",
+        default="local/test-image:latest",
+        help="image tag to test",
+    )
+
+
+@pytest.fixture(scope="session")
+def image_tag(request):
+    """Get the image tag to test."""
+    return request.config.getoption("--image-tag")
 
 
 def pytest_collection_modifyitems(config, items):
