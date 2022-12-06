@@ -49,7 +49,15 @@ class RedactedPrinter(object):
 
         # For each regular expression, replace the capture groups with asterisks.
         for regex in self.redaction_regexes:
-            text = regex.sub(lambda m: "".join("*" * len(g) for g in m.groups()), text)
-
-        # Print the redacted text to stdout
+            # find all the matches for the current regex
+            match_iter = regex.finditer(text)
+            # loop through matches
+            for m in match_iter:
+                # replace each capture group of the match with asterisks
+                for g in range(1, len(m.groups()) + 1):
+                    text = (
+                        text[: m.span(g)[0]]
+                        + "*" * (m.span(g)[1] - m.span(g)[0])
+                        + text[m.span(g)[1] :]  # noqa: E203
+                    )
         print(text, **kwargs)
