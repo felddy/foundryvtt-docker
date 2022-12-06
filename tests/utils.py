@@ -44,23 +44,12 @@ class RedactedPrinter(object):
 
     def print(self, *args, **kwargs):
         """Print with redaction of sensitive information."""
+        # Combine all of the arguments into a single string
+        text = " ".join(map(str, args))
+
         # For each regular expression, replace the capture groups with asterisks.
         for regex in self.redaction_regexes:
-            redacted_args = []
-            for arg in args:
-                # find all the matches for the current regex
-                m_iter = regex.finditer(arg)
-                # loop through matches
-                for m in m_iter:
-                    # replace each capture group of the match with asterisks
-                    for g in range(1, len(m.groups()) + 1):
-                        arg = (
-                            arg[: m.span(g)[0]]
-                            + "*" * (m.span(g)[1] - m.span(g)[0])
-                            + arg[m.span(g)[1] :]  # noqa: E203
-                        )
-                # all redactions applied for this regex and arg
-                redacted_args.append(arg)
-            # send the redacted args to the next regex
-            args = redacted_args
-        print(*args, **kwargs)
+            text = regex.sub(lambda m: "".join("*" * len(g) for g in m.groups()), text)
+
+        # Print the redacted text to stdout
+        print(text, **kwargs)
