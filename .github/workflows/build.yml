@@ -30,7 +30,7 @@ jobs:
   metadata:
     name: "Metadata"
     needs: [config]
-    uses: felddy/reusable-workflows/.github/workflows/docker-metadata.yml
+    uses: felddy/reusable-workflows/.github/workflows/docker-metadata.yml@develop
     with:
       image_name: ${{ needs.config.outputs.image_name }}
 
@@ -82,7 +82,7 @@ jobs:
   lint:
     name: "Lint"
     needs: [config]
-    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml
+    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@develop
 
   build-normal-test-image:
     name: "Build normal test image"
@@ -90,7 +90,7 @@ jobs:
       - config
       - lint
       - metadata
-    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml
+    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
       artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}
       cache_from_scopes: ${{ needs.config.outputs.test_platform }}
@@ -110,7 +110,7 @@ jobs:
       - foundry-secrets
       - lint
       - metadata
-    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml
+    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
       artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}-pre-installed
       cache_from_scopes: ${{ needs.config.outputs.test_platform }}-pre-installed
@@ -174,7 +174,7 @@ jobs:
         exclude:
           - platform: ${{ needs.config.outputs.test_platform }}
     name: "${{ matrix.platform }}"
-    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml
+    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
       artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}
       cache_from_scopes: ${{ matrix.platform }}
@@ -196,7 +196,7 @@ jobs:
     name: "Publish image"
     permissions:
       packages: write
-    uses: felddy/reusable-workflows/.github/workflows/docker-multi-arch-push.yml
+    uses: felddy/reusable-workflows/.github/workflows/docker-multi-arch-push.yml@develop
     with:
       artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}
       image_tags: ${{ needs.metadata.outputs.image_tags }}
@@ -211,7 +211,7 @@ jobs:
       - docker-secrets
     if: github.event_name == 'release' && !github.event.release.prerelease
     name: "Publish docs"
-    uses: felddy/reusable-workflows/.github/workflows/docker-publish-description.yml
+    uses: felddy/reusable-workflows/.github/workflows/docker-publish-description.yml@develop
     with:
       image_name: ${{ needs.config.outputs.image_name }}
     secrets:
