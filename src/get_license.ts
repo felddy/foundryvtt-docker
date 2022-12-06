@@ -111,7 +111,7 @@ async function main(): Promise<number> {
   const local_cookies = cookieJar.getCookiesSync(`http://${LOCAL_DOMAIN}`);
   if (local_cookies.length != 1) {
     logger.emerg(
-      `Wrong number of cookies found for ${LOCAL_DOMAIN}.  Expected 1, found ${local_cookies.length}`
+      `Wrong number of cookies found for ${LOCAL_DOMAIN}.  Expected 1, found ${local_cookies.length}`,
     );
     return -1;
   }
@@ -124,14 +124,14 @@ async function main(): Promise<number> {
   // Handle no license keys found.
   if (key_count == 0) {
     logger.error(
-      `Could not find any license keys associated with account ${loggedInUsername}`
+      `Could not find any license keys associated with account ${loggedInUsername}`,
     );
     return -1;
   } else {
     logger.info(
       `Found ${key_count} license ${
         key_count == 1 ? "key" : "keys"
-      } associated with account ${loggedInUsername}`
+      } associated with account ${loggedInUsername}`,
     );
   }
 
@@ -157,13 +157,13 @@ async function main(): Promise<number> {
     select_index = parseInt(select_mode);
     if (select_index > key_count) {
       logger.warn(
-        `Invalid license key index ${select_index} selected by user.  Using ${key_count}.`
+        `Invalid license key index ${select_index} selected by user.  Using ${key_count}.`,
       );
       select_index = key_count;
     }
     if (select_index < 1) {
       logger.warn(
-        `Invalid license key index ${select_index} selected by user.  Using 1.`
+        `Invalid license key index ${select_index} selected by user.  Using 1.`,
       );
       select_index = 1;
     }
