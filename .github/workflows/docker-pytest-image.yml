@@ -100,9 +100,9 @@ jobs:
         id: check_image_artifact_key
         run: |
           if [ -n "${{ secrets.image_artifact_key }}" ]; then
-            echo "do_encryption=true" >> $GITHUB_OUTPUT
+            echo "do_decryption=true" >> $GITHUB_OUTPUT
           else
-            echo "do_encryption=false" >> $GITHUB_OUTPUT
+            echo "do_decryption=false" >> $GITHUB_OUTPUT
           fi
 
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -136,12 +136,12 @@ jobs:
           path: ${{ env.ARTIFACT_WORK_DIR }}
 
       - name: Load unencrypted image
-        if: steps.check_image_artifact_key.outputs.do_encryption == 'false'
+        if: steps.check_image_artifact_key.outputs.do_decryption == 'false'
         run: |
           docker load < ${{ env.ARTIFACT_WORK_DIR }}/${{ steps.clean.outputs.image_tarball_name }}
 
       - name: Load encrypted image
-        if: steps.check_image_artifact_key.outputs.do_encryption == 'true'
+        if: steps.check_image_artifact_key.outputs.do_decryption == 'true'
         run: |
           7za x -p${{ secrets.image_artifact_key }} -so \
           ${{ env.ARTIFACT_WORK_DIR }}/${{ steps.clean.outputs.image_tarball_name }}.7z | docker load
