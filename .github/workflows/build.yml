@@ -133,6 +133,7 @@ jobs:
   test-normal-image:
     name: "Test normal image"
     needs:
+      - artifact-key
       - build-normal-test-image
       - config
       - foundry-secrets
@@ -150,6 +151,7 @@ jobs:
   test-pre-installed-image:
     name: "Test pre-installed image"
     needs:
+      - artifact-key
       - build-pre-installed-test-image
       - config
     uses: ./.github/workflows/docker-pytest-image.yml
