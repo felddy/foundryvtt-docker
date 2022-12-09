@@ -211,7 +211,8 @@ jobs:
       - build-multi-arch-image
       - config
       - docker-secrets
-    if: github.event_name == 'release' && !github.event.release.prerelease
+      - metadata
+    if: needs.metadata.outputs.is_latest == 'true'
     name: "Publish docs"
     uses: felddy/reusable-workflows/.github/workflows/docker-publish-description.yml@develop
     with:
