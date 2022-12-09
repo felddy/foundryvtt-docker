@@ -135,6 +135,7 @@ jobs:
     needs:
       - build-normal-test-image
       - config
+      - foundry-secrets
     uses: ./.github/workflows/docker-pytest-image.yml
     with:
       data_artifact_name: ${{ needs.config.outputs.data_artifact_name }}
