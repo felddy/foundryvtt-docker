@@ -347,17 +347,10 @@ Docker:
     cd foundryvtt-docker
     ```
 
-1. Create the `Dockerfile-x` file with `buildx` platform support:
-
-    ```console
-    ./buildx-dockerfile.sh Dockerfile Dockerfile-x
-    ```
-
 1. Build the image using `buildx`:
 
     ```console
     docker buildx build \
-      --file Dockerfile-x \
       --platform linux/amd64 \
       --build-arg VERSION=10.291.0 \
       --output type=docker \
