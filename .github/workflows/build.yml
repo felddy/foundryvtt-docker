@@ -159,7 +159,7 @@ jobs:
       data_artifact_name: ${{ needs.config.outputs.data_artifact_name }}-pre-installed
       data_artifact_path: ${{ needs.config.outputs.data_artifact_path }}
       image_artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}-pre-installed
-      image_tarball_name: ${{ needs.config.outputs.test_platform }}.tar
+      image_tarball_name: ${{ needs.config.outputs.test_platform }}.tar.7z
     secrets:
       data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
       image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
