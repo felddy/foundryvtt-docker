@@ -95,7 +95,7 @@ jobs:
       artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}
       cache_from_scopes: ${{ needs.config.outputs.test_platform }}
       cache_to_scope: ${{ needs.config.outputs.test_platform }}
-      image_tarball_name: ${{ needs.config.outputs.test_platform }}.tar
+      image_tarball_name_stem: ${{ needs.config.outputs.test_platform }}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
       platforms: ${{ needs.config.outputs.test_platform }}
     secrets:
@@ -184,7 +184,7 @@ jobs:
       cache_from_scopes: ${{ matrix.platform }}
       cache_to_scope: ${{ matrix.platform }}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
-      image_tarball_name: ${{ matrix.platform }}.tar
+      image_tarball_name_stem: ${{ matrix.platform }}
       platforms: ${{ matrix.platform }}
     secrets:
       build_args: |
