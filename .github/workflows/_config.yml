@@ -20,9 +20,9 @@ on:
       data_artifact_path:
         description: "The path to include in the test data artifact"
         value: data
-      image_tarball_artifact_name:
-        description: "The name of the image tarballs artifact"
-        value: image-tarballs
+      image_archive_artifact_name:
+        description: "The name of the image archives artifact"
+        value: image-archives
       platforms:
         description: "The platforms to build (CSV)"
         value: ${{ inputs.platforms }}

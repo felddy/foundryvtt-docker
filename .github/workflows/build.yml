@@ -92,10 +92,10 @@ jobs:
       - metadata
     uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
-      artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}
+      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
       cache_from_scopes: ${{ needs.config.outputs.test_platform }}
       cache_to_scope: ${{ needs.config.outputs.test_platform }}
-      image_tarball_name_stem: ${{ needs.config.outputs.test_platform }}
+      image_archive_name_stem: ${{ needs.config.outputs.test_platform }}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
       platforms: ${{ needs.config.outputs.test_platform }}
     secrets:
@@ -112,14 +112,14 @@ jobs:
       - metadata
     uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
-      artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}-pre-installed
+      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}-pre-installed
       cache_from_scopes: ${{ needs.config.outputs.test_platform }}-pre-installed
       cache_to_scope: ${{ needs.config.outputs.test_platform }}-pre-installed
-      image_tarball_name_stem: ${{ needs.config.outputs.test_platform }}
+      image_archive_name_stem: ${{ needs.config.outputs.test_platform }}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
       platforms: ${{ needs.config.outputs.test_platform }}
     secrets:
-      artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      image_archive_key: ${{ secrets.ARTIFACT_KEY }}
       build_args: |
         FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
         FOUNDRY_USERNAME=${{ secrets.FOUNDRY_USERNAME }}
@@ -141,10 +141,10 @@ jobs:
     with:
       data_artifact_name: ${{ needs.config.outputs.data_artifact_name }}
       data_artifact_path: ${{ needs.config.outputs.data_artifact_path }}
-      image_artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}
-      image_tarball_name: ${{ needs.build-normal-test-image.outputs.image_tarball_name }}
+      image_artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      image_archive_name: ${{ needs.build-normal-test-image.outputs.image_archive_name }}
     secrets:
-      data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      data_archive_key: ${{ secrets.ARTIFACT_KEY }}
       foundry_password: ${{ secrets.FOUNDRY_PASSWORD }}
       foundry_username: ${{ secrets.FOUNDRY_USERNAME }}
 
@@ -158,11 +158,11 @@ jobs:
     with:
       data_artifact_name: ${{ needs.config.outputs.data_artifact_name }}-pre-installed
       data_artifact_path: ${{ needs.config.outputs.data_artifact_path }}
-      image_artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}-pre-installed
-      image_tarball_name: ${{ needs.build-pre-installed-test-image.outputs.image_tarball_name }}
+      image_artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}-pre-installed
+      image_archive_name: ${{ needs.build-pre-installed-test-image.outputs.image_archive_name }}
     secrets:
-      data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
-      image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      data_archive_key: ${{ secrets.ARTIFACT_KEY }}
+      image_archive_key: ${{ secrets.ARTIFACT_KEY }}
 
   build-each-platform:
     needs:
@@ -180,11 +180,11 @@ jobs:
     name: "${{ matrix.platform }}"
     uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
-      artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}
+      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
       cache_from_scopes: ${{ matrix.platform }}
       cache_to_scope: ${{ matrix.platform }}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
-      image_tarball_name_stem: ${{ matrix.platform }}
+      image_archive_name_stem: ${{ matrix.platform }}
       platforms: ${{ matrix.platform }}
     secrets:
       build_args: |
@@ -202,7 +202,7 @@ jobs:
       packages: write
     uses: felddy/reusable-workflows/.github/workflows/docker-multi-arch-push.yml@develop
     with:
-      artifact_name: ${{ needs.config.outputs.image_tarball_artifact_name }}
+      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
       image_tags: ${{ needs.metadata.outputs.image_tags }}
     secrets:
       docker_password: ${{ secrets.DOCKER_PASSWORD }}

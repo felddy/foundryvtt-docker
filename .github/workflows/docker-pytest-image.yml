@@ -29,9 +29,9 @@ on:
         description: "Number of days to retain the test data artifact"
         required: false
         type: number
-      image_tarball_name:
+      image_archive_name:
         default: image.tar
-        description: "The name of the image tarball to load (name will be cleaned)"
+        description: "The name of the image archive to load (name will be cleaned)"
         required: false
         type: string
       pip_cache_dir:
@@ -45,11 +45,11 @@ on:
         required: false
         type: string
     secrets:
-      data_artifact_key:
-        description: "Enables encryption of the data artifact if specified"
+      data_archive_key:
+        description: "Enables encryption of the data archive if specified"
         required: true
-      image_artifact_key:
-        description: "Enables decryption of the image artifact if specified"
+      image_archive_key:
+        description: "Enables decryption of the image archive if specified"
         required: false
       foundry_password:
         description: "The password for the foundryvtt.com account"
@@ -84,22 +84,22 @@ jobs:
       - name: Clean variables
         id: clean
         run: |
-          # Replace illegal characters in image tarball name
-          echo image_tarball_name=$(echo "${{ inputs.image_tarball_name }}" | sed -e 's/[^a-zA-Z0-9._-]/_/g') >> $GITHUB_OUTPUT
+          # Replace illegal characters in image archive name
+          echo image_archive_name=$(echo "${{ inputs.image_archive_name }}" | sed -e 's/[^a-zA-Z0-9._-]/_/g') >> $GITHUB_OUTPUT
 
       - name: Check if data artifact key is available
-        id: check_data_artifact_key
+        id: check_data_archive_key
         run: |
-          if [ -n "${{ secrets.data_artifact_key }}" ]; then
+          if [ -n "${{ secrets.data_archive_key }}" ]; then
             echo "do_encryption=true" >> $GITHUB_OUTPUT
           else
             echo "do_encryption=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Check if image artifact key is available
-        id: check_image_artifact_key
+        id: check_image_archive_key
         run: |
-          if [ -n "${{ secrets.image_artifact_key }}" ]; then
+          if [ -n "${{ secrets.image_archive_key }}" ]; then
             echo "do_decryption=true" >> $GITHUB_OUTPUT
           else
             echo "do_decryption=false" >> $GITHUB_OUTPUT
@@ -137,12 +137,12 @@ jobs:
 
       - name: Load image
         run: |
-          tarball="${{ env.ARTIFACT_WORK_DIR }}/${{ steps.clean.outputs.image_tarball_name }}"
+          archive="${{ env.ARTIFACT_WORK_DIR }}/${{ steps.clean.outputs.image_archive_name }}"
           # If the filename ends in 7z, then decrypt it first
-          if [[ "${tarball}" == *".7z" ]]; then
-              load_output=$(7za x -p${{ secrets.image_artifact_key }} -so "${tarball}" | docker load)
+          if [[ "${archive}" == *".7z" ]]; then
+              load_output=$(7za x -p${{ secrets.image_archive_key }} -so "${archive}" | docker load)
           else
-              load_output=$(docker load -i "${tarball}")
+              load_output=$(docker load -i "${archive}")
           fi
           echo "Docker load output: ${load_output}"
 
@@ -168,18 +168,18 @@ jobs:
           pytest --image-tag ${{ env.TEST_IMAGE_TAG }} | tee ${{ inputs.data_artifact_path }}/pytest.log
 
       - name: Compress data directory unencrypted
-        if: ( success() || failure() ) && steps.check_data_artifact_key.outputs.do_encryption == 'false'
+        if: ( success() || failure() ) && steps.check_data_archive_key.outputs.do_encryption == 'false'
         run: |
           tar cf data.tar.gz ${{ inputs.data_artifact_path }}
 
       - name: Compress and encrypt data directory
-        if: ( success() || failure() ) && steps.check_data_artifact_key.outputs.do_encryption == 'true'
+        if: ( success() || failure() ) && steps.check_data_archive_key.outputs.do_encryption == 'true'
         run: |
           tar cf - ${{ inputs.data_artifact_path }} | \
-          7za a -p${{ secrets.data_artifact_key }} -si data.tar.7z
+          7za a -p${{ secrets.data_archive_key }} -si data.tar.7z
 
       - name: Upload unencrypted data artifacts
-        if: ( success() || failure() ) && steps.check_data_artifact_key.outputs.do_encryption == 'false'
+        if: ( success() || failure() ) && steps.check_data_archive_key.outputs.do_encryption == 'false'
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
         with:
           name: ${{ inputs.data_artifact_name }}
@@ -187,7 +187,7 @@ jobs:
           retention-days: ${{ inputs.data_artifact_retention_days }}
 
       - name: Upload encrypted data artifacts
-        if: ( success() || failure() ) && steps.check_data_artifact_key.outputs.do_encryption == 'true'
+        if: ( success() || failure() ) && steps.check_data_archive_key.outputs.do_encryption == 'true'
         uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
         with:
           name: ${{ inputs.data_artifact_name }}
