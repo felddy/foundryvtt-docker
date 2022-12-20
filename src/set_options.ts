@@ -23,7 +23,7 @@ function clampEnv(
   envVarValue: string | undefined,
   min: number,
   max: number,
-  unset: number | null = null
+  unset: number | null = null,
 ): number | null {
   if (envVarValue) {
     var i = parseInt(envVarValue);
@@ -53,7 +53,7 @@ let options: object = {
     process.env.FOUNDRY_PROXY_PORT,
     MINIMUM_PORT,
     MAXIMUM_PORT,
-    null
+    null,
   ),
   proxySSL: process.env.FOUNDRY_PROXY_SSL == "true",
   routePrefix: process.env.FOUNDRY_ROUTE_PREFIX || null,

@@ -61,7 +61,7 @@ const INITIAL_RETRY_DELAY_S = 120; // 2 minutes
 async function sleepWithProgress(attempt: number): Promise<void> {
   const delay: number = Math.ceil(
     INITIAL_RETRY_DELAY_S * 2 ** (attempt - 1) +
-      Math.random() * INITIAL_RETRY_DELAY_S
+      Math.random() * INITIAL_RETRY_DELAY_S,
   );
   logger.info(`Sleeping for ${delay} seconds before retrying...`);
   // Calculate the end of the sleep period
@@ -85,7 +85,7 @@ async function sleepWithProgress(attempt: number): Promise<void> {
  */
 async function fetchReleaseURL(
   build: string,
-  retries: number
+  retries: number,
 ): Promise<string | null> {
   logger.info(`Fetching S3 pre-signed release URL for build ${build}...`);
   const release_url: string = `${BASE_URL}/releases/download?build=${build}&platform=linux`;
@@ -104,7 +104,7 @@ async function fetchReleaseURL(
     // Expect a redirect status
     if (!(response.status >= 300 && response.status < 400)) {
       logger.warn(
-        `Unexpected response ${response.status}: ${response.statusText}`
+        `Unexpected response ${response.status}: ${response.statusText}`,
       );
       continue;
     }
@@ -147,17 +147,17 @@ async function main(): Promise<number> {
 
   if (!foundry_build) {
     logger.error(
-      `Unable to extract build number from version: ${foundry_version}`
+      `Unable to extract build number from version: ${foundry_version}`,
     );
     throw new Error(
-      `Unable to extract build number from version: ${foundry_version}`
+      `Unable to extract build number from version: ${foundry_version}`,
     );
   }
 
   // Generate an S3 pre-signed URL and print it to stdout.
   const releaseURL: string | null = await fetchReleaseURL(
     foundry_build,
-    retries
+    retries,
   );
 
   if (releaseURL) {

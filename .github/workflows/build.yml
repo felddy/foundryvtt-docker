@@ -30,7 +30,7 @@ jobs:
   metadata:
     name: "Metadata"
     needs: [config]
-    uses: ./.github/workflows/_metadata.yml
+    uses: felddy/reusable-workflows/.github/workflows/docker-metadata.yml@develop
     with:
       image_name: ${{ needs.config.outputs.image_name }}
 
@@ -82,83 +82,141 @@ jobs:
   lint:
     name: "Lint"
     needs: [config]
-    uses: ./.github/workflows/_lint.yml
-    with:
-      go_version: ${{ needs.config.outputs.go_version }}
-      python_version: ${{ needs.config.outputs.python_version }}
-      shfmt_version: ${{ needs.config.outputs.shfmt_version }}
+    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@develop
 
   build-normal-test-image:
-    name: "Normal"
-    needs: [config, metadata]
-    uses: ./.github/workflows/_build-test-image.yml
+    name: "Build normal test image"
+    needs:
+      - config
+      - lint
+      - metadata
+    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
-      artifact_name: ${{ needs.config.outputs.normal_image_artifact_name }}
+      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      cache_from_scopes: ${{ needs.config.outputs.test_platform }}
+      cache_to_scope: ${{ needs.config.outputs.test_platform }}
+      image_archive_name_stem: ${{ needs.config.outputs.test_platform }}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
+      platforms: ${{ needs.config.outputs.test_platform }}
     secrets:
       build_args: |
         VERSION=${{ needs.metadata.outputs.source_version }}
 
   build-pre-installed-test-image:
-    name: "Pre-installed"
-    needs: [artifact-key, config, foundry-secrets, metadata]
-    uses: ./.github/workflows/_build-test-image.yml
+    name: "Build pre-installed test image"
+    needs:
+      - artifact-key
+      - config
+      - foundry-secrets
+      - lint
+      - metadata
+    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
-      artifact_name: ${{ needs.config.outputs.pre_installed_image_artifact_name }}
+      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}-pre-installed
+      cache_from_scopes: ${{ needs.config.outputs.test_platform }}-pre-installed
+      cache_to_scope: ${{ needs.config.outputs.test_platform }}-pre-installed
+      image_archive_name_stem: ${{ needs.config.outputs.test_platform }}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
+      platforms: ${{ needs.config.outputs.test_platform }}
     secrets:
-      artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      image_archive_key: ${{ secrets.ARTIFACT_KEY }}
       build_args: |
         FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
         FOUNDRY_USERNAME=${{ secrets.FOUNDRY_USERNAME }}
         VERSION=${{ needs.metadata.outputs.source_version }}
 
+# Since we need to pass the foundryvtt.com credentials to the tests, we can't
+# use the standard reusable test workflow.  Instead, we'll use a modified
+# version of the workflow that accepts the credential secrets and is stored in
+# this repository.
+
   test-normal-image:
-    name: "Normal"
-    needs: [artifact-key, build-normal-test-image, config, foundry-secrets]
-    uses: ./.github/workflows/_test-image.yml
+    name: "Test normal image"
+    needs:
+      - artifact-key
+      - build-normal-test-image
+      - config
+      - foundry-secrets
+    uses: ./.github/workflows/docker-pytest-image.yml
     with:
-      data_artifact_name: ${{ needs.config.outputs.normal_data_artifact_name }}
-      image_artifact_name: ${{ needs.config.outputs.normal_image_artifact_name }}
+      data_artifact_name: ${{ needs.config.outputs.data_artifact_name }}
+      data_artifact_path: ${{ needs.config.outputs.data_artifact_path }}
+      image_artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      image_archive_name: ${{ needs.build-normal-test-image.outputs.image_archive_name }}
     secrets:
-      data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      data_archive_key: ${{ secrets.ARTIFACT_KEY }}
       foundry_password: ${{ secrets.FOUNDRY_PASSWORD }}
       foundry_username: ${{ secrets.FOUNDRY_USERNAME }}
 
   test-pre-installed-image:
-    name: "Pre-installed"
-    needs: [artifact-key, config, build-pre-installed-test-image]
-    uses: ./.github/workflows/_test-image.yml
+    name: "Test pre-installed image"
+    needs:
+      - artifact-key
+      - build-pre-installed-test-image
+      - config
+    uses: ./.github/workflows/docker-pytest-image.yml
     with:
-      data_artifact_name: ${{ needs.config.outputs.pre_installed_data_artifact_name }}
-      image_artifact_name: ${{ needs.config.outputs.pre_installed_image_artifact_name }}
+      data_artifact_name: ${{ needs.config.outputs.data_artifact_name }}-pre-installed
+      data_artifact_path: ${{ needs.config.outputs.data_artifact_path }}
+      image_artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}-pre-installed
+      image_archive_name: ${{ needs.build-pre-installed-test-image.outputs.image_archive_name }}
     secrets:
-      data_artifact_key: ${{ secrets.ARTIFACT_KEY }}
-      image_artifact_key: ${{ secrets.ARTIFACT_KEY }}
+      data_archive_key: ${{ secrets.ARTIFACT_KEY }}
+      image_archive_key: ${{ secrets.ARTIFACT_KEY }}
 
-  build-and-push:
-    needs: [config, docker-secrets, lint, metadata, test-normal-image, test-pre-installed-image]
+  build-each-platform:
+    needs:
+      - config
+      - lint
+      - metadata
+      - test-normal-image
+      - test-pre-installed-image
+    if: github.event_name != 'pull_request'
+    strategy:
+      matrix:
+        platform: ${{ fromJson(needs.config.outputs.platforms_json) }}
+        exclude:
+          - platform: ${{ needs.config.outputs.test_platform }}
+    name: "${{ matrix.platform }}"
+    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
+    with:
+      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      cache_from_scopes: ${{ matrix.platform }}
+      cache_to_scope: ${{ matrix.platform }}
+      image_labels: ${{ needs.metadata.outputs.image_labels }}
+      image_archive_name_stem: ${{ matrix.platform }}
+      platforms: ${{ matrix.platform }}
+    secrets:
+      build_args: |
+        VERSION=${{ needs.metadata.outputs.source_version }}
+
+  build-multi-arch-image:
+    needs:
+      - build-each-platform
+      - config
+      - docker-secrets
+      - metadata
     if: github.event_name != 'pull_request'
     name: "Publish image"
     permissions:
       packages: write
-    uses: ./.github/workflows/_build-push-all.yml
+    uses: felddy/reusable-workflows/.github/workflows/docker-multi-arch-push.yml@develop
     with:
-      build_args: |
-        VERSION=${{ needs.metadata.outputs.source_version }}
-      image_labels: ${{ needs.metadata.outputs.image_labels }}
-      image_name: ${{ needs.config.outputs.image_name }}
+      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
       image_tags: ${{ needs.metadata.outputs.image_tags }}
-      platforms: ${{ needs.config.outputs.platforms }}
     secrets:
       docker_password: ${{ secrets.DOCKER_PASSWORD }}
       docker_username: ${{ secrets.DOCKER_USERNAME }}
 
   publish-readme:
-    needs: [build-and-push, config]
-    if: github.event_name == 'release' && !github.event.release.prerelease
+    needs:
+      - build-multi-arch-image
+      - config
+      - docker-secrets
+      - metadata
+    if: needs.metadata.outputs.is_latest == 'true'
     name: "Publish docs"
-    uses: ./.github/workflows/_publish-readme.yml
+    uses: felddy/reusable-workflows/.github/workflows/docker-publish-description.yml@develop
     with:
       image_name: ${{ needs.config.outputs.image_name }}
     secrets:

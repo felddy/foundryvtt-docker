@@ -210,7 +210,6 @@ It is recommended that most users use the `:release` tag.
 | Image:tag | Description |
 |-----------|-------------|
 |`felddy/foundryvtt:release` | The most recent image from the `stable` channel.  These images are **considered stable**, and well-tested.  Most users will use this tag.  The `latest` tag always points to the same version as `release`.|
-|`felddy/foundryvtt:prerelease` | The most recent image from the `testing`, `development`, or `prototype` channels.  Pre-releases are **VERY LIKELY to introduce breaking bugs** that will be disruptive to play. Do not install this version unless you are using for the specific purposes of testing. The intention of pre-release builds are to allow for previewing new features and to help developers to begin updating modules which are impacted by the changes. If you choose to update to this version for a live game you do so entirely at your own risk of having a bad experience. *Please back up your critical user data before installing this version.* |
 |`felddy/foundryvtt:10.291.0`| An exact image version. |
 |`felddy/foundryvtt:10.291`| The most recent image matching the major and minor version numbers. |
 |`felddy/foundryvtt:10`| The most recent image matching the major version number. |
@@ -347,17 +346,10 @@ Docker:
     cd foundryvtt-docker
     ```
 
-1. Create the `Dockerfile-x` file with `buildx` platform support:
-
-    ```console
-    ./buildx-dockerfile.sh Dockerfile Dockerfile-x
-    ```
-
 1. Build the image using `buildx`:
 
     ```console
     docker buildx build \
-      --file Dockerfile-x \
       --platform linux/amd64 \
       --build-arg VERSION=10.291.0 \
       --output type=docker \

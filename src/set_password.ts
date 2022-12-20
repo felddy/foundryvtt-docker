@@ -15,6 +15,6 @@ var cyphertext: Buffer = crypto.pbkdf2Sync(
   custom_salt || low_sodium,
   iterations,
   keylen,
-  digest
+  digest,
 );
 process.stdout.write(cyphertext.toString("hex"));

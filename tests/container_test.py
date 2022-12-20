@@ -11,7 +11,6 @@ import pytest
 from .utils import LogTailer
 
 READY_MESSAGE = "Server started and listening on port"
-RETRY_INITIAL_DELAY = 120
 
 
 @pytest.mark.parametrize(

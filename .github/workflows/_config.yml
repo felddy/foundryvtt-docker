@@ -4,34 +4,34 @@ name: config
 
 on:
   workflow_call:
+    inputs:
+      platforms:
+        description: "The platforms to build (CSV)"
+        default: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
+        required: false
+        type: string
     outputs:
-      go_version:
-        description: "The go version"
-        value: '1.16'
       image_name:
         description: "The Docker image name"
         value: felddy/foundryvtt
-      normal_data_artifact_name:
-        description: "The name of the normal data artifact"
-        value: normal-data
-      normal_image_artifact_name:
-        description: "The name of the normal image artifact"
-        value: normal-test-image
+      data_artifact_name:
+        description: "The name of the test data artifact"
+        value: test-output
+      data_artifact_path:
+        description: "The path to include in the test data artifact"
+        value: data
+      image_archive_artifact_name:
+        description: "The name of the image archives artifact"
+        value: image-archives
       platforms:
-        description: "The platforms to build"
-        value: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
-      pre_installed_data_artifact_name:
-        description: "The name of the pre-installed data artifact"
-        value: pre-installed-data
-      pre_installed_image_artifact_name:
-        description: "The name of the pre-installed image artifact"
-        value: pre-installed-test-image
-      python_version:
-        description: "The Python version"
-        value: '3.9'
-      shfmt_version:
-        description: "The shfmt version"
-        value: v3.4.3
+        description: "The platforms to build (CSV)"
+        value: ${{ inputs.platforms }}
+      platforms_json:
+        description: "The platforms to build (JSON)"
+        value: ${{ jobs.csv-to-json.outputs.platforms_json }}
+      test_platform:
+        description: "The platform to use for testing"
+        value: linux/amd64
 
 jobs:
   diagnostics:
@@ -39,9 +39,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5
-        with:  # TODO: change to 'egress-policy: block' after couple of runs
-          egress-policy: audit
+        uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            www.githubstatus.com:443
 
       - name: Check GitHub Status
         uses: crazy-max/ghaction-github-status@8d1f141b985510f36a0376b75b4dc8b0cfc90e8a
@@ -51,3 +53,20 @@ jobs:
 
       - name: Dump context
         uses: crazy-max/ghaction-dump-context@516dbb0c760f39b4cdd750ae095f1688780f68f4
+
+  csv-to-json:
+    name: "Convert platforms CSV to JSON"
+    runs-on: ubuntu-latest
+    outputs:
+      platforms_json: ${{ steps.csv-to-json.outputs.platforms_json }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+
+      - name: Convert CSV to JSON
+        id: csv-to-json
+        run: |
+          echo "platforms_json=$(echo -n ${{ inputs.platforms }} | jq --raw-input --compact-output 'split(",")')" >> $GITHUB_OUTPUT
