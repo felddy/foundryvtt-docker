@@ -1,0 +1,195 @@
+---
+name: "Test Docker image"
+
+# This reusable workflow tests a Docker image using pytest.  The image is loaded
+# from the artifacts of a previous workflow.  If image decryption keys are
+# presented, the image is decrypted before loading.  If data encryption keys are
+# presented, the test results are encrypted before uploading as an artifact.
+
+on:
+  workflow_call:
+    inputs:
+      # Required inputs
+      image_artifact_name:
+        description: "The artifact name used to load the image archive"
+        required: true
+        type: string
+      data_artifact_name:
+        description: "The artifact name used to store the data archive"
+        required: true
+        type: string
+      # Optional inputs
+      data_artifact_path:
+        description: "The artifact path used to create the data archive"
+        default: data
+        required: false
+        type: string
+      data_artifact_retention_days:
+        default: 1
+        description: "Number of days to retain the test data artifact"
+        required: false
+        type: number
+      image_archive_name:
+        default: image.tar
+        description: "The name of the image archive to load (name will be cleaned)"
+        required: false
+        type: string
+      pip_cache_dir:
+        description: "The pip cache directory"
+        default: ~/.cache/pip
+        required: false
+        type: string
+      python_version:
+        description: "The Python version to use"
+        default: '3.10'
+        required: false
+        type: string
+    secrets:
+      data_archive_key:
+        description: "Enables encryption of the data archive if specified"
+        required: true
+      image_archive_key:
+        description: "Enables decryption of the image archive if specified"
+        required: false
+      foundry_password:
+        description: "The password for the foundryvtt.com account"
+        required: false
+      foundry_username:
+        description: "The username for the foundryvtt.com account"
+        required: false
+
+env:
+  PIP_CACHE_DIR: ${{ inputs.pip_cache_dir }}
+  ARTIFACT_WORK_DIR: /tmp/artifact-work
+  TEST_IMAGE_TAG: test-image:latest
+
+jobs:
+  test:
+    # Executes tests on the single-platform image created in the "build" job.
+    name: "Test image"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518
+        with:
+          egress-policy: audit
+          # allowed-endpoints: >
+          #   auth.docker.io:443
+          #   files.pythonhosted.org:443
+          #   github.com:443
+          #   production.cloudflare.docker.com:443
+          #   pypi.org:443
+          #   registry-1.docker.io:443
+
+      - name: Clean variables
+        id: clean
+        run: |
+          # Replace illegal characters in image archive name
+          echo image_archive_name=$(echo "${{ inputs.image_archive_name }}" | sed -e 's/[^a-zA-Z0-9._-]/_/g') >> $GITHUB_OUTPUT
+
+      - name: Check if data artifact key is available
+        id: check_data_archive_key
+        run: |
+          if [ -n "${{ secrets.data_archive_key }}" ]; then
+            echo "do_encryption=true" >> $GITHUB_OUTPUT
+          else
+            echo "do_encryption=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if image artifact key is available
+        id: check_image_archive_key
+        run: |
+          if [ -n "${{ secrets.image_archive_key }}" ]; then
+            echo "do_decryption=true" >> $GITHUB_OUTPUT
+          else
+            echo "do_decryption=false" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+      - id: setup-python
+        uses: actions/setup-python@d27e3f3d7c64b4bbf8e4abfb9b63b83e846e0435
+        with:
+          python-version: ${{ inputs.python_version }}
+
+      - name: Cache testing environments
+        uses: actions/cache@58c146cc91c5b9e778e71775dfe9bf1442ad9a12
+        env:
+          BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
+            py${{ steps.setup-python.outputs.python-version }}-"
+        with:
+          path: ${{ env.PIP_CACHE_DIR }}
+          key: "${{ env.BASE_CACHE_KEY }}\
+            ${{ hashFiles('**/requirements-test.txt') }}-\
+            ${{ hashFiles('**/requirements.txt') }}"
+          restore-keys: |
+            ${{ env.BASE_CACHE_KEY }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade --requirement requirements-test.txt
+
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a
+        with:
+          name: ${{ inputs.image_artifact_name }}
+          path: ${{ env.ARTIFACT_WORK_DIR }}
+
+      - name: Load image
+        run: |
+          archive="${{ env.ARTIFACT_WORK_DIR }}/${{ steps.clean.outputs.image_archive_name }}"
+          # If the filename ends in 7z, then decrypt it first
+          if [[ "${archive}" == *".7z" ]]; then
+              load_output=$(7za x -p${{ secrets.image_archive_key }} -so "${archive}" | docker load)
+          else
+              load_output=$(docker load -i "${archive}")
+          fi
+          echo "Docker load output: ${load_output}"
+
+          # Get the id of the image that was just loaded
+          image_id=$(echo "${load_output}" | awk '{print $NF}')
+          echo "Extracted image id: ${image_id}"
+
+          # Tag the image with the a test tag
+          docker tag "${image_id}" "${{ env.TEST_IMAGE_TAG }}"
+
+      - name: Set data directory permissions
+        run: |
+          chmod a+rwx ${{ inputs.data_artifact_path }}
+
+      - name: Run tests
+        env:
+          FOUNDRY_PASSWORD: ${{ secrets.foundry_password }}
+          FOUNDRY_USERNAME: ${{ secrets.foundry_username }}
+          PYTHONUNBUFFERED: 1
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -o pipefail
+          pytest --image-tag ${{ env.TEST_IMAGE_TAG }} | tee ${{ inputs.data_artifact_path }}/pytest.log
+
+      - name: Compress data directory unencrypted
+        if: ( success() || failure() ) && steps.check_data_archive_key.outputs.do_encryption == 'false'
+        run: |
+          tar cf data.tar.gz ${{ inputs.data_artifact_path }}
+
+      - name: Compress and encrypt data directory
+        if: ( success() || failure() ) && steps.check_data_archive_key.outputs.do_encryption == 'true'
+        run: |
+          tar cf - ${{ inputs.data_artifact_path }} | \
+          7za a -p${{ secrets.data_archive_key }} -si data.tar.7z
+
+      - name: Upload unencrypted data artifacts
+        if: ( success() || failure() ) && steps.check_data_archive_key.outputs.do_encryption == 'false'
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce
+        with:
+          name: ${{ inputs.data_artifact_name }}
+          path: data.tar.gz
+          retention-days: ${{ inputs.data_artifact_retention_days }}
+
+      - name: Upload encrypted data artifacts
+        if: ( success() || failure() ) && steps.check_data_archive_key.outputs.do_encryption == 'true'
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce
+        with:
+          name: ${{ inputs.data_artifact_name }}
+          path: data.tar.7z
+          retention-days: ${{ inputs.data_artifact_retention_days }}

@@ -23,7 +23,7 @@ function clampEnv(
   envVarValue: string | undefined,
   min: number,
   max: number,
-  unset: number | null = null
+  unset: number | null = null,
 ): number | null {
   if (envVarValue) {
     var i = parseInt(envVarValue);
@@ -39,13 +39,13 @@ if (process.env.FOUNDRY_DEMO_CONFIG) {
 
 let options: object = {
   awsConfig: process.env.FOUNDRY_AWS_CONFIG || null,
+  compressStatic: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
   dataPath: DATA_PATH,
   demo: parsedDemoConfig,
   fullscreen: false,
   hostname: process.env.FOUNDRY_HOSTNAME || null,
   language: process.env.FOUNDRY_LANGUAGE || LANGUAGE,
   localHostname: process.env.FOUNDRY_LOCAL_HOSTNAME || null,
-  minifyStaticFiles: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
   passwordSalt: process.env.FOUNDRY_PASSWORD_SALT || null,
   port: FOUNDRY_PORT,
   protocol: process.env.FOUNDRY_PROTOCOL || null,
@@ -53,7 +53,7 @@ let options: object = {
     process.env.FOUNDRY_PROXY_PORT,
     MINIMUM_PORT,
     MAXIMUM_PORT,
-    null
+    null,
   ),
   proxySSL: process.env.FOUNDRY_PROXY_SSL == "true",
   routePrefix: process.env.FOUNDRY_ROUTE_PREFIX || null,

@@ -10,7 +10,7 @@ import winston from "winston";
  */
 export default function createLogger(
   name: string,
-  log_level: string
+  log_level: string,
 ): winston.Logger {
   const logger = winston.createLogger({
     level: log_level,
@@ -22,7 +22,7 @@ export default function createLogger(
         let line = name + " | " + timestamp + " | [" + level + "] " + message;
         if (stack) line += "\n" + stack;
         return line;
-      })
+      }),
     ),
     transports: [
       new winston.transports.Console({

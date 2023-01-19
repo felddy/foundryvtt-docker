@@ -1,0 +1,96 @@
+---
+name: 🐛 Bug Report
+description: File a bug report
+labels: ["bug :bug:"]
+assignees:
+  - felddy
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: A clear and concise description of what the bug is.
+      placeholder: |
+        The widget color selector does not apply the correct color.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What are the steps to reproduce the behavior?
+      placeholder: |
+        - Select an object on the page.
+        - Right-click on the selected object.
+        - Choose a color from the color change popup menu.
+        - Click on the purple color selection.
+        - Notice the object turns yellow instead of purple.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: |
+        I expect that the selected object will turn the color selected.
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        Use the following command to print your container metadata:
+
+        ```bash
+        docker inspect --format='{{range $k, $v := .Config.Labels}}
+            {{- printf "%s = \"%s\"\n" $k $v -}} {{end}}' \
+            felddy/foundryvtt:release
+        ```
+  - type: textarea
+    id: container-metadata
+    attributes:
+      label: Container metadata
+      description: Paste the output from the command above. This will be automatically formatted, so no need for backticks.
+      render: shell
+      placeholder: |
+        com.foundryvtt.version = "11.292"
+        org.opencontainers.image.authors = "markf+github@geekpad.com"
+        org.opencontainers.image.created = "2022-09-01T23:22:04.337Z"
+        org.opencontainers.image.description = "An easy-to-deploy Dockerized Foundry Virtual Tabletop server."
+        org.opencontainers.image.licenses = "MIT"
+        org.opencontainers.image.revision = "94d5cc47fc0c5ac5ae268988c6673c046e39e6b6"
+        org.opencontainers.image.source = "https://github.com/felddy/foundryvtt-docker"
+        org.opencontainers.image.title = "foundryvtt-docker"
+        org.opencontainers.image.url = "https://github.com/felddy/foundryvtt-docker"
+        org.opencontainers.image.vendor = "Geekpad"
+        org.opencontainers.image.version = "11.292.0"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Run the container with `CONTAINER_VERBOSE` set to `true`,and paste any useful log output. This will be automatically formatted into code, so no need for backticks.
+      render: console
+      placeholder: |
+        foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [debug] Timezone set to: US/Eastern
+        foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [info] Starting felddy/foundryvtt container v11.292.0
+        foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [debug] CONTAINER_VERBOSE set.  Debug logging enabled.
+        foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [info] Reading configured secrets from: /run/secrets/config.json
+        foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [info] No Foundry Virtual Tabletop installation detected.
+        foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [info] Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate.
+        foundry_1   | Authenticate | 2022-02-23 14:14:54 | [debug] Saving cookies to: cookiejar.json
+        foundry_1   | Authenticate | 2022-02-23 14:14:54 | [info] Requesting CSRF tokens from https://foundryvtt.com
+        foundry_1   | Authenticate | 2022-02-23 14:14:54 | [debug] Fetching: https://foundryvtt.com
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/felddy/foundryvtt-docker/blob/develop/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

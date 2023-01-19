@@ -1,31 +1,94 @@
-"""pytest plugin configuration.
+"""pytest configuration."""
 
-https://docs.pytest.org/en/latest/writing_plugins.html#conftest-py-plugins
-"""
+# Standard Python Libraries
+import os
+from pathlib import Path
+import re
+
 # Third-Party Libraries
+import docker
 import pytest
 
+from .utils import RedactedPrinter
+
 MAIN_SERVICE_NAME = "foundry"
+REDACTION_REGEXES = [
+    re.compile(r"AWSAccessKeyId=(.*?)&Signature=(.*?)&"),
+]
+VERSION_FILE = "src/_version.py"
 VERSION_SERVICE_NAME = f"{MAIN_SERVICE_NAME}-version"
 
-# Run pytest with PYTEST_DOCKERC_LOGPATH set to a file to capture Docker logs
+client = docker.from_env()
+
+
+@pytest.fixture(autouse=True)
+def group_github_log_lines(request):
+    """Group log lines when running in GitHub actions."""
+    # Group output from each test with workflow log groups
+    # https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#grouping-log-lines
+
+    if os.environ.get("GITHUB_ACTIONS") != "true":
+        # Not running in GitHub actions
+        yield
+        return
+    # Group using the current test name
+    print()
+    print(f"::group::{request.node.name}")
+    yield
+    print()
+    print("::endgroup::")
 
 
 @pytest.fixture(scope="session")
-def main_container(dockerc, dockerc_logs):
-    """Return the main container from the Docker composition."""
-    # find the container by name even if it is stopped already
-    return dockerc.containers(service_names=[MAIN_SERVICE_NAME], stopped=True)[0]
+def main_container(image_tag):
+    """Fixture for the main Foundry container."""
+    container = client.containers.run(
+        image_tag,
+        detach=True,
+        environment={
+            "CONTAINER_URL_FETCH_RETRY": 5,
+            "CONTAINER_VERBOSE": True,
+            "FOUNDRY_ADMIN_KEY": "atropos",
+            "FOUNDRY_GID": "foundry",
+            "FOUNDRY_PASSWORD": os.environ.get("FOUNDRY_PASSWORD"),
+            "FOUNDRY_UID": "foundry",
+            "FOUNDRY_USERNAME": os.environ.get("FOUNDRY_USERNAME"),
+            "TIMEZONE": "UTC",
+        },
+        name=MAIN_SERVICE_NAME,
+        ports={"30000/tcp": None},
+        volumes={str(Path.cwd() / Path("data")): {"bind": "/data", "driver": "local"}},
+    )
+    yield container
+    container.remove(force=True)
 
 
 @pytest.fixture(scope="session")
-def version_container(dockerc, dockerc_logs):
-    """Return the version container from the Docker composition.
+def version_container(image_tag):
+    """Fixture for the version container."""
+    container = client.containers.run(
+        image_tag,
+        command="--version",
+        detach=True,
+        name=VERSION_SERVICE_NAME,
+    )
+    yield container
+    container.remove(force=True)
 
-    The version container should just output the version of its underlying contents.
-    """
-    # find the container by name even if it is stopped already
-    return dockerc.containers(service_names=[VERSION_SERVICE_NAME], stopped=True)[0]
+
+@pytest.fixture(scope="session")
+def project_version():
+    """Get the project version."""
+    pkg_vars = {}
+    with open(VERSION_FILE) as f:
+        exec(f.read(), pkg_vars)  # nosec
+    return pkg_vars["__version__"]
+
+
+@pytest.fixture(scope="session")
+def redacted_printer():
+    """Return a configured redacted printer object."""
+    return RedactedPrinter(REDACTION_REGEXES)
 
 
 def pytest_addoption(parser):
@@ -33,6 +96,18 @@ def pytest_addoption(parser):
     parser.addoption(
         "--runslow", action="store_true", default=False, help="run slow tests"
     )
+    parser.addoption(
+        "--image-tag",
+        action="store",
+        default="local/test-image:latest",
+        help="image tag to test",
+    )
+
+
+@pytest.fixture(scope="session")
+def image_tag(request):
+    """Get the image tag to test."""
+    return request.config.getoption("--image-tag")
 
 
 def pytest_collection_modifyitems(config, items):

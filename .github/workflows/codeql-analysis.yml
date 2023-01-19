@@ -45,17 +45,17 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@dd2c410b088af7c0dc8046f3ac9a8f4148492a95
+        uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518
         with:
           # TODO: change to 'egress-policy: block' after couple of runs
           egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
 
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@7fee4ca032ac341c12486c4c06822c5221c76533
+        uses: github/codeql-action/init@a34ca99b4610d924e04c68db79e503e1f79f9f02
         with:
           languages: ${{ matrix.language }}
           # If you wish to specify custom queries, you can do so here or in a
@@ -68,7 +68,7 @@ jobs:
       # Java). If this step fails, then you should remove it and run the build
       # manually (see below)
       - name: Autobuild
-        uses: github/codeql-action/autobuild@7fee4ca032ac341c12486c4c06822c5221c76533
+        uses: github/codeql-action/autobuild@a34ca99b4610d924e04c68db79e503e1f79f9f02
 
       # ℹ️ Command-line programs to run using the OS shell. 📚
       # https://git.io/JvXDl
@@ -82,4 +82,4 @@ jobs:
       #   make release
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@7fee4ca032ac341c12486c4c06822c5221c76533
+        uses: github/codeql-action/analyze@a34ca99b4610d924e04c68db79e503e1f79f9f02

@@ -7,9 +7,9 @@
     "cheerio": "^1.0.0-rc.12",
     "docopt": "^0.6.2",
     "fetch-cookie": "^2.1.0",
-    "node-fetch": "^3.2.10",
+    "node-fetch": "^3.3.0",
     "tough-cookie-file-store": "^2.0.3",
-    "winston": "^3.8.1"
+    "winston": "^3.8.2"
   },
   "description": "Utilities to help boot a FoundryVTT server.",
   "devDependencies": {
@@ -17,7 +17,7 @@
     "@types/docopt": "^0.6.33",
     "@types/tough-cookie": "^4.0.2",
     "@types/tough-cookie-file-store": "^2.0.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.9.4"
   },
   "homepage": "https://github.com/felddy/foundryvtt-docker#readme",
   "keywords": [
@@ -32,6 +32,7 @@
     "url": "git+https://github.com/felddy/foundryvtt-docker.git"
   },
   "scripts": {
+    "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
