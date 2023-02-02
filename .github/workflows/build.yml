@@ -16,7 +16,7 @@ on:
       dispatch-tag:
         description: "Tag to apply to pushed images"
         required: true
-        default: dispatch
+        default: "dispatch"
 
 permissions:
   actions: read
