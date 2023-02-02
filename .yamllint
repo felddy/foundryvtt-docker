@@ -2,7 +2,22 @@
 extends: default
 
 rules:
+  # yamllint does not like it when you comment out different parts of
+  # dictionaries in a list. You can see
+  # https://github.com/adrienverge/yamllint/issues/384 for some examples of
+  # this behavior.
+  comments-indentation: disable
+
+  # yamllint does not allow inline mappings that exceed the line length by
+  # default. There are many scenarios where the inline mapping may be a key,
+  # hash, or other long value that would exceed the line length but cannot
+  # reasonably be broken across lines.
+  line-length:
+    # This rule implies the allow-non-breakable-words rule
+    allow-non-breakable-inline-mappings: true
+    # Allows a 250% overage from the default limit of 80
+    max: 200
+
   # yamllint doesn't like when we use yes and no for true and false,
   # but that's pretty standard in Ansible.
   truthy: disable
-  line-length: disable
