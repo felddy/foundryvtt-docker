@@ -43,6 +43,9 @@ jobs:
         with:
           egress-policy: block
           allowed-endpoints: >
+            azure.archive.ubuntu.com:443
+            azure.archive.ubuntu.com:80
+            packages.microsoft.com:443
             www.githubstatus.com:443
 
       - name: Check GitHub Status
