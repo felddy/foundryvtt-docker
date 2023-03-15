@@ -70,7 +70,7 @@ setup(
         "docker-compose == 1.29.2",
         "semver == 2.13.0",
         "setuptools == 67.6.0",
-        "wheel == 0.38.4",
+        "wheel == 0.40.0",
     ],
     extras_require={
         "test": [
