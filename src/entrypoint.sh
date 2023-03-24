@@ -36,6 +36,8 @@ fi
 
 log "Starting felddy/foundryvtt container v${image_version}"
 log_debug "CONTAINER_VERBOSE set.  Debug logging enabled."
+log_debug "Running as: $(id)"
+log_debug "Environment: $(env | sort | sed -E 's/(.*PASSWORD|KEY.*)=.*/\1=[REDACTED]/g')"
 
 cookiejar_file="cookiejar.json"
 license_min_length=24
