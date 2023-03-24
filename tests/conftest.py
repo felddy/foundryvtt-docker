@@ -48,10 +48,10 @@ def main_container(image_tag):
         environment={
             "CONTAINER_URL_FETCH_RETRY": 5,
             "CONTAINER_VERBOSE": True,
-            "FOUNDRY_ADMIN_KEY": "atropos",
-            "FOUNDRY_GID": "foundry",
+            "FOUNDRY_ADMIN_KEY": os.environ.get("FOUNDRY_ADMIN_KEY", "atropos"),
+            "FOUNDRY_GID": os.environ.get("FOUNDRY_GID", "foundry"),
             "FOUNDRY_PASSWORD": os.environ.get("FOUNDRY_PASSWORD"),
-            "FOUNDRY_UID": "foundry",
+            "FOUNDRY_UID": os.environ.get("FOUNDRY_UID", "foundry"),
             "FOUNDRY_USERNAME": os.environ.get("FOUNDRY_USERNAME"),
             "TIMEZONE": "UTC",
         },
