@@ -274,9 +274,11 @@ secrets](#using-secrets) instead of environment variables.
 | `CONTAINER_VERBOSE` | Set to `true` to enable verbose logging for the container utility scripts. | `false` |
 | `FOUNDRY_ADMIN_KEY` | Admin password to be applied at startup.  If omitted the admin password will be cleared.  May be set [using secrets](#using-secrets). | |
 | `FOUNDRY_AWS_CONFIG` | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | `null` |
+| `FOUNDRY_COMPRESS_WEBSOCKET` | Set to `true` to enable compression of data sent from the server to the client via websocket. This is recommended for network performance. | `true` |
 | `FOUNDRY_DEMO_CONFIG` | Demo mode allows you to configure a world which will be automatically launched and reset at a frequency of your choosing.  When the world is reset, it is deactivated.  The source data for the world is restored to its original state using a provided `.zip` file, and the next reset is automatically scheduled.  See: [Configuring demo mode](https://foundryvtt.com/article/configuration/#command-line). |  |
 | `FOUNDRY_GID` | `gid` the daemon will be run under. | `foundry` |
 | `FOUNDRY_HOSTNAME` | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | `null` |
+| `FOUNDRY_HOT_RELOAD` | Set to `true` to allow packages to hot-reload certain assets, such as CSS, HTML, and localization files without a full refresh. This setting is only recommended for developers. | `false` |
 | `FOUNDRY_IP_DISCOVERY` | Allow the Foundry server to discover and report the accessibility of the host machine's public IP address and port.  Setting this to `false` may reduce server startup time in instances where this discovery would timeout. | `true` |
 | `FOUNDRY_LANGUAGE` | The default application language and module which provides the core translation files. | `en.core` |
 | `FOUNDRY_LOCAL_HOSTNAME` | Override the local network address used for invitation links, mirroring the functionality of the `FOUNDRY_HOSTNAME` option which configures the external address. | `null` |
@@ -289,6 +291,7 @@ secrets](#using-secrets) instead of environment variables.
 | `FOUNDRY_ROUTE_PREFIX` | A string path which is appended to the base hostname to serve Foundry VTT content from a specific namespace. For example setting this to `demo` will result in data being served from `http://x.x.x.x:30000/demo/`. | `null` |
 | `FOUNDRY_SSL_CERT` | An absolute or relative path that points towards a SSL certificate file which is used jointly with the sslKey option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | `null` |
 | `FOUNDRY_SSL_KEY` | An absolute or relative path that points towards a SSL key file which is used jointly with the sslCert option to enable SSL and https connections. If both options are provided, the server will start using HTTPS automatically. | `null` |
+| `FOUNDRY_TELEMETRY` | Set to `true` to enable FoundryVTT telemetry, `false` to disable.  This options allows the collection of anonymous usage data to help improve FoundryVTT. | `null` |
 | `FOUNDRY_UID` | `uid` the daemon will be run under. | `foundry` |
 | `FOUNDRY_UPNP` | Allow Universal Plug and Play to automatically request port forwarding for the Foundry server port to your local network address. | `false` |
 | `FOUNDRY_UPNP_LEASE_DURATION` | Sets the Universal Plug and Play lease duration, allowing for the possibility of permanent leases for routers which do not support temporary leases.  To define an indefinite lease duration set the value to `0`. | `null` |

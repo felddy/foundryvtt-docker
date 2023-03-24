@@ -30,8 +30,10 @@ services:
       #   "sourceZip": "/data/demo-world.zip",
       #   "resetSeconds": 3600
       #   }
+      # - FOUNDRY_COMPRESS_WEBSOCKET=true
       # - FOUNDRY_GID=foundry
       # - FOUNDRY_HOSTNAME=
+      # - FOUNDRY_HOT_RELOAD=false
       # - FOUNDRY_IP_DISCOVERY=
       # - FOUNDRY_LANGUAGE=
       # - FOUNDRY_LOCAL_HOSTNAME=
@@ -45,6 +47,7 @@ services:
       # - FOUNDRY_ROUTE_PREFIX=
       # - FOUNDRY_SSL_CERT=
       # - FOUNDRY_SSL_KEY=
+      # - FOUNDRY_TELEMETRY=
       # - FOUNDRY_UID=foundry
       # - FOUNDRY_UPNP=false
       # - FOUNDRY_UPNP_LEASE_DURATION=
