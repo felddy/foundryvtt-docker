@@ -63,6 +63,9 @@ env:
   ARTIFACT_WORK_DIR: /tmp/artifact-work
   TEST_IMAGE_TAG: test-image:latest
 
+permissions:
+  contents: read
+
 jobs:
   test:
     # Executes tests on the single-platform image created in the "build" job.

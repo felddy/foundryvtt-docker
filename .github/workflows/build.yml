@@ -38,6 +38,11 @@ jobs:
     name: "Foundry secrets"
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@1f99358870fe1c846a3ccba386cc2b2246836776
+        with:
+          egress-policy: block
+
       - name: Check foundry.com credentials
         run: |
           return_code=0
@@ -55,6 +60,11 @@ jobs:
     name: "Docker secrets"
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@1f99358870fe1c846a3ccba386cc2b2246836776
+        with:
+          egress-policy: block
+
       - name: Check docker.com credentials
         run: |
           return_code=0
@@ -72,6 +82,11 @@ jobs:
     name: "Artifact key"
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@1f99358870fe1c846a3ccba386cc2b2246836776
+        with:
+          egress-policy: block
+
       - name: Check artifact key
         run: |
           if [ -z "${{ secrets.ARTIFACT_KEY }}" ]; then
