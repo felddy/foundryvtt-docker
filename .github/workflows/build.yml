@@ -192,7 +192,6 @@ jobs:
         platform: ${{ fromJson(needs.config.outputs.platforms_json) }}
         exclude:
           - platform: ${{ needs.config.outputs.test_platform }}
-    name: "${{ matrix.platform }}"
     uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
       artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
@@ -204,6 +203,16 @@ jobs:
     secrets:
       build_args: |
         VERSION=${{ needs.metadata.outputs.source_version }}
+
+  generate-sboms:
+    needs:
+      - build-each-platform
+      - config
+    permissions:
+      contents: write
+    uses: felddy/reusable-workflows/.github/workflows/sbom-artifact.yml@feature/sbom
+    with:
+      image_artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
 
   build-multi-arch-image:
     needs:
