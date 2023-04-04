@@ -180,6 +180,7 @@ jobs:
       image_archive_key: ${{ secrets.ARTIFACT_KEY }}
 
   build-each-platform:
+    name: "Build platform"
     needs:
       - config
       - lint
@@ -192,7 +193,6 @@ jobs:
         platform: ${{ fromJson(needs.config.outputs.platforms_json) }}
         exclude:
           - platform: ${{ needs.config.outputs.test_platform }}
-    name: "${{ matrix.platform }}"
     uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
       artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
@@ -217,13 +217,13 @@ jobs:
       image_artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
 
   build-multi-arch-image:
+    name: "Publish image"
     needs:
       - build-each-platform
       - config
       - docker-secrets
       - metadata
     if: github.event_name != 'pull_request'
-    name: "Publish image"
     permissions:
       packages: write
     uses: felddy/reusable-workflows/.github/workflows/docker-multi-arch-push.yml@develop
@@ -235,13 +235,13 @@ jobs:
       docker_username: ${{ secrets.DOCKER_USERNAME }}
 
   publish-readme:
+    name: "Publish docs"
     needs:
       - build-multi-arch-image
       - config
       - docker-secrets
       - metadata
     if: needs.metadata.outputs.is_latest == 'true'
-    name: "Publish docs"
     uses: felddy/reusable-workflows/.github/workflows/docker-publish-description.yml@develop
     with:
       image_name: ${{ needs.config.outputs.image_name }}
