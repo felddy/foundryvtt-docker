@@ -33,16 +33,22 @@ on:
         description: "The platform to use for testing"
         value: linux/amd64
 
+permissions:
+  contents: read
+
 jobs:
   diagnostics:
     name: "Diagnostics"
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518
+        uses: step-security/harden-runner@1f99358870fe1c846a3ccba386cc2b2246836776
         with:
           egress-policy: block
           allowed-endpoints: >
+            azure.archive.ubuntu.com:443
+            azure.archive.ubuntu.com:80
+            packages.microsoft.com:443
             www.githubstatus.com:443
 
       - name: Check GitHub Status
@@ -52,7 +58,7 @@ jobs:
           packages_threshold: major_outage
 
       - name: Dump context
-        uses: crazy-max/ghaction-dump-context@516dbb0c760f39b4cdd750ae095f1688780f68f4
+        uses: crazy-max/ghaction-dump-context@158bbf4d6158a44a7e13f76295dc55a69e481a6e
 
   csv-to-json:
     name: "Convert platforms CSV to JSON"
@@ -61,7 +67,7 @@ jobs:
       platforms_json: ${{ steps.csv-to-json.outputs.platforms_json }}
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518
+        uses: step-security/harden-runner@1f99358870fe1c846a3ccba386cc2b2246836776
         with:
           egress-policy: block
           allowed-endpoints: >

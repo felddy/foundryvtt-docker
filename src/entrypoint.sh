@@ -36,6 +36,8 @@ fi
 
 log "Starting felddy/foundryvtt container v${image_version}"
 log_debug "CONTAINER_VERBOSE set.  Debug logging enabled."
+log_debug "Running as: $(id)"
+log_debug "Environment: $(env | sort | sed -E 's/(.*PASSWORD|KEY.*)=.*/\1=[REDACTED]/g')"
 
 cookiejar_file="cookiejar.json"
 license_min_length=24
@@ -249,6 +251,7 @@ fi
 log "Setting data directory permissions."
 FOUNDRY_UID="${FOUNDRY_UID:-foundry}"
 FOUNDRY_GID="${FOUNDRY_GID:-foundry}"
+log_debug "Setting ownership of /data to ${FOUNDRY_UID}:${FOUNDRY_GID}."
 # skip files matching CONTAINER_PRESERVE_OWNER or already belonging to the right user and group
 find /data \
   -regex "${CONTAINER_PRESERVE_OWNER:-}" -prune -or \
@@ -265,11 +268,11 @@ fi
 # drop privileges and handoff to launcher
 log "Starting launcher with uid:gid as ${FOUNDRY_UID}:${FOUNDRY_GID}."
 export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
-  FOUNDRY_DEMO_CONFIG FOUNDRY_HOSTNAME FOUNDRY_IP_DISCOVERY FOUNDRY_LANGUAGE \
-  FOUNDRY_LOCAL_HOSTNAME FOUNDRY_MINIFY_STATIC_FILES FOUNDRY_PASSWORD_SALT \
-  FOUNDRY_PROTOCOL FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL FOUNDRY_ROUTE_PREFIX \
-  FOUNDRY_SSL_CERT FOUNDRY_SSL_KEY FOUNDRY_UPNP FOUNDRY_UPNP_LEASE_DURATION \
-  FOUNDRY_WORLD
+  FOUNDRY_COMPRESS_WEBSOCKET FOUNDRY_DEMO_CONFIG FOUNDRY_HOT_RELOAD FOUNDRY_HOSTNAME \
+  FOUNDRY_IP_DISCOVERY FOUNDRY_LANGUAGE FOUNDRY_LOCAL_HOSTNAME FOUNDRY_MINIFY_STATIC_FILES \
+  FOUNDRY_PASSWORD_SALT FOUNDRY_PROTOCOL FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL \
+  FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT FOUNDRY_SSL_KEY FOUNDRY_TELEMETRY FOUNDRY_UPNP \
+  FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
 su-exec "${FOUNDRY_UID}:${FOUNDRY_GID}" ./launcher.sh "$@" \
   || log_error "Launcher exited with error code: $?"
 
