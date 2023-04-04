@@ -180,6 +180,7 @@ jobs:
       image_archive_key: ${{ secrets.ARTIFACT_KEY }}
 
   build-each-platform:
+    name: "Build platform"
     needs:
       - config
       - lint
