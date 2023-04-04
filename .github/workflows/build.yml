@@ -211,7 +211,7 @@ jobs:
       - config
     permissions:
       contents: write
-    uses: felddy/reusable-workflows/.github/workflows/sbom-artifact.yml@feature/sbom
+    uses: felddy/reusable-workflows/.github/workflows/sbom-artifact.yml@develop
     with:
       image_artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
 
