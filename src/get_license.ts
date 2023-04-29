@@ -76,11 +76,13 @@ async function fetchLicenses(username: string): Promise<string[]> {
   const body = await response.text();
   const $ = await cheerio.load(body);
 
-  const licenses: string[] = $("pre.key-code code")
+  const licenses: string[] = $("div.license label.copy input")
     .map(function (this: cheerio.Element) {
-      return $(this).text().replace(/-/g, ""); // remove dashes
+      const value = $(this).attr("value");
+      return value ? value.replace(/-/g, "") : undefined; // remove dashes
     })
-    .get();
+    .get()
+    .filter(Boolean);
   return licenses;
 }
 
