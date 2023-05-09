@@ -52,7 +52,7 @@ jobs:
             www.githubstatus.com:443
 
       - name: Check GitHub Status
-        uses: crazy-max/ghaction-github-status@8d1f141b985510f36a0376b75b4dc8b0cfc90e8a
+        uses: crazy-max/ghaction-github-status@f947abedefc0d01e4bae344bd7061897ae4e6de9
         with:
           overall_threshold: major
           packages_threshold: major_outage
