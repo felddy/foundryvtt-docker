@@ -1,3 +1,3 @@
 """This file defines the version of this module."""
 
-__version__ = "11.296.1"
+__version__ = "11.297.0"
