@@ -89,7 +89,6 @@ configuration files, set `CONTAINER_PRESERVE_CONFIG` to `true`.
       foundry:
         image: felddy/foundryvtt:release
         hostname: my_foundry_host
-        init: true
         volumes:
           - type: bind
             source: <your_data_dir>
@@ -150,7 +149,6 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
       foundry:
         image: felddy/foundryvtt:release
         hostname: my_foundry_host
-        init: true
         volumes:
           - type: bind
             source: <your_data_dir>
