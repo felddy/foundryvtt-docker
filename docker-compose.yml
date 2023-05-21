@@ -5,7 +5,6 @@ services:
   foundry:
     image: felddy/foundryvtt:release
     hostname: my_foundry_host
-    init: true
     restart: "no"
     volumes:
       - type: bind
