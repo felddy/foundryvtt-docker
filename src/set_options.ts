@@ -39,11 +39,13 @@ if (process.env.FOUNDRY_DEMO_CONFIG) {
 
 let options: object = {
   awsConfig: process.env.FOUNDRY_AWS_CONFIG || null,
+  compressSocket: process.env.FOUNDRY_COMPRESS_WEBSOCKET == "true",
   compressStatic: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
   dataPath: DATA_PATH,
   demo: parsedDemoConfig,
   fullscreen: false,
   hostname: process.env.FOUNDRY_HOSTNAME || null,
+  hotReload: process.env.FOUNDRY_HOT_RELOAD == "true",
   language: process.env.FOUNDRY_LANGUAGE || LANGUAGE,
   localHostname: process.env.FOUNDRY_LOCAL_HOSTNAME || null,
   passwordSalt: process.env.FOUNDRY_PASSWORD_SALT || null,
@@ -59,6 +61,7 @@ let options: object = {
   routePrefix: process.env.FOUNDRY_ROUTE_PREFIX || null,
   sslCert: process.env.FOUNDRY_SSL_CERT || null,
   sslKey: process.env.FOUNDRY_SSL_KEY || null,
+  telemetry: process.env.FOUNDRY_TELEMETRY || null,
   updateChannel: UPDATE_CHANNEL,
   upnp: process.env.FOUNDRY_UPNP == "true",
   upnpLeaseDuration: process.env.FOUNDRY_UPNP_LEASE_DURATION || null,
