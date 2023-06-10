@@ -10,7 +10,7 @@ set -o errexit
 # pipefail is supported by busybox
 set -o pipefail
 
-CONFIG_DIR="/data/Config"
+CONFIG_DIR="${FOUNDRY_DATA_DIR-/data}/Config"
 LICENSE_FILE="${CONFIG_DIR}/license.json"
 # setup logging
 # shellcheck disable=SC2034
@@ -125,7 +125,7 @@ if [ $install_required = true ]; then
 
   # If CONTAINER_CACHE is null, set it to a default.
   # If it set to an empty string, disable the caching.
-  CONTAINER_CACHE="${CONTAINER_CACHE-/data/container_cache}"
+  CONTAINER_CACHE="${CONTAINER_CACHE-${FOUNDRY_DATA_DIR-/data}/container_cache}"
 
   if [[ "${CONTAINER_CACHE:-}" ]]; then
     log "Using CONTAINER_CACHE: ${CONTAINER_CACHE}"
@@ -253,7 +253,7 @@ FOUNDRY_UID="${FOUNDRY_UID:-foundry}"
 FOUNDRY_GID="${FOUNDRY_GID:-foundry}"
 log_debug "Setting ownership of /data to ${FOUNDRY_UID}:${FOUNDRY_GID}."
 # skip files matching CONTAINER_PRESERVE_OWNER or already belonging to the right user and group
-find /data \
+find "${FOUNDRY_DATA_DIR-/data}" \
   -regex "${CONTAINER_PRESERVE_OWNER:-}" -prune -or \
   "(" -user "${FOUNDRY_UID}" -and -group "${FOUNDRY_GID}" ")" -or \
   -exec chown "${FOUNDRY_UID}:${FOUNDRY_GID}" {} +
@@ -267,7 +267,7 @@ fi
 
 # drop privileges and handoff to launcher
 log "Starting launcher with uid:gid as ${FOUNDRY_UID}:${FOUNDRY_GID}."
-export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
+export CONTAINER_PRESERVE_CONFIG FOUNDRY_DATA_DIR FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
   FOUNDRY_COMPRESS_WEBSOCKET FOUNDRY_DEMO_CONFIG FOUNDRY_HOT_RELOAD FOUNDRY_HOSTNAME \
   FOUNDRY_IP_DISCOVERY FOUNDRY_LANGUAGE FOUNDRY_LOCAL_HOSTNAME FOUNDRY_MINIFY_STATIC_FILES \
   FOUNDRY_PASSWORD_SALT FOUNDRY_PROTOCOL FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL \

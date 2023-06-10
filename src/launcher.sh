@@ -12,15 +12,21 @@ set -o errexit
 # pipefail is supported by busybox
 set -o pipefail
 
-CONFIG_DIR="/data/Config"
-ADMIN_KEY_FILE="${CONFIG_DIR}/admin.txt"
-CONFIG_FILE="${CONFIG_DIR}/options.json"
 # shellcheck disable=SC2034
 # LOG_NAME used in sourced file
 LOG_NAME="Launcher"
 
 # shellcheck source=src/logging.sh
 source logging.sh
+
+FOUNDRY_DATA_DIR="${FOUNDRY_DATA_DIR-/data}"
+
+# ensure the data directory exists
+log_debug "Ensuring ${FOUNDRY_DATA_DIR} directory exists."
+mkdir -p "${FOUNDRY_DATA_DIR}"
+CONFIG_DIR="${FOUNDRY_DATA_DIR}/Config"
+ADMIN_KEY_FILE="${CONFIG_DIR}/admin.txt"
+CONFIG_FILE="${CONFIG_DIR}/options.json"
 
 # ensure the config directory exists
 log_debug "Ensuring ${CONFIG_DIR} directory exists."
@@ -77,6 +83,7 @@ done < <(env -0)
 
 # Spawn node with clean environment to prevent credential leaks
 log "Starting Foundry Virtual Tabletop."
+log_debug "$@" "--port=30000 --headless --noupdate --dataPath=$FOUNDRY_DATA_DIR"
 # We want ENV_VAR_CARRY_LIST to word split
 # shellcheck disable=SC2086
-env -i $ENV_VAR_CARRY_LIST node "$@" || log_error "Node process exited with code $?"
+env -i $ENV_VAR_CARRY_LIST node "$@" --port=30000 --headless --noupdate --dataPath=$FOUNDRY_DATA_DIR || log_error "Node process exited with code $?"

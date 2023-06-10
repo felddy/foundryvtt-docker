@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const DATA_PATH: string = "/data";
+const DATA_PATH: string = process.env.FOUNDRY_DATA_DIR || "/data";
 const FOUNDRY_PORT: number = 30000;
 const LANGUAGE: string = "en.core";
 const MAXIMUM_PORT: number = 65535;
