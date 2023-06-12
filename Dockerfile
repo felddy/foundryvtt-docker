@@ -2,7 +2,7 @@ ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION=11.301
-ARG NODE_IMAGE_VERSION=18-alpine3.18
+ARG NODE_IMAGE_VERSION=18-slim
 ARG VERSION
 
 FROM node:${NODE_IMAGE_VERSION} as compile-typescript-stage
@@ -39,12 +39,14 @@ COPY --from=compile-typescript-stage \
 RUN mkdir dist && touch dist/.placeholder
 RUN \
   if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
+  apt-get update && apt-get install -y unzip wget && \
   npm install && \
   ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
   s3_url=$(./get_release_url.js --retry 5 cookiejar.json "${FOUNDRY_VERSION}") && \
   wget -O ${ARCHIVE} "${s3_url}" && \
   unzip -d dist ${ARCHIVE} 'resources/*'; \
   elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
+  apt-get update && apt-get install -y unzip wget && \
   wget -O ${ARCHIVE} "${FOUNDRY_RELEASE_URL}" && \
   unzip -d dist ${ARCHIVE} 'resources/*'; \
   fi
@@ -77,12 +79,14 @@ COPY \
   ./
 RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   && adduser --system --uid ${FOUNDRY_UID} --ingroup foundry foundry \
-  && apk --update --no-cache add \
+  && apt-get update && apt-get install -y \
   curl \
+  gosu \
   jq \
   sed \
-  su-exec \
   tzdata \
+  unzip \
+  && rm -rf /var/lib/apt/lists/* \
   && npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]
