@@ -243,7 +243,7 @@ jobs:
       - config
       - docker-secrets
       - metadata
-    if: needs.metadata.outputs.is_latest == 'true'
+    if: needs.metadata.outputs.latest == 'true'
     uses: felddy/reusable-workflows/.github/workflows/docker-publish-description.yml@develop
     with:
       image_name: ${{ needs.config.outputs.image_name }}
