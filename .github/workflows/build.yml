@@ -108,14 +108,14 @@ jobs:
     uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
       artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      build_arg_1_name: VERSION
       cache_from_scopes: ${{ needs.config.outputs.test_platform }}
       cache_to_scope: ${{ needs.config.outputs.test_platform }}
       image_archive_name_stem: ${{ needs.config.outputs.test_platform }}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
       platforms: ${{ needs.config.outputs.test_platform }}
     secrets:
-      build_args: |
-        VERSION=${{ needs.metadata.outputs.source_version }}
+      build_arg_1_value: ${{ needs.metadata.outputs.source_version }}
 
   build-pre-installed-test-image:
     name: "Build pre-installed test image"
@@ -128,17 +128,19 @@ jobs:
     uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
       artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}-pre-installed
+      build_arg_1_name: FOUNDRY_PASSWORD
+      build_arg_2_name: FOUNDRY_USERNAME
+      build_arg_3_name: VERSION
       cache_from_scopes: ${{ needs.config.outputs.test_platform }}-pre-installed
       cache_to_scope: ${{ needs.config.outputs.test_platform }}-pre-installed
       image_archive_name_stem: ${{ needs.config.outputs.test_platform }}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
       platforms: ${{ needs.config.outputs.test_platform }}
     secrets:
+      build_arg_1_value: ${{ secrets.FOUNDRY_PASSWORD }}
+      build_arg_2_value: ${{ secrets.FOUNDRY_USERNAME }}
+      build_arg_3_value: ${{ needs.metadata.outputs.source_version }}
       image_archive_key: ${{ secrets.ARTIFACT_KEY }}
-      build_args: |
-        FOUNDRY_PASSWORD=${{ secrets.FOUNDRY_PASSWORD }}
-        FOUNDRY_USERNAME=${{ secrets.FOUNDRY_USERNAME }}
-        VERSION=${{ needs.metadata.outputs.source_version }}
 
 # Since we need to pass the foundryvtt.com credentials to the tests, we can't
 # use the standard reusable test workflow.  Instead, we'll use a modified
@@ -196,14 +198,14 @@ jobs:
     uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
     with:
       artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      build_arg_1_name: VERSION
       cache_from_scopes: ${{ matrix.platform }}
       cache_to_scope: ${{ matrix.platform }}
       image_labels: ${{ needs.metadata.outputs.image_labels }}
       image_archive_name_stem: ${{ matrix.platform }}
       platforms: ${{ matrix.platform }}
     secrets:
-      build_args: |
-        VERSION=${{ needs.metadata.outputs.source_version }}
+      build_arg_1_value: ${{ needs.metadata.outputs.source_version }}
 
   generate-sboms:
     name: "Bill of Materials"
