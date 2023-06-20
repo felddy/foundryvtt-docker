@@ -68,7 +68,7 @@ setup(
     py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
     install_requires=[
         "docker-compose == 1.29.2",
-        "semver == 3.0.0",
+        "semver == 3.0.1",
         "setuptools == 67.8.0",
         "wheel == 0.40.0",
     ],
