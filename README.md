@@ -228,7 +228,7 @@ The following ports are exposed by this container:
 
 | Port | Purpose        |
 |------|----------------|
-| `30000` | Foundry Virtual Tabletop server web interface |
+| `30000` | Foundry Virtual Tabletop server web interface (may be changed by setting `FOUNDRY_PORT` environment variable). |
 
 ## Environment variables ##
 
@@ -275,6 +275,7 @@ secrets](#using-secrets) instead of environment variables.
 | `FOUNDRY_COMPRESS_WEBSOCKET` | Set to `true` to enable compression of data sent from the server to the client via websocket. This is recommended for network performance. | `true` |
 | `FOUNDRY_DEMO_CONFIG` | Demo mode allows you to configure a world which will be automatically launched and reset at a frequency of your choosing.  When the world is reset, it is deactivated.  The source data for the world is restored to its original state using a provided `.zip` file, and the next reset is automatically scheduled.  See: [Configuring demo mode](https://foundryvtt.com/article/configuration/#command-line). |  |
 | `FOUNDRY_GID` | `gid` the daemon will be run under. | `foundry` |
+| `FOUNDRY_PORT` | The port that will be used by foundry. | `30000` |
 | `FOUNDRY_HOSTNAME` | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | `null` |
 | `FOUNDRY_HOT_RELOAD` | Set to `true` to allow packages to hot-reload certain assets, such as CSS, HTML, and localization files without a full refresh. This setting is only recommended for developers. | `false` |
 | `FOUNDRY_IP_DISCOVERY` | Allow the Foundry server to discover and report the accessibility of the host machine's public IP address and port.  Setting this to `false` may reduce server startup time in instances where this discovery would timeout. | `true` |
