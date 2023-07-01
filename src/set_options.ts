@@ -49,7 +49,7 @@ let options: object = {
   language: process.env.FOUNDRY_LANGUAGE || LANGUAGE,
   localHostname: process.env.FOUNDRY_LOCAL_HOSTNAME || null,
   passwordSalt: process.env.FOUNDRY_PASSWORD_SALT || null,
-  port: FOUNDRY_PORT,
+  port: process.env.FOUNDRY_PORT || FOUNDRY_PORT,
   protocol: process.env.FOUNDRY_PROTOCOL || null,
   proxyPort: clampEnv(
     process.env.FOUNDRY_PROXY_PORT,
