@@ -58,7 +58,7 @@ jobs:
           packages_threshold: major_outage
 
       - name: Dump context
-        uses: crazy-max/ghaction-dump-context@158bbf4d6158a44a7e13f76295dc55a69e481a6e
+        uses: crazy-max/ghaction-dump-context@8b55fa205ab4530d36f787a4de1009afaaa7f3b4
 
   csv-to-json:
     name: "Convert platforms CSV to JSON"
