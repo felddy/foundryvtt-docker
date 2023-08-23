@@ -73,7 +73,7 @@ setup(
     ],
     extras_require={
         "test": [
-            "coverage == 6.5.0",
+            "coverage == 7.3.0",
             "coveralls == 3.3.1",
             "docker == 6.1.3",
             "pre-commit == 3.3.3",
