@@ -79,6 +79,7 @@ RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   && adduser --system --uid ${FOUNDRY_UID} --ingroup foundry foundry \
   && apk --update --no-cache add \
   curl \
+  file \
   jq \
   sed \
   su-exec \
