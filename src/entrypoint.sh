@@ -157,8 +157,31 @@ if [ $install_required = true ]; then
 
   if [ -f "${release_filename}" ]; then
     log "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
-    unzip -q "${release_filename}" 'resources/*'
-    log_debug "Installation completed."
+
+    # Check the mime-type of the file
+    log_debug "Checking mime-type of release file."
+    mime_type=$(file --mime-type --brief "${release_filename}")
+    log_debug "Found mime-type: ${mime_type}"
+
+    # Check if the file is a zip archive
+    if [ "${mime_type}" = "application/zip" ]; then
+      log_debug "Extracting release file."
+      unzip -q "${release_filename}" 'resources/*'
+      log_debug "Installation completed."
+    elif [ "${mime_type}" = "application/vnd.microsoft.portable-executable" ]; then
+      log_error "The release file appears to be a Windows executable (.exe)."
+      log_error "Please provide the 'Linux/NodeJS' version of the release or URL."
+      exit 1
+    elif [ "${mime_type}" = "application/zlib" ]; then
+      log_error "The release file appears to be a Mac disk image (.dmg)."
+      log_error "Please provide the 'Linux/NodeJS' version of the release or URL."
+      exit 1
+    else
+      log_error "The release file does not contain the expected zip data."
+      log_error "Found: ${mime_type} instead of application/zip"
+      log_error "Make sure you provided the 'Linux/NodeJS' version of the release or URL."
+      exit 1
+    fi
   else
     log_error "Unable to install Foundry Virtual Tabletop!"
     log_error "Either set FOUNDRY_RELEASE_URL."
