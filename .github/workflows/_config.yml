@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
+        uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09  # tag=v2.5.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -52,13 +52,13 @@ jobs:
             www.githubstatus.com:443
 
       - name: Check GitHub Status
-        uses: crazy-max/ghaction-github-status@f947abedefc0d01e4bae344bd7061897ae4e6de9
+        uses: crazy-max/ghaction-github-status@f947abedefc0d01e4bae344bd7061897ae4e6de9  # tag=v3.2.0
         with:
           overall_threshold: major
           packages_threshold: major_outage
 
       - name: Dump context
-        uses: crazy-max/ghaction-dump-context@8b55fa205ab4530d36f787a4de1009afaaa7f3b4
+        uses: crazy-max/ghaction-dump-context@8b55fa205ab4530d36f787a4de1009afaaa7f3b4  # tag=v2.1.0
 
   csv-to-json:
     name: "Convert platforms CSV to JSON"
@@ -67,7 +67,7 @@ jobs:
       platforms_json: ${{ steps.csv-to-json.outputs.platforms_json }}
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09
+        uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09  # tag=v2.5.1
         with:
           egress-policy: block
           allowed-endpoints: >
