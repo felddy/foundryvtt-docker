@@ -16,7 +16,7 @@
     "@types/cheerio": "^0.22.32",
     "@types/docopt": "^0.6.33",
     "@types/tough-cookie": "^4.0.3",
-    "@types/tough-cookie-file-store": "^2.0.1",
+    "@types/tough-cookie-file-store": "^2.0.2",
     "typescript": "^5.2.2"
   },
   "homepage": "https://github.com/felddy/foundryvtt-docker#readme",
