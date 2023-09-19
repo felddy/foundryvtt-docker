@@ -50,10 +50,13 @@ shell history list.  See:
 
 ### Running with Docker and a temporary URL ###
 
-Alternatively, you may acquire a temporary download token from your user profile
-page on the Foundry website.  On the "Purchased Licenses" page, click the [🔗]
-icon to the right of the standard `Node.js` download link to obtain a temporary
-download URL for the software.
+Alternatively, you may acquire a temporary download URL from your user profile
+page on the Foundry website.
+
+1. Navigate to the [`Purchased Software Licenses` page](https://foundryvtt.com/me/licenses).
+1. Change the `Operating System` menu item to `Linux/NodeJS`.
+1. Click the `🔗 Timed URL` button to obtain the temporary URL.
+1. Use the following command to start up a Foundry Virtual Tabletop server:
 
 ```console
 docker run \
