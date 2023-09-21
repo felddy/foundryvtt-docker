@@ -41,6 +41,7 @@ let options: object = {
   awsConfig: process.env.FOUNDRY_AWS_CONFIG || null,
   compressSocket: process.env.FOUNDRY_COMPRESS_WEBSOCKET == "true",
   compressStatic: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
+  cssTheme: process.env.FOUNDRY_CSS_THEME || "foundry",
   dataPath: DATA_PATH,
   demo: parsedDemoConfig,
   fullscreen: false,
