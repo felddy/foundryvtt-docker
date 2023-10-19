@@ -75,8 +75,8 @@ while IFS='=' read -rd '' ENV_VAR_NAME ENV_VAR_VALUE; do
   done
 done < <(env -0)
 
-# Spawn node with clean environment to prevent credential leaks
+# Exec node with clean environment to prevent credential leaks
 log "Starting Foundry Virtual Tabletop."
 # We want ENV_VAR_CARRY_LIST to word split
 # shellcheck disable=SC2086
-env -i $ENV_VAR_CARRY_LIST node "$@" || log_error "Node process exited with code $?"
+exec env -i $ENV_VAR_CARRY_LIST node "$@" || log_error "Exec failed with code $?"

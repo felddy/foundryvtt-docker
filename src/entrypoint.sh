@@ -296,8 +296,8 @@ export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
   FOUNDRY_PASSWORD_SALT FOUNDRY_PROTOCOL FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL \
   FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT FOUNDRY_SSL_KEY FOUNDRY_TELEMETRY FOUNDRY_UPNP \
   FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
-su-exec "${FOUNDRY_UID}:${FOUNDRY_GID}" ./launcher.sh "$@" \
-  || log_error "Launcher exited with error code: $?"
+exec su-exec "${FOUNDRY_UID}:${FOUNDRY_GID}" ./launcher.sh "$@" \
+  || log_error "Exec failed with error code: $?"
 
 # If the container requested a new S3 URL but disabled the cache
 # we are going to sleep forever to prevent a download loop.
