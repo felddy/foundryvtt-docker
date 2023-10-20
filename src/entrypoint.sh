@@ -333,7 +333,7 @@ if [[ "${requested_s3_url}" == "true" && "${CONTAINER_CACHE:-}" == "" ]]; then
   log_warn "This configuration could lead to a restart loop putting excessive load on the release server."
   log_warn "Please re-enable the CONTAINER_CACHE to allow the container to safely exit."
   log_warn "Sleeping..."
-  while true; do sleep 60; done
+  while true; do sleep 4; done
 fi
 
 exit 0
