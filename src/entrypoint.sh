@@ -34,6 +34,20 @@ if [ "$(id -u)" = 0 ]; then
   log_debug "Timezone set to: ${TIMEZONE:-UTC}"
 fi
 
+# Setup the SIGTERM handler
+# shellcheck disable=SC2317
+# SC2317 - shellcheck does not understand reachability via traps
+handle_sigterm() {
+  log_warn "TERM signal received.  Shutting down server."
+  # Only attempt to terminate if the child process is still running
+  if kill -0 "$child_pid" 2> /dev/null; then
+    log_debug "Sending TERM signal to child pid: ${child_pid}"
+    kill -TERM "$child_pid" 2> /dev/null
+  else
+    log_warn "Child pid: ${child_pid} exited before we could sent TERM signal."
+  fi
+}
+
 log "Starting felddy/foundryvtt container v${image_version}"
 log_debug "CONTAINER_VERBOSE set.  Debug logging enabled."
 log_debug "Running as: $(id)"
@@ -296,8 +310,21 @@ export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
   FOUNDRY_PASSWORD_SALT FOUNDRY_PROTOCOL FOUNDRY_PROXY_PORT FOUNDRY_PROXY_SSL \
   FOUNDRY_ROUTE_PREFIX FOUNDRY_SSL_CERT FOUNDRY_SSL_KEY FOUNDRY_TELEMETRY FOUNDRY_UPNP \
   FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
-exec su-exec "${FOUNDRY_UID}:${FOUNDRY_GID}" ./launcher.sh "$@" \
-  || log_error "Exec failed with error code: $?"
+# set the TERM signal handler
+trap handle_sigterm TERM
+su-exec "${FOUNDRY_UID}:${FOUNDRY_GID}" ./launcher.sh "$@" &
+child_pid=$!
+log_debug "Waiting for child pid: ${child_pid} to exit."
+wait "$child_pid"
+exit_code=$?
+# clear the TERM signal handler
+trap - TERM
+log_debug "Child process exited with code: ${exit_code}."
+
+# Check if the child exited with an error code
+if [ $exit_code -ne 0 ]; then
+  log_error "Child process failed with error code: $exit_code"
+fi
 
 # If the container requested a new S3 URL but disabled the cache
 # we are going to sleep forever to prevent a download loop.
@@ -306,7 +333,7 @@ if [[ "${requested_s3_url}" == "true" && "${CONTAINER_CACHE:-}" == "" ]]; then
   log_warn "This configuration could lead to a restart loop putting excessive load on the release server."
   log_warn "Please re-enable the CONTAINER_CACHE to allow the container to safely exit."
   log_warn "Sleeping..."
-  while true; do sleep 60; done
+  while true; do sleep 4; done
 fi
 
 exit 0
