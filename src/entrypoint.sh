@@ -148,6 +148,14 @@ if [ $install_required = true ]; then
     log_warn "CONTAINER_CACHE has been unset.  Release caching is disabled."
   fi
 
+  # Clears older Foundry versions that exist in CONTAINER_CACHE.
+  if [[ -z "$(find "${CONTAINER_CACHE}" -type f -not -name "*${FOUNDRY_VERSION}*" 2> /dev/null)" ]]; then
+    log "CONTAINER_CACHE does not have older versions."
+  else
+    log "CONTAINER_CACHE is not empty. Proceeding to clear the folder of older versions."
+    find "${CONTAINER_CACHE}" -type f -not -name "*${FOUNDRY_VERSION}*" -print0 | xargs -0 rm --
+  fi
+  
   set +o nounset
   downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading.zip"
   release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
