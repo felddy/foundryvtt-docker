@@ -15,6 +15,7 @@ services:
       - FOUNDRY_USERNAME=<your_username>
       - FOUNDRY_ADMIN_KEY=atropos
       # - CONTAINER_CACHE=/data/container_cache
+      # - CONTAINER_CACHE_SIZE=
       # - CONTAINER_PATCHES=/data/container_patches
       # - CONTAINER_PATCH_URLS=
       #   https://raw.githubusercontent.com/felddy/...
