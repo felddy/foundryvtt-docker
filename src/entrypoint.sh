@@ -206,41 +206,40 @@ if [ $install_required = true ]; then
 
   if [[ "${CONTAINER_CACHE:-}" ]]; then
     log "Preserving release archive file in cache."
+    # Check if CONTAINER_CACHE_SIZE is set and if so, ensure it's greater than 0
+    if [[ -n "${CONTAINER_CACHE_SIZE:-}" ]]; then
+      if ! [[ "${CONTAINER_CACHE_SIZE}" -gt 0 ]] 2> /dev/null; then
+        log_error "If set, CONTAINER_CACHE_SIZE must be 1 or greater.  Found: ${CONTAINER_CACHE_SIZE}"
+        exit 1
+      fi
+
+      log "Cleaning up cache directory: ${CONTAINER_CACHE}"
+      log "Keeping ${CONTAINER_CACHE_SIZE} latest versions."
+      # Initialize counter
+      cache_files_removed_count=0
+
+      # Store the list of cache files to remove
+      file_list=$(find "${CONTAINER_CACHE}" -maxdepth 1 -name 'foundryvtt-*.zip' \
+        | sort -Vr \
+        | awk -v keep="${CONTAINER_CACHE_SIZE}" 'NR > keep')
+
+      # Iterate over the file list
+      if [ -n "$file_list" ]; then
+        for file in $file_list; do
+          log_warn "Removing: $file"
+          rm -f "$file"
+          cache_files_removed_count=$((cache_files_removed_count + 1))
+        done
+        log "Completed cache cleanup. Removed ${cache_files_removed_count} files."
+      else
+        log "No cache cleanup was necessary."
+      fi
+    else
+      log_debug "CONTAINER_CACHE_SIZE is not set. Skipping cache cleanup."
+    fi
   else
     log "Deleting release archive file."
     rm "${release_filename}"
-  fi
-
-  # Check if CONTAINER_CACHE_SIZE is set and if so, ensure it's greater than 0
-  if [[ -n "${CONTAINER_CACHE_SIZE:-}" ]]; then
-    if ! [[ "${CONTAINER_CACHE_SIZE}" -gt 0 ]] 2> /dev/null; then
-      log_error "If set, CONTAINER_CACHE_SIZE must be 1 or greater.  Found: ${CONTAINER_CACHE_SIZE}"
-      exit 1
-    fi
-
-    log "Cleaning up cache directory: ${CONTAINER_CACHE}"
-    log "Keeping ${CONTAINER_CACHE_SIZE} latest versions."
-    # Initialize counter
-    cache_files_removed_count=0
-
-    # Store the list of cache files to remove
-    file_list=$(find "${CONTAINER_CACHE}" -maxdepth 1 -name 'foundryvtt-*.zip' \
-      | sort -Vr \
-      | awk -v keep="${CONTAINER_CACHE_SIZE}" 'NR > keep')
-
-    # Iterate over the file list
-    if [ -n "$file_list" ]; then
-      for file in $file_list; do
-        log_warn "Removing: $file"
-        rm -f "$file"
-        cache_files_removed_count=$((cache_files_removed_count + 1))
-      done
-      log "Completed cache cleanup. Removed ${cache_files_removed_count} files."
-    else
-      log "No cache cleanup was necessary."
-    fi
-  else
-    log_debug "CONTAINER_CACHE_SIZE is not set. Skipping cache cleanup."
   fi
 
   # apply URL patches if requested
