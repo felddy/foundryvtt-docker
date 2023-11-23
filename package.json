@@ -14,7 +14,7 @@
   "description": "Utilities to help boot a FoundryVTT server.",
   "devDependencies": {
     "@types/cheerio": "^0.22.34",
-    "@types/docopt": "^0.6.36",
+    "@types/docopt": "^0.6.37",
     "@types/tough-cookie": "^4.0.5",
     "@types/tough-cookie-file-store": "^2.0.4",
     "typescript": "^5.3.2"
