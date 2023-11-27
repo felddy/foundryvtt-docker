@@ -69,7 +69,7 @@ setup(
     install_requires=[
         "semver == 3.0.2",
         "setuptools == 69.0.2",
-        "wheel == 0.41.3",
+        "wheel == 0.42.0",
     ],
     extras_require={
         "test": [
