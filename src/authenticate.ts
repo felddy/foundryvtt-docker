@@ -94,10 +94,9 @@ async function login(
 ) {
   const form_params = new URLSearchParams({
     csrfmiddlewaretoken: csrfmiddlewaretoken,
-    login_password: password,
-    login_redirect: "/",
-    login_username: username,
-    login: "",
+    next: "/",
+    password: password,
+    username: username,
   });
 
   logger.info(`Logging in as: ${username}`);
