@@ -67,7 +67,7 @@ body:
         org.opencontainers.image.title = "foundryvtt-docker"
         org.opencontainers.image.url = "https://github.com/felddy/foundryvtt-docker"
         org.opencontainers.image.vendor = "Geekpad"
-        org.opencontainers.image.version = "11.315.0"
+        org.opencontainers.image.version = "11.315.1"
     validations:
       required: true
   - type: textarea
@@ -78,7 +78,7 @@ body:
       render: console
       placeholder: |
         foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [debug] Timezone set to: US/Eastern
-        foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [info] Starting felddy/foundryvtt container v11.315.0
+        foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [info] Starting felddy/foundryvtt container v11.315.1
         foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [debug] CONTAINER_VERBOSE set.  Debug logging enabled.
         foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [info] Reading configured secrets from: /run/secrets/config.json
         foundry_1   | Entrypoint | 2022-02-23 14:14:53 | [info] No Foundry Virtual Tabletop installation detected.

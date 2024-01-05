@@ -212,7 +212,7 @@ It is recommended that most users use the `:release` tag.
 | Image:tag | Description |
 |-----------|-------------|
 |`felddy/foundryvtt:release` | The most recent image from the `stable` channel.  These images are **considered stable**, and well-tested.  Most users will use this tag.  The `latest` tag always points to the same version as `release`.|
-|`felddy/foundryvtt:11.315.0`| An exact image version. |
+|`felddy/foundryvtt:11.315.1`| An exact image version. |
 |`felddy/foundryvtt:11.315`| The most recent image matching the major and minor version numbers. |
 |`felddy/foundryvtt:11`| The most recent image matching the major version number. |
 |`felddy/foundryvtt:latest`| See the `release` tag.  [Why does `latest` == `release`?](https://vsupalov.com/docker-latest-tag/) |
@@ -334,8 +334,8 @@ Build the image locally using this git repository as the [build context](https:/
 
 ```console
 docker build \
-  --build-arg VERSION=11.315.0 \
-  --tag felddy/foundryvtt:11.315.0 \
+  --build-arg VERSION=11.315.1 \
+  --tag felddy/foundryvtt:11.315.1 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```
 
@@ -358,9 +358,9 @@ Docker:
     ```console
     docker buildx build \
       --platform linux/amd64 \
-      --build-arg VERSION=11.315.0 \
+      --build-arg VERSION=11.315.1 \
       --output type=docker \
-      --tag felddy/foundryvtt:11.315.0 .
+      --tag felddy/foundryvtt:11.315.1 .
     ```
 
 ## Pre-installed distribution builds ##
@@ -378,8 +378,8 @@ Build the image with credentials:
 docker build \
   --build-arg FOUNDRY_USERNAME='<your_username>' \
   --build-arg FOUNDRY_PASSWORD='<your_password>' \
-  --build-arg VERSION=11.315.0 \
-  --tag felddy/foundryvtt:11.315.0 \
+  --build-arg VERSION=11.315.1 \
+  --tag felddy/foundryvtt:11.315.1 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```
 
@@ -388,8 +388,8 @@ Or build the image using a temporary URL:
 ```console
 docker build \
   --build-arg FOUNDRY_RELEASE_URL='<temporary_url>' \
-  --build-arg VERSION=11.315.0 \
-  --tag felddy/foundryvtt:11.315.0 \
+  --build-arg VERSION=11.315.1 \
+  --tag felddy/foundryvtt:11.315.1 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```
 
