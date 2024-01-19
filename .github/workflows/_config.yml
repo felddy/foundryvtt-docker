@@ -20,15 +20,18 @@ on:
       data_artifact_path:
         description: "The path to include in the test data artifact"
         value: data
-      image_archive_artifact_name:
+      image_artifact_name_stem:
         description: "The name of the image archives artifact"
-        value: image-archives
+        value: image-archive
       platforms:
         description: "The platforms to build (CSV)"
         value: ${{ inputs.platforms }}
       platforms_json:
         description: "The platforms to build (JSON)"
-        value: ${{ jobs.csv-to-json.outputs.platforms_json }}
+        value: ${{ jobs.csv-to-json.outputs.json }}
+      sbom_artifact_name_stem:
+        description: "The stem name for sbom artifacts"
+        value: sbom
       test_platform:
         description: "The platform to use for testing"
         value: linux/amd64
@@ -37,42 +40,8 @@ permissions:
   contents: read
 
 jobs:
-  diagnostics:
-    name: "Diagnostics"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895  # tag=v2.6.1
-        with:
-          egress-policy: block
-          allowed-endpoints: >
-            azure.archive.ubuntu.com:443
-            azure.archive.ubuntu.com:80
-            packages.microsoft.com:443
-            www.githubstatus.com:443
-
-      - name: Check GitHub Status
-        uses: crazy-max/ghaction-github-status@df4d23a4977438215339cf0fafceda8d9af8a0e5  # tag=v4.0.0
-        with:
-          overall_threshold: major
-          packages_threshold: major_outage
-
-      - name: Dump context
-        uses: crazy-max/ghaction-dump-context@8b55fa205ab4530d36f787a4de1009afaaa7f3b4  # tag=v2.1.0
-
   csv-to-json:
-    name: "Convert platforms CSV to JSON"
-    runs-on: ubuntu-latest
-    outputs:
-      platforms_json: ${{ steps.csv-to-json.outputs.platforms_json }}
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895  # tag=v2.6.1
-        with:
-          egress-policy: block
-          allowed-endpoints: >
-
-      - name: Convert CSV to JSON
-        id: csv-to-json
-        run: |
-          echo "platforms_json=$(echo -n ${{ inputs.platforms }} | jq --raw-input --compact-output 'split(",")')" >> $GITHUB_OUTPUT
+    name: "Convert CSV to JSON"
+    uses: felddy/reusable-workflows/.github/workflows/csv-to-json.yml@v2
+    with:
+      csv: ${{ inputs.platforms }}
