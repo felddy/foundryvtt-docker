@@ -131,7 +131,7 @@ jobs:
       - metadata
     uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@v2
     with:
-      artifact_name: ${{ needs.config.outputs.image_artifact_name_stem }}-${{ needs.config.outputs.test_platform }}-pre-installed
+      artifact_name: pre-installed-${{ needs.config.outputs.image_artifact_name_stem }}-${{ needs.config.outputs.test_platform }}
       build_arg_1_name: FOUNDRY_PASSWORD
       build_arg_2_name: FOUNDRY_USERNAME
       build_arg_3_name: VERSION
@@ -177,7 +177,7 @@ jobs:
       - config
     uses: ./.github/workflows/docker-pytest-image.yml
     with:
-      data_artifact_name: ${{ needs.config.outputs.data_artifact_name }}-pre-installed
+      data_artifact_name: pre-installed-${{ needs.config.outputs.data_artifact_name }}
       data_artifact_path: ${{ needs.config.outputs.data_artifact_path }}
       image_artifact_name: ${{ needs.build-pre-installed-test-image.outputs.artifact_name }}
       image_archive_name: ${{ needs.build-pre-installed-test-image.outputs.image_archive_name }}
