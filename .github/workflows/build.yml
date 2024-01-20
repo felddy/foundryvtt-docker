@@ -23,6 +23,10 @@ permissions:
   contents: read
 
 jobs:
+  diagnostics:
+    name: "Diagnostics"
+    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@v2
+
   config:
     name: "Config"
     uses: ./.github/workflows/_config.yml
@@ -30,7 +34,7 @@ jobs:
   metadata:
     name: "Metadata"
     needs: [config]
-    uses: felddy/reusable-workflows/.github/workflows/docker-metadata.yml@develop
+    uses: felddy/reusable-workflows/.github/workflows/docker-metadata.yml@v2
     with:
       image_name: ${{ needs.config.outputs.image_name }}
 
@@ -97,7 +101,7 @@ jobs:
   lint:
     name: "Lint"
     needs: [config]
-    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@develop
+    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@v2
 
   build-normal-test-image:
     name: "Build normal test image"
@@ -105,9 +109,9 @@ jobs:
       - config
       - lint
       - metadata
-    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
+    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@v2
     with:
-      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      artifact_name: ${{ needs.config.outputs.image_artifact_name_stem }}-${{ needs.config.outputs.test_platform }}
       build_arg_1_name: VERSION
       cache_from_scopes: ${{ needs.config.outputs.test_platform }}
       cache_to_scope: ${{ needs.config.outputs.test_platform }}
@@ -125,9 +129,9 @@ jobs:
       - foundry-secrets
       - lint
       - metadata
-    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
+    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@v2
     with:
-      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}-pre-installed
+      artifact_name: pre-installed-${{ needs.config.outputs.image_artifact_name_stem }}-${{ needs.config.outputs.test_platform }}
       build_arg_1_name: FOUNDRY_PASSWORD
       build_arg_2_name: FOUNDRY_USERNAME
       build_arg_3_name: VERSION
@@ -158,7 +162,7 @@ jobs:
     with:
       data_artifact_name: ${{ needs.config.outputs.data_artifact_name }}
       data_artifact_path: ${{ needs.config.outputs.data_artifact_path }}
-      image_artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      image_artifact_name: ${{ needs.build-normal-test-image.outputs.artifact_name }}
       image_archive_name: ${{ needs.build-normal-test-image.outputs.image_archive_name }}
     secrets:
       data_archive_key: ${{ secrets.ARTIFACT_KEY }}
@@ -173,9 +177,9 @@ jobs:
       - config
     uses: ./.github/workflows/docker-pytest-image.yml
     with:
-      data_artifact_name: ${{ needs.config.outputs.data_artifact_name }}-pre-installed
+      data_artifact_name: pre-installed-${{ needs.config.outputs.data_artifact_name }}
       data_artifact_path: ${{ needs.config.outputs.data_artifact_path }}
-      image_artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}-pre-installed
+      image_artifact_name: ${{ needs.build-pre-installed-test-image.outputs.artifact_name }}
       image_archive_name: ${{ needs.build-pre-installed-test-image.outputs.image_archive_name }}
     secrets:
       data_archive_key: ${{ secrets.ARTIFACT_KEY }}
@@ -195,9 +199,9 @@ jobs:
         platform: ${{ fromJson(needs.config.outputs.platforms_json) }}
         exclude:
           - platform: ${{ needs.config.outputs.test_platform }}
-    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@develop
+    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@v2
     with:
-      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      artifact_name: ${{ needs.config.outputs.image_artifact_name_stem }}-${{ matrix.platform }}
       build_arg_1_name: VERSION
       cache_from_scopes: ${{ matrix.platform }}
       cache_to_scope: ${{ matrix.platform }}
@@ -214,9 +218,13 @@ jobs:
       - config
     permissions:
       contents: write
-    uses: felddy/reusable-workflows/.github/workflows/sbom-artifact.yml@develop
+    strategy:
+      matrix:
+        platform: ${{ fromJson(needs.config.outputs.platforms_json) }}
+    uses: felddy/reusable-workflows/.github/workflows/sbom-artifact.yml@v2
     with:
-      image_artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      image_artifact_name: ${{ needs.config.outputs.image_artifact_name_stem }}-${{ matrix.platform }}
+      sbom_artifact_name: ${{ needs.config.outputs.sbom_artifact_name_stem }}-${{ matrix.platform }}
 
   build-multi-arch-image:
     name: "Publish image"
@@ -228,9 +236,9 @@ jobs:
     if: github.event_name != 'pull_request'
     permissions:
       packages: write
-    uses: felddy/reusable-workflows/.github/workflows/docker-multi-arch-push.yml@develop
+    uses: felddy/reusable-workflows/.github/workflows/docker-multi-arch-push.yml@v2
     with:
-      artifact_name: ${{ needs.config.outputs.image_archive_artifact_name }}
+      artifact_name_pattern: ${{ needs.config.outputs.image_artifact_name_stem }}-*
       image_tags: ${{ needs.metadata.outputs.image_tags }}
     secrets:
       docker_password: ${{ secrets.DOCKER_PASSWORD }}
@@ -244,7 +252,7 @@ jobs:
       - docker-secrets
       - metadata
     if: needs.metadata.outputs.latest == 'true'
-    uses: felddy/reusable-workflows/.github/workflows/docker-publish-description.yml@develop
+    uses: felddy/reusable-workflows/.github/workflows/docker-publish-description.yml@v2
     with:
       image_name: ${{ needs.config.outputs.image_name }}
     secrets:
