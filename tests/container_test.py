@@ -15,10 +15,13 @@ READY_MESSAGE = "Server started and listening on port"
 
 @pytest.mark.parametrize(
     "container",
-    [pytest.lazy_fixture("main_container"), pytest.lazy_fixture("version_container")],
+    ["main_container", "version_container"],
 )
-def test_container_running(container):
+def test_container_running(container, request):
     """Test that the container has started."""
+    # Lazy fixture evaluation
+    container = request.getfixturevalue(container)
+
     # Wait until the container is running or timeout.
     for _ in range(10):
         container.reload()
