@@ -79,7 +79,6 @@ setup(
             "pre-commit == 3.6.0",
             "pytest == 8.0.0",
             "pytest-cov == 4.1.0",
-            "pytest-lazy-fixture == 0.6.3",
         ]
     },
 )
