@@ -6,7 +6,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
     "docopt": "^0.6.2",
-    "fetch-cookie": "^2.1.0",
+    "fetch-cookie": "^2.2.0",
     "node-fetch": "^3.3.2",
     "tough-cookie-file-store": "^2.0.3",
     "winston": "^3.11.0"
