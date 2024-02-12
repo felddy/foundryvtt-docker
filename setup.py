@@ -76,7 +76,7 @@ setup(
             "coverage == 6.5.0",
             "coveralls == 3.3.1",
             "docker == 7.0.0",
-            "pre-commit == 3.6.0",
+            "pre-commit == 3.6.1",
             "pytest == 8.0.0",
             "pytest-cov == 4.1.0",
         ]
