@@ -112,7 +112,7 @@ async function main(): Promise<number> {
   // Retrieve username from cookie.
   const local_cookies = cookieJar.getCookiesSync(`http://${LOCAL_DOMAIN}`);
   if (local_cookies.length != 1) {
-    logger.emerg(
+    logger.error(
       `Wrong number of cookies found for ${LOCAL_DOMAIN}.  Expected 1, found ${local_cookies.length}`,
     );
     return -1;
