@@ -4,7 +4,7 @@
 
 # foundryvtt-docker #
 
-[![GitHub Build Status](https://github.com/felddy/foundryvtt-docker/workflows/build/badge.svg)](https://github.com/felddy/foundryvtt-docker/actions/workflows/build.yml)
+[![Build](https://github.com/felddy/foundryvtt-docker/actions/workflows/build.yml/badge.svg)](https://github.com/felddy/foundryvtt-docker/actions/workflows/build.yml)
 [![CodeQL](https://github.com/felddy/foundryvtt-docker/workflows/CodeQL/badge.svg)](https://github.com/felddy/foundryvtt-docker/actions/workflows/codeql-analysis.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/felddy/foundryvtt-docker/badge)](https://securityscorecards.dev/viewer/?uri=github.com/felddy/foundryvtt-docker)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5966/badge)](https://bestpractices.coreinfrastructure.org/projects/5966)
