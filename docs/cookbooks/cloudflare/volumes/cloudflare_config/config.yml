@@ -1,0 +1,8 @@
+---
+tunnel: <tunnel-uuid>
+credentials-file: /etc/cloudflared/tunnel_creds.json
+
+ingress:
+  - hostname: <vtt.example.com>
+    service: http://foundry:30000
+  - service: http_status:404
