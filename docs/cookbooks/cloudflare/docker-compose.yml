@@ -1,0 +1,30 @@
+---
+version: "3"
+
+services:
+  foundry:
+    image: ghcr.io/felddy/foundryvtt:release
+    hostname: my_foundry_host
+    volumes:
+      - type: bind
+        source: ./volumes/foundry_data
+        target: /data
+    environment:
+      - FOUNDRY_HOSTNAME=<vtt.example.com>
+      - FOUNDRY_PROXY_PORT=443
+      - FOUNDRY_PROXY_SSL=true
+    secrets:
+      - source: foundry_secrets
+        target: config.json
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run
+    volumes:
+      - type: bind
+        source: ./volumes/cloudflare_config
+        target: /etc/cloudflared
+
+secrets:
+  foundry_secrets:
+    file: foundry_secrets.json
