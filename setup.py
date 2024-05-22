@@ -79,6 +79,9 @@ setup(
             "pre-commit == 3.7.1",
             "pytest == 8.2.1",
             "pytest-cov == 5.0.0",
+            # TODO Unpin requests once docker-py is updated.
+            # See: https://github.com/docker/docker-py/pull/3257
+            "requests == 2.31.0",
         ]
     },
 )
