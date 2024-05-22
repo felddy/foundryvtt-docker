@@ -68,7 +68,7 @@ setup(
     py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
     install_requires=[
         "semver == 3.0.2",
-        "setuptools == 69.5.1",
+        "setuptools == 70.0.0",
         "wheel == 0.43.0",
     ],
     extras_require={
