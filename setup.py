@@ -81,7 +81,7 @@ setup(
             "pytest-cov == 5.0.0",
             # TODO Unpin requests once docker-py is updated.
             # See: https://github.com/docker/docker-py/pull/3257
-            "requests == 2.31.0",
+            "requests == 2.32.2",
         ]
     },
 )
