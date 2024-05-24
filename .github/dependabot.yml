@@ -15,6 +15,11 @@ updates:
       - "bot :robot:"
       - "dependencies :game_die:"
       - "docker :whale:"
+    groups:
+      docker-all:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -24,6 +29,11 @@ updates:
       - "bot :robot:"
       - "dependencies :game_die:"
       - "github-actions :octocat:"
+    groups:
+      github-actions-all:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
 
   - package-ecosystem: "npm"
     directory: "/"
@@ -33,6 +43,11 @@ updates:
       - "bot :robot:"
       - "dependencies :game_die:"
       - "javascript :coffee:"
+    groups:
+      npm-all:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
 
   - package-ecosystem: "pip"
     directory: "/"
@@ -42,3 +57,8 @@ updates:
       - "bot :robot:"
       - "dependencies :game_die:"
       - "python :snake:"
+    groups:
+      pip-all:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
