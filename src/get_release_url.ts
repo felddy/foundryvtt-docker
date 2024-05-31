@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const doc = `
-Generate a Foundry Virtual Tabletop pre-signed release URL using cookies from
+Generate a Foundry Virtual Tabletop presigned release URL using cookies from
 authenticate.js.
 
 The utility will print the release URL to standard out.
@@ -77,7 +77,7 @@ async function sleepWithProgress(attempt: number): Promise<void> {
 }
 
 /**
- * fetchReleaseURL - Fetch the pre-signed S3 URL.
+ * fetchReleaseURL - Fetch the presigned URL.
  *
  * @param  {string} build Build to download.
  * @param  {number} retries Number of retries to attempt.
@@ -87,7 +87,7 @@ async function fetchReleaseURL(
   build: string,
   retries: number,
 ): Promise<string | null> {
-  logger.info(`Fetching S3 pre-signed release URL for build ${build}...`);
+  logger.info(`Fetching presigned release URL for build ${build}...`);
   const release_url: string = `${BASE_URL}/releases/download?build=${build}&platform=linux`;
   for (var attempt = 1; attempt <= 1 + retries; attempt++) {
     // If this is not the first attempt, wait a bit before trying again.
@@ -109,10 +109,10 @@ async function fetchReleaseURL(
       continue;
     }
 
-    const s3_url: string | null = response.headers.get("location");
-    logger.debug(`S3 presigned URL: ${s3_url}`);
+    const presigned_url: string | null = response.headers.get("location");
+    logger.debug(`Presigned URL: ${presigned_url}`);
 
-    return s3_url;
+    return presigned_url;
   }
   throw new Error(`Failed to fetch release URL.`);
 }
@@ -154,7 +154,7 @@ async function main(): Promise<number> {
     );
   }
 
-  // Generate an S3 pre-signed URL and print it to stdout.
+  // Generate a presigned URL and print it to stdout.
   const releaseURL: string | null = await fetchReleaseURL(
     foundry_build,
     retries,

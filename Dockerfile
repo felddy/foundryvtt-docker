@@ -41,8 +41,8 @@ RUN \
   if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
   npm install && \
   ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
-  s3_url=$(./get_release_url.js --retry 5 cookiejar.json "${FOUNDRY_VERSION}") && \
-  wget -O ${ARCHIVE} "${s3_url}" && \
+  presigned_url=$(./get_release_url.js --retry 5 cookiejar.json "${FOUNDRY_VERSION}") && \
+  wget -O ${ARCHIVE} "${presigned_url}" && \
   unzip -d dist ${ARCHIVE} 'resources/*'; \
   elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
   wget -O ${ARCHIVE} "${FOUNDRY_RELEASE_URL}" && \
