@@ -13,7 +13,10 @@ from .utils import RedactedPrinter
 
 MAIN_SERVICE_NAME = "foundry"
 REDACTION_REGEXES = [
+    # AWS S3 pre-signed URL
     re.compile(r"AWSAccessKeyId=(.*?)&Signature=(.*?)&"),
+    # Cloudflare R2 pre-signed URL
+    re.compile(r"\?verify=([0-9]+-[a-zA-Z0-9%]+)"),
 ]
 VERSION_FILE = "src/_version.py"
 VERSION_SERVICE_NAME = f"{MAIN_SERVICE_NAME}-version"
