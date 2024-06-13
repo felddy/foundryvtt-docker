@@ -108,7 +108,7 @@ jobs:
             echo "do_decryption=false" >> $GITHUB_OUTPUT
           fi
 
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29  # tag=v4.1.6
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # tag=v4.1.7
       - id: setup-python
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d  # tag=v5.1.0
         with:

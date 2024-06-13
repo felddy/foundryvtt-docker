@@ -23,7 +23,7 @@ jobs:
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6  # tag=v2.8.1
         with:
           egress-policy: audit  # TODO: change to 'egress-policy: block' after couple of runs
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29  # tag=v4.1.6
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # tag=v4.1.7
       - name: Sync repository labels
         if: success()
         uses: crazy-max/ghaction-github-labeler@de749cf181958193cb7debf1a9c5bb28922f3e1b  # tag=v5.0.0
