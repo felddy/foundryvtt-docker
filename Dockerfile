@@ -27,6 +27,10 @@ ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION
 ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
 
+# Need jq for reading secret during build
+RUN apk --update --no-cache add \
+  jq
+
 WORKDIR /root
 COPY --from=compile-typescript-stage \
   /root/package.json \
@@ -37,7 +41,12 @@ COPY --from=compile-typescript-stage \
   ./
 # .placeholder file to mitigate https://github.com/moby/moby/issues/37965
 RUN mkdir dist && touch dist/.placeholder
-RUN \
+RUN --mount=type=secret,id=config_json,target="/run/secrets/config.json",required=false \
+  secret_file="/run/secrets/config.json" && \
+  secret_password=$(jq --exit-status --raw-output .foundry_password ${secret_file} || echo) && \
+  secret_username=$(jq --exit-status --raw-output .foundry_username ${secret_file} || echo) && \
+  FOUNDRY_PASSWORD=${secret_password:-${FOUNDRY_PASSWORD:-}} && \
+  FOUNDRY_USERNAME=${secret_username:-${FOUNDRY_USERNAME:-}} && \
   if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
   npm install && \
   ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
