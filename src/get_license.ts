@@ -32,7 +32,7 @@ Options:
 // Imports
 import { CookieJar } from "tough-cookie";
 import { FileCookieStore } from "tough-cookie-file-store";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 import createLogger from "./logging.js";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie";
