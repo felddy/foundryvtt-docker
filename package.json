@@ -4,12 +4,12 @@
     "url": "https://github.com/felddy/foundryvtt-docker/issues"
   },
   "dependencies": {
-    "cheerio": "^1.0.0-rc.12",
+    "cheerio": "^1.0.0",
     "docopt": "^0.6.2",
     "fetch-cookie": "^3.0.1",
     "node-fetch": "^3.3.2",
     "tough-cookie-file-store": "^2.0.3",
-    "winston": "^3.13.1"
+    "winston": "^3.14.2"
   },
   "description": "Utilities to help boot a FoundryVTT server.",
   "devDependencies": {
