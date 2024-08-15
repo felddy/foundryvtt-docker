@@ -24,7 +24,7 @@ Options:
 // Imports
 import { CookieJar, Cookie } from "tough-cookie";
 import { FileCookieStore } from "tough-cookie-file-store";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 import createLogger from "./logging.js";
 import winston from "winston";
 import docopt from "docopt";
