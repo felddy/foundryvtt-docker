@@ -4,6 +4,8 @@
 
 ## Docker ##
 Dockerfile-x
+secrets.json
+
 
 ## FoundryVTT ##
 cookiejar.json

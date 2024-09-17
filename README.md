@@ -372,6 +372,8 @@ resulting in a faster startup.  It also moves the user authentication to
 build-time instead of start-time.  **Note**: Credentials are only used to fetch
 a distribution, and are not stored in the resulting image.
 
+### Credentials ###
+
 Build the image with credentials:
 
 ```console
@@ -382,6 +384,20 @@ docker build \
   --tag felddy/foundryvtt:12.331.0 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```
+
+### Secrets file ###
+
+Follow the [Using secrets](#using-secrets) section to create a secrets.json file and then add the secret to the build with the `--secret` argument. The Dockerfile expects the file to use `id=config_json`.
+
+```console
+docker build \
+  --build-arg VERSION=12.331.0 \
+  --secret id=config_json,src=secrets.json \
+  --tag felddy/foundryvtt:12.331.0 \
+  https://github.com/felddy/foundryvtt-docker.git#develop
+```
+
+### Temporary URL ###
 
 Or build the image using a temporary URL:
 
