@@ -108,14 +108,14 @@ jobs:
             echo "do_decryption=false" >> $GITHUB_OUTPUT
           fi
 
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # tag=v4.1.7
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871  # tag=v4.2.1
       - id: setup-python
         uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3  # tag=v5.2.0
         with:
           python-version: ${{ inputs.python_version }}
 
       - name: Cache testing environments
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9  # tag=v4.0.2
+        uses: actions/cache@3624ceb22c1c5a301c8db4169662070a689d9ea8  # tag=v4.1.1
         env:
           BASE_CACHE_KEY: "${{ github.job }}-${{ runner.os }}-\
             py${{ steps.setup-python.outputs.python-version }}-"
@@ -183,7 +183,7 @@ jobs:
 
       - name: Upload unencrypted data artifacts
         if: ( success() || failure() ) && steps.check_data_archive_key.outputs.do_encryption == 'false'
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # tag=v4.4.0
+        uses: actions/upload-artifact@84480863f228bb9747b473957fcc9e309aa96097  # tag=v4.4.2
         with:
           name: ${{ inputs.data_artifact_name }}
           path: data.tar.gz
@@ -191,7 +191,7 @@ jobs:
 
       - name: Upload encrypted data artifacts
         if: ( success() || failure() ) && steps.check_data_archive_key.outputs.do_encryption == 'true'
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # tag=v4.4.0
+        uses: actions/upload-artifact@84480863f228bb9747b473957fcc9e309aa96097  # tag=v4.4.2
         with:
           name: ${{ inputs.data_artifact_name }}
           path: data.tar.7z
