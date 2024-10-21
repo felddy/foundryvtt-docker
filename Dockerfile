@@ -1,8 +1,6 @@
-ARG FOUNDRY_PASSWORD
 ARG FOUNDRY_RELEASE_URL
-ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION=13.332
-ARG NODE_IMAGE_VERSION=18-alpine3.18
+ARG NODE_IMAGE_VERSION=20-bookworm-slim
 ARG VERSION
 
 FROM node:${NODE_IMAGE_VERSION} AS compile-typescript-stage
@@ -22,7 +20,6 @@ RUN grep -l "#!" dist/*.js | xargs chmod a+x
 FROM node:${NODE_IMAGE_VERSION} AS optional-release-stage
 
 ARG FOUNDRY_RELEASE_URL
-ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION
 ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
 
@@ -36,15 +33,28 @@ COPY --from=compile-typescript-stage \
   ./
 # .placeholder file to mitigate https://github.com/moby/moby/issues/37965
 RUN mkdir dist && touch dist/.placeholder
-RUN \
+RUN --mount=type=secret,id=foundry_credentials,required=false \
+  npm install classic-level && \
+  if [ -f /run/secrets/foundry_credentials ]; then \
+  # Extract credentials from JSON
+  apt-get update && apt-get install -y jq && \
+  FOUNDRY_USERNAME=$(jq -r '.foundry_username // empty' /run/secrets/foundry_credentials) && \
+  FOUNDRY_PASSWORD=$(jq -r '.foundry_password // empty' /run/secrets/foundry_credentials); \
+  fi && \
   if [ -n "${FOUNDRY_USERNAME}" ] && [ -n "${FOUNDRY_PASSWORD}" ]; then \
-  npm install && \
+  # Authenticate using credentials and get the pre-signed URL
   ./authenticate.js "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" cookiejar.json && \
   presigned_url=$(./get_release_url.js --retry 5 cookiejar.json "${FOUNDRY_VERSION}") && \
-  wget -O ${ARCHIVE} "${presigned_url}" && \
-  unzip -d dist ${ARCHIVE} 'resources/*'; \
+  DOWNLOAD_URL="${presigned_url}"; \
   elif [ -n "${FOUNDRY_RELEASE_URL}" ]; then \
-  wget -O ${ARCHIVE} "${FOUNDRY_RELEASE_URL}" && \
+  # Use pre-signed URL
+  DOWNLOAD_URL="${FOUNDRY_RELEASE_URL}"; \
+  else \
+  echo "No valid credentials or pre-signed URL provided. Skipping pre-installation."; \
+  fi && \
+  if [ -n "${DOWNLOAD_URL}" ]; then \
+  apt-get install -y unzip wget && \
+  wget -O ${ARCHIVE} "${DOWNLOAD_URL}" && \
   unzip -d dist ${ARCHIVE} 'resources/*'; \
   fi
 
@@ -76,13 +86,15 @@ COPY \
   ./
 RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   && adduser --system --uid ${FOUNDRY_UID} --ingroup foundry foundry \
-  && apk --update --no-cache add \
+  && apt-get update && apt-get install -y \
   curl \
   file \
+  gosu \
   jq \
   sed \
-  su-exec \
   tzdata \
+  unzip \
+  && rm -rf /var/lib/apt/lists/* \
   && npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]
