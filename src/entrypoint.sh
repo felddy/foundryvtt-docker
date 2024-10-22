@@ -1,13 +1,7 @@
-#!/bin/sh
-# shellcheck disable=SC3010,SC3046,SC3051
-# SC3010 - busybox supports [[ ]]
-# SC3046 - busybox supports source command
-# SC3051 - busybox supports source command
+#!/bin/bash
 
 set -o nounset
 set -o errexit
-# shellcheck disable=SC3040
-# pipefail is supported by busybox
 set -o pipefail
 
 CONFIG_DIR="/data/Config"
@@ -263,8 +257,11 @@ if [ $install_required = true ]; then
     log "Using CONTAINER_PATCHES: ${CONTAINER_PATCHES}"
     if [ -d "${CONTAINER_PATCHES}" ]; then
       log "Container patches directory detected.  Starting patch application..."
-      for f in "${CONTAINER_PATCHES}"/*; do
-        [ -f "$f" ] || continue # we can't set nullglob in busybox
+      shopt -s nullglob # if the directory is empty we want an empty array
+      patch_files=("${CONTAINER_PATCHES}"/*)
+      shopt -u nullglob
+      for f in "${patch_files[@]}"; do
+        [ -f "$f" ] || continue # skip non-files
         log "Sourcing patch from file: $f"
         # shellcheck disable=SC1090
         source "$f"
@@ -343,7 +340,7 @@ export CONTAINER_PRESERVE_CONFIG FOUNDRY_ADMIN_KEY FOUNDRY_AWS_CONFIG \
   FOUNDRY_UPNP_LEASE_DURATION FOUNDRY_WORLD
 # set the TERM signal handler
 trap handle_sigterm TERM
-su-exec "${FOUNDRY_UID}:${FOUNDRY_GID}" ./launcher.sh "$@" &
+gosu "${FOUNDRY_UID}:${FOUNDRY_GID}" ./launcher.sh "$@" &
 child_pid=$!
 log_debug "Waiting for child pid: ${child_pid} to exit."
 wait "$child_pid"
