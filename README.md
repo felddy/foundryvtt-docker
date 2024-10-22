@@ -1,5 +1,8 @@
 <div align="center">
-<img width="460" src="https://raw.githubusercontent.com/felddy/foundryvtt-docker/develop/assets/logo.png">
+<img width="460"
+  src="https://raw.githubusercontent.com/felddy/foundryvtt-docker/develop/assets/logo.png"
+  alt="Docker whale logo carrying the FoundryVTT icosahedron logo while floating
+  in water.">
 </div>
 
 # foundryvtt-docker #
