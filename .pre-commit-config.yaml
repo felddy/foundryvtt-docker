@@ -5,7 +5,7 @@ default_language_version:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.6.0
     hooks:
       - id: check-case-conflict
       - id: check-executables-have-shebangs
@@ -32,17 +32,24 @@ repos:
 
   # Text file hooks
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.33.0
+    rev: v0.41.0
     hooks:
       - id: markdownlint
         args:
           - --config=.mdl_config.yaml
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.0.0-alpha.4
+    # This is the last version of v3 available from the mirror. We should hold
+    # here until v4, which is currently in alpha, is more stable.
+    rev: v3.1.0
     hooks:
       - id: prettier
+        # This is the latest version of v3 available from NPM. The pre-commit
+        # mirror does not pull tags for old major versions once a new major
+        # version tag is published.
+        additional_dependencies:
+          - prettier@3.3.1
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.29.0
+    rev: v1.35.1
     hooks:
       - id: yamllint
         args:
@@ -50,42 +57,75 @@ repos:
 
   # GitHub Actions hooks
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.21.0
+    rev: 0.28.4
     hooks:
       - id: check-github-actions
       - id: check-github-workflows
 
   # pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit
-    rev: v3.0.4
+    rev: v3.7.1
     hooks:
       - id: validate_manifest
 
+  # Go hooks
+  - repo: https://github.com/TekWizely/pre-commit-golang
+    rev: v1.0.0-rc.1
+    hooks:
+      # Style Checkers
+      - id: go-critic
+      # StaticCheck
+      - id: go-staticcheck-repo-mod
+      # Go Build
+      - id: go-build-repo-mod
+      # Go Mod Tidy
+      - id: go-mod-tidy-repo
+      # Go Test
+      - id: go-test-repo-mod
+      # Go Vet
+      - id: go-vet-repo-mod
+      # GoSec
+      - id: go-sec-repo-mod
+      # goimports
+      - id: go-imports-repo
+        args:
+          # Write changes to files
+          - -w
+  # Nix hooks
+  - repo: https://github.com/nix-community/nixpkgs-fmt
+    rev: v1.3.0
+    hooks:
+      - id: nixpkgs-fmt
+
   # Shell script hooks
-  - repo: https://github.com/cisagov/pre-commit-shfmt
-    rev: v0.0.2
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.8.0-1
     hooks:
       - id: shfmt
         args:
+          # List files that will be formatted
+          - --list
+          # Write result to file instead of stdout
+          - --write
           # Indent by two spaces
-          - -i
-          - '2'
+          - --indent
+          - "2"
           # Binary operators may start a line
-          - -bn
+          - --binary-next-line
           # Switch cases are indented
-          - -ci
+          - --case-indent
           # Redirect operators are followed by a space
-          - -sr
-  - repo: https://github.com/detailyang/pre-commit-shell
-    rev: 1.0.5
+          - --space-redirects
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
     hooks:
-      - id: shell-lint
+      - id: shellcheck
         args: [-x]
 
   # Python hooks
   # Run bandit on the "tests" tree with a configuration
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.4
+    rev: 1.7.8
     hooks:
       - id: bandit
         name: bandit (tests tree)
@@ -94,50 +134,77 @@ repos:
           - --config=.bandit.yml
   # Run bandit on everything except the "tests" tree
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.4
+    rev: 1.7.8
     hooks:
       - id: bandit
         name: bandit (everything else)
         exclude: tests
-  - repo: https://github.com/psf/black
-    rev: 23.1.0
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 24.4.2
     hooks:
       - id: black
   - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
+    rev: 7.0.0
     hooks:
       - id: flake8
         additional_dependencies:
           - flake8-docstrings
   - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+    rev: 5.13.2
     hooks:
       - id: isort
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.0.1
+    rev: v1.10.0
     hooks:
       - id: mypy
+        additional_dependencies:
+          - types-setuptools
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.1
+    rev: v3.15.2
     hooks:
       - id: pyupgrade
 
   # Ansible hooks
-  - repo: https://github.com/ansible-community/ansible-lint
-    rev: v6.14.0a0
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v24.6.0
     hooks:
       - id: ansible-lint
-      # files: molecule/default/playbook.yml
+        additional_dependencies:
+          # On its own ansible-lint does not pull in ansible, only
+          # ansible-core.  Therefore, if an Ansible module lives in
+          # ansible instead of ansible-core, the linter will complain
+          # that the module is unknown.  In these cases it is
+          # necessary to add the ansible package itself as an
+          # additional dependency, with the same pinning as is done in
+          # requirements-test.txt of cisagov/skeleton-ansible-role.
+          # - ansible>=9,<10
+          # ansible-core 2.16.3 through 2.16.6 suffer from the bug
+          # discussed in ansible/ansible#82702, which breaks any
+          # symlinked files in vars, tasks, etc. for any Ansible role
+          # installed via ansible-galaxy.  Hence we never want to
+          # install those versions.
+          #
+          # Note that any changes made to this dependency must also be
+          # made in requirements.txt in cisagov/skeleton-packer and
+          # requirements-test.txt in cisagov/skeleton-ansible-role.
+          - ansible-core>=2.16.7
 
   # Terraform hooks
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.77.1
+    rev: v1.90.0
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
 
   # Docker hooks
   - repo: https://github.com/IamTheFij/docker-pre-commit
-    rev: v2.1.1
+    rev: v3.0.1
     hooks:
       - id: docker-compose-check
+
+  # Packer hooks
+  - repo: https://github.com/cisagov/pre-commit-packer
+    rev: v0.0.2
+    hooks:
+      - id: packer_validate
+      - id: packer_fmt
