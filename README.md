@@ -43,7 +43,7 @@ docker run \
   felddy/foundryvtt:release
 ```
 
-> [!NOTE]
+> [!TIP]
 > If you are using `bash`, or a similar shell, consider pre-pending the Docker
 > command with a space to prevent your credentials from being committed to the
 > shell history list.  See:
@@ -369,15 +369,17 @@ It is possible to install a Foundry Virtual Tabletop distribution into the
 Docker image at build-time.  This results in a significantly larger Docker
 image, but removes the need to install a distribution at container startup,
 resulting in a faster startup.  It also moves the user authentication to
-build-time instead of start-time.  **Note**: Credentials are only used to fetch
-a distribution, and are not stored in the resulting image.
+build-time instead of start-time.
+
+>[!NOTE]: Credentials are only used to fetch a distribution, and are not stored
+> in the resulting image.  See the [using secrets](#using-secrets) section above
+> for an example of the json credentials file format.
 
 Build the image with credentials:
 
 ```console
 docker build \
-  --build-arg FOUNDRY_USERNAME='<your_username>' \
-  --build-arg FOUNDRY_PASSWORD='<your_password>' \
+  --secret id=foundry_credentials,src=credentials.json
   --build-arg VERSION=13.332.0 \
   --tag felddy/foundryvtt:13.332.0 \
   https://github.com/felddy/foundryvtt-docker.git#develop
