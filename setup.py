@@ -74,7 +74,8 @@ setup(
     extras_require={
         "test": [
             "coverage == 7.6.4",
-            "coveralls == 4.0.1",
+            # TODO: Revert to pinned once https://github.com/TheKevJames/coveralls-python/pull/542 is merged
+            "coveralls @ git+https://github.com/terop/coveralls-python.git@7fb2b536b04f61bb6a73ae5572a17e723459756d",
             "docker == 7.1.0",
             "pre-commit == 4.0.1",
             "pytest == 8.3.3",
