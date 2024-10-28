@@ -23,10 +23,10 @@ jobs:
         uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7  # tag=v2.10.1
         with:
           egress-policy: audit  # TODO: change to 'egress-policy: block' after couple of runs
-      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871  # tag=v4.2.1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # tag=v4.2.2
       - name: Sync repository labels
         if: success()
-        uses: crazy-max/ghaction-github-labeler@de749cf181958193cb7debf1a9c5bb28922f3e1b  # tag=v5.0.0
+        uses: crazy-max/ghaction-github-labeler@b54af0c25861143e7c8813d7cbbf46d2c341680c  # tag=v5.1.0
         with:
           # This is a hideous ternary equivalent so we only do a dry run unless
           # this workflow is triggered by the develop branch.
