@@ -68,12 +68,12 @@ setup(
     py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
     install_requires=[
         "semver == 3.0.2",
-        "setuptools == 75.6.0",
+        "setuptools == 75.7.0",
         "wheel == 0.45.1",
     ],
     extras_require={
         "test": [
-            "coverage == 7.6.9",
+            "coverage == 7.6.10",
             "coveralls == 4.0.1",
             "docker == 7.1.0",
             "pre-commit == 4.0.1",
