@@ -6,7 +6,7 @@ ARG NODE_IMAGE_VERSION=18-alpine3.18
 ARG VERSION
 
 FROM node:${NODE_IMAGE_VERSION} as compile-typescript-stage
-
+RUN apk add --no-cache unzip
 WORKDIR /root
 
 COPY \
