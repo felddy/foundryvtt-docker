@@ -26,7 +26,7 @@ ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_USERNAME
 ARG FOUNDRY_VERSION
 ENV ARCHIVE="foundryvtt-${FOUNDRY_VERSION}.zip"
-
+RUN apk --update --no-cache add unzip 
 WORKDIR /root
 COPY --from=compile-typescript-stage \
   /root/package.json \
