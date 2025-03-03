@@ -6,7 +6,7 @@ ARG NODE_IMAGE_VERSION=18-alpine3.18
 ARG VERSION
 
 FROM node:${NODE_IMAGE_VERSION} as compile-typescript-stage
-RUN apk add --no-cache unzip
+
 WORKDIR /root
 
 COPY \
@@ -84,6 +84,7 @@ RUN addgroup --system --gid ${FOUNDRY_UID} foundry \
   sed \
   su-exec \
   tzdata \
+  unzip \
   && npm install && echo ${VERSION} > image_version.txt
 
 VOLUME ["/data"]
