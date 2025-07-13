@@ -63,40 +63,54 @@ FROM node:${NODE_IMAGE_VERSION} AS final-stage
 ARG CONTAINER_VERSION
 ARG FOUNDRY_VERSION
 ARG TARGETPLATFORM
-
+ENV USERNAME="node"
+ENV HOME=/home/${USERNAME}
+ENV FOUNDRY_VTT_DATA_PATH=/data
+ENV MODULE_DIR=${FOUNDRY_VTT_DATA_PATH}/Data/modules/
 LABEL com.foundryvtt.version=${FOUNDRY_VERSION}
 LABEL org.opencontainers.image.authors="markf+github@geekpad.com"
 LABEL org.opencontainers.image.vendor="Geekpad"
 
 ENV FOUNDRY_VERSION=${FOUNDRY_VERSION}
-ENV HOME=/home/node
 
+RUN apt-get update && apt-get install -y \
+curl \
+file \
+jq \
+patch \
+sed \
+tzdata \
+unzip \
+curl \
+file \
+jq \
+patch \
+sed \
+tzdata \
+unzip
+
+RUN mkdir -p ${HOME}
 WORKDIR $HOME
+RUN mkdir -p resources ${MODULE_DIR}
+VOLUME ["${FOUNDRY_VTT_DATA_PATH}"]
 
 COPY --from=optional-release-stage /root/dist/ .
 COPY --from=compile-typescript-stage /root/dist/ .
 COPY \
-  package.json \
-  package-lock.json \
-  src/check_health.sh \
-  src/entrypoint.sh \
-  src/launcher.sh \
-  src/logging.sh \
-  ./
-RUN mkdir -p resources /data \
-  && chmod a+rwx resources /data \
-  && apt-get update && apt-get install -y \
-  curl \
-  file \
-  jq \
-  patch \
-  sed \
-  tzdata \
-  unzip \
-  && rm -rf /var/lib/apt/lists/* \
-  && npm install && echo ${CONTAINER_VERSION} > image_version.txt
+package.json \
+package-lock.json \
+src/check_health.sh \
+src/entrypoint.sh \
+src/launcher.sh \
+src/logging.sh \
+./
 
-VOLUME ["/data"]
+RUN rm -rf /var/lib/apt/lists/* \
+  && npm install && echo ${CONTAINER_VERSION} > ${HOME}/image_version.txt
+RUN chown -R ${USERNAME} ${HOME}
+RUN chown -R ${USERNAME} ${FOUNDRY_VTT_DATA_PATH}
+USER ${USERNAME}
+
 # HTTP Server
 EXPOSE 30000/TCP
 # TURN Server
@@ -105,8 +119,9 @@ EXPOSE 30000/TCP
 # EXPOSE 33478/UDP
 # EXPOSE 49152-65535/UDP
 
-USER node
+
+
+
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["resources/app/main.mjs", "--port=30000", "--headless", "--noupdate",\
-  "--dataPath=/data"]
+CMD ["resources/app/main.mjs", "--port=30000", "--headless", "--noupdate","--dataPath=/data"]
 HEALTHCHECK --start-period=3m --interval=30s --timeout=5s CMD ./check_health.sh
