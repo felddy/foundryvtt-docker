@@ -23,6 +23,20 @@ be secure, reliable, compact, and simple to use.  It only requires that you
 provide the credentials or URL needed to download a Foundry Virtual Tabletop
 distribution.
 
+## Container Image Sources ##
+
+You can pull this container image from either **Docker Hub** or the **GitHub Container Registry (GHCR)** — both contain identical, up-to-date versions of the image.
+
+| Registry | Image URL | Example Pull Command |
+|-----------|------------|----------------------|
+| 🐳 Docker Hub | [`felddy/foundryvtt`](https://hub.docker.com/r/felddy/foundryvtt) | `docker pull felddy/foundryvtt:13` |
+| 🦊 GitHub Container Registry | [`ghcr.io/felddy/foundryvtt`](https://ghcr.io/felddy/foundryvtt) | `docker pull ghcr.io/felddy/foundryvtt:13` |
+
+> [!TIP]
+> You can substitute either registry URL in any of the examples below.  
+> For example, use `ghcr.io/felddy/foundryvtt:13` instead of `felddy/foundryvtt:13`
+> in your `docker run` or `docker compose` commands.
+
 ## Prerequisites ##
 
 - A functioning [Docker](https://docs.docker.com/get-docker/) installation.
