@@ -315,7 +315,7 @@ END_OF_LINE
     for url in ${CONTAINER_PATCH_URLS}; do
       log "Downloading patch from URL: $url"
       patch_file=$(mktemp -t patch_url.sh.XXXXXX)
-      curl ${CONTAINER_VERBOSE+--verbose} --silent \
+      curl ${CONTAINER_VERBOSE+--verbose} --silent --location \
         --user-agent "${curl_user_agent}" \
         --output "${patch_file}" "${url}"
       log_debug "Sourcing patch file: ${patch_file}"
