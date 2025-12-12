@@ -41,7 +41,7 @@ fi
 
 if [[ "${CONTAINER_UMASK:-}" ]]; then
   log "CONTAINER_UMASK is set: Setting umask to ${CONTAINER_UMASK}"
-  umask "${CONTAINER_UMASK}"
+  umask "${CONTAINER_UMASK}" || log_warn "Failed to set umask."
 fi
 
 if [[ "${FOUNDRY_IP_DISCOVERY:-}" == "false" ]]; then
