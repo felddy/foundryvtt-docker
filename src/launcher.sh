@@ -39,6 +39,11 @@ else
   fi
 fi
 
+if [[ "${CONTAINER_UMASK:-}" ]]; then
+  log "CONTAINER_UMASK is set: Setting umask to ${CONTAINER_UMASK}"
+  umask "${CONTAINER_UMASK}"
+fi
+
 if [[ "${FOUNDRY_IP_DISCOVERY:-}" == "false" ]]; then
   log "FOUNDRY_IP_DISCOVERY is set to false: Disabling IP discovery."
   # Add argument to disable IP discovery
