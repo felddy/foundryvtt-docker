@@ -139,8 +139,27 @@ else
   install_required=true
 fi
 
-# Install FoundryVTT if needed
+# Check to see if a download is required.
+download_required=false
 if [ $install_required = true ]; then
+  # If CONTAINER_CACHE is null, set it to a default.
+  # If it set to an empty string, disable the caching.
+  CONTAINER_CACHE="${CONTAINER_CACHE-${DATA_DIR}/container_cache}"
+
+  set +o nounset
+  downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading.zip"
+  release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
+  set -o nounset
+
+  if [ -f "${release_filename}" ]; then
+    log "Existing download found in cache; installing from that."
+  else
+    download_required=true
+  fi
+fi
+  
+# Download FoundryVTT if needed
+if [ $download_required = true ]; then
   # Determine how we are going to get the release URL
   if [ "${FOUNDRY_RELEASE_URL:-}" ]; then
     log "Using FOUNDRY_RELEASE_URL to download release."
@@ -173,10 +192,6 @@ if [ $install_required = true ]; then
     fi
   fi
 
-  # If CONTAINER_CACHE is null, set it to a default.
-  # If it set to an empty string, disable the caching.
-  CONTAINER_CACHE="${CONTAINER_CACHE-${DATA_DIR}/container_cache}"
-
   if [[ "${CONTAINER_CACHE:-}" ]]; then
     log "Using CONTAINER_CACHE: ${CONTAINER_CACHE}"
     mkdir -p "${CONTAINER_CACHE}"
@@ -190,11 +205,6 @@ END_OF_LINE
   else
     log_warn "CONTAINER_CACHE has been unset.  Release caching is disabled."
   fi
-
-  set +o nounset
-  downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading.zip"
-  release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
-  set -o nounset
 
   if [[ "${presigned_url:-}" ]]; then
     log "Downloading Foundry Virtual Tabletop release."
@@ -228,7 +238,10 @@ END_OF_LINE
       mv "${downloading_filename}" "${release_filename}" > /dev/null 2>&1 || true
     fi
   fi
+fi
 
+# Install FoundryVTT if needed
+if [ $install_required = true ]; then
   if [ -f "${release_filename}" ]; then
     log "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
 
