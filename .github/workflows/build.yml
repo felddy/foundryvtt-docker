@@ -1,25 +1,26 @@
 ---
-
 name: Build
 
-on:
+on: # yamllint disable-line rule:truthy
   merge_group:
     types:
       - checks_requested
   pull_request:
   push:
     branches:
-      - '**'
+      - "**"
   release:
-    types: [edited, published]
+    types:
+      - edited
+      - published
   schedule:
-    - cron: '0 10 * * *'  # everyday at 10am
+    - cron: 0 10 * * * # everyday at 10am
   workflow_dispatch:
     inputs:
       dispatch-tag:
-        description: "Tag to apply to pushed images"
+        description: Tag to apply to pushed images
         required: true
-        default: "dispatch"
+        default: dispatch
 
 permissions:
   actions: read
@@ -35,26 +36,27 @@ defaults:
 
 jobs:
   diagnostics:
-    name: "Diagnostics"
-    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@v2
+    name: Diagnostics
+    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
 
   config:
-    name: "Config"
+    name: Config
     uses: ./.github/workflows/_config.yml
 
   metadata:
-    name: "Metadata"
-    needs: [config]
-    uses: felddy/reusable-workflows/.github/workflows/docker-metadata.yml@v2
+    name: Metadata
+    needs:
+      - config
+    uses: felddy/reusable-workflows/.github/workflows/container-metadata.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
     with:
       image_name: ${{ needs.config.outputs.image_name }}
 
   foundry-secrets:
-    name: "Foundry secrets"
+    name: Foundry secrets
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2  # tag=v2.13.2
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # tag=v2.14.0
         with:
           egress-policy: block
 
@@ -72,11 +74,11 @@ jobs:
           exit $return_code
 
   docker-secrets:
-    name: "Docker secrets"
+    name: Docker secrets
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2  # tag=v2.13.2
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # tag=v2.14.0
         with:
           egress-policy: block
 
@@ -94,11 +96,11 @@ jobs:
           exit $return_code
 
   artifact-key:
-    name: "Artifact key"
+    name: Artifact key
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2  # tag=v2.13.2
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # tag=v2.14.0
         with:
           egress-policy: block
 
@@ -110,17 +112,18 @@ jobs:
           fi
 
   lint:
-    name: "Lint"
-    needs: [config]
-    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@v2
+    name: Lint
+    needs:
+      - config
+    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
 
-  build-normal-test-image:
-    name: "Build normal test image"
+  build-normal-container-for-testing:
+    name: Build normal container for testing
     needs:
       - config
       - lint
       - metadata
-    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@v2
+    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
     with:
       artifact_name: ${{ needs.config.outputs.image_artifact_name_stem }}-${{ needs.config.outputs.test_platform }}
       cache_from_scopes: ${{ needs.config.outputs.test_platform }}
@@ -129,15 +132,15 @@ jobs:
       image_labels: ${{ needs.metadata.outputs.image_labels }}
       platforms: ${{ needs.config.outputs.test_platform }}
 
-  build-pre-installed-test-image:
-    name: "Build pre-installed test image"
+  build-preinstalled-container-for-testing:
+    name: Build preinstalled container for testing
     needs:
       - artifact-key
       - config
       - foundry-secrets
       - lint
       - metadata
-    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@v2
+    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
     with:
       artifact_name: pre-installed-${{ needs.config.outputs.image_artifact_name_stem }}-${{ needs.config.outputs.test_platform }}
       build_secret_1_name: foundry_password
@@ -152,60 +155,60 @@ jobs:
       build_secret_2_value: ${{ secrets.FOUNDRY_USERNAME }}
       image_archive_key: ${{ secrets.ARTIFACT_KEY }}
 
-# Since we need to pass the foundryvtt.com credentials to the tests, we can't
-# use the standard reusable test workflow.  Instead, we'll use a modified
-# version of the workflow that accepts the credential secrets and is stored in
-# this repository.
+  # Since we need to pass the foundryvtt.com credentials to the tests, we can't
+  # use the standard reusable test workflow.  Instead, we'll use a modified
+  # version of the workflow that accepts the credential secrets and is stored in
+  # this repository.
 
-  test-normal-image:
-    name: "Test normal image"
+  test-normal-container:
+    name: Test normal container
     needs:
       - artifact-key
-      - build-normal-test-image
+      - build-normal-container-for-testing
       - config
       - foundry-secrets
-    uses: ./.github/workflows/docker-pytest-image.yml
+    uses: ./.github/workflows/container-test.yml
     with:
       data_artifact_name: ${{ needs.config.outputs.data_artifact_name }}
       data_artifact_path: ${{ needs.config.outputs.data_artifact_path }}
-      image_artifact_name: ${{ needs.build-normal-test-image.outputs.artifact_name }}
-      image_archive_name: ${{ needs.build-normal-test-image.outputs.image_archive_name }}
+      image_artifact_name: ${{ needs.build-normal-container-for-testing.outputs.artifact_name }}
+      image_archive_name: ${{ needs.build-normal-container-for-testing.outputs.image_archive_name }}
     secrets:
       data_archive_key: ${{ secrets.ARTIFACT_KEY }}
       foundry_password: ${{ secrets.FOUNDRY_PASSWORD }}
       foundry_username: ${{ secrets.FOUNDRY_USERNAME }}
 
-  test-pre-installed-image:
-    name: "Test pre-installed image"
+  test-preinstalled-container:
+    name: Test pre-installed container
     needs:
       - artifact-key
-      - build-pre-installed-test-image
+      - build-preinstalled-container-for-testing
       - config
-    uses: ./.github/workflows/docker-pytest-image.yml
+    uses: ./.github/workflows/container-test.yml
     with:
       data_artifact_name: pre-installed-${{ needs.config.outputs.data_artifact_name }}
       data_artifact_path: ${{ needs.config.outputs.data_artifact_path }}
-      image_artifact_name: ${{ needs.build-pre-installed-test-image.outputs.artifact_name }}
-      image_archive_name: ${{ needs.build-pre-installed-test-image.outputs.image_archive_name }}
+      image_artifact_name: ${{ needs.build-preinstalled-container-for-testing.outputs.artifact_name }}
+      image_archive_name: ${{ needs.build-preinstalled-container-for-testing.outputs.image_archive_name }}
     secrets:
       data_archive_key: ${{ secrets.ARTIFACT_KEY }}
       image_archive_key: ${{ secrets.ARTIFACT_KEY }}
 
   build-each-platform:
-    name: "Build platform"
+    name: Build container
     needs:
       - config
       - lint
       - metadata
-      - test-normal-image
-      - test-pre-installed-image
+      - test-normal-container
+      - test-preinstalled-container
     if: github.event_name != 'pull_request'
     strategy:
       matrix:
         platform: ${{ fromJson(needs.config.outputs.platforms_json) }}
         exclude:
           - platform: ${{ needs.config.outputs.test_platform }}
-    uses: felddy/reusable-workflows/.github/workflows/docker-build-image.yml@v2
+    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
     with:
       artifact_name: ${{ needs.config.outputs.image_artifact_name_stem }}-${{ matrix.platform }}
       cache_from_scopes: ${{ matrix.platform }}
@@ -215,7 +218,7 @@ jobs:
       platforms: ${{ matrix.platform }}
 
   generate-sboms:
-    name: "Bill of Materials"
+    name: Bill of Materials
     needs:
       - build-each-platform
       - config
@@ -224,38 +227,54 @@ jobs:
     strategy:
       matrix:
         platform: ${{ fromJson(needs.config.outputs.platforms_json) }}
-    uses: felddy/reusable-workflows/.github/workflows/sbom-artifact.yml@v2
+    uses: felddy/reusable-workflows/.github/workflows/container-sbom.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
     with:
       image_artifact_name: ${{ needs.config.outputs.image_artifact_name_stem }}-${{ matrix.platform }}
       sbom_artifact_name: ${{ needs.config.outputs.sbom_artifact_name_stem }}-${{ matrix.platform }}
 
   build-multi-arch-image:
-    name: "Publish image"
+    name: Publish container
     needs:
       - build-each-platform
       - config
-      - docker-secrets
       - metadata
     if: github.event_name != 'pull_request'
     permissions:
       packages: write
-    uses: felddy/reusable-workflows/.github/workflows/docker-multi-arch-push.yml@v2
+    uses: felddy/reusable-workflows/.github/workflows/container-publish-multiarch.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
     with:
       artifact_name_pattern: ${{ needs.config.outputs.image_artifact_name_stem }}-*
       image_tags: ${{ needs.metadata.outputs.image_tags }}
-    secrets:
-      docker_password: ${{ secrets.DOCKER_PASSWORD }}
-      docker_username: ${{ secrets.DOCKER_USERNAME }}
 
-  publish-readme:
-    name: "Publish docs"
+  mirror-to-dockerhub:
+    name: Mirror images to DockerHub
     needs:
       - build-multi-arch-image
       - config
       - docker-secrets
       - metadata
-    if: needs.metadata.outputs.latest == 'true'
-    uses: felddy/reusable-workflows/.github/workflows/docker-publish-description.yml@v2
+    if: github.event_name == 'release' && !github.event.release.prerelease
+    permissions:
+      contents: read
+      packages: read
+    uses: felddy/reusable-workflows/.github/workflows/container-mirror.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    with:
+      image_name: ${{ needs.config.outputs.image_name }}
+      image_tag_names: ${{ needs.metadata.outputs.image_tag_names }}
+      target_registry: docker.io
+    secrets:
+      registry_password: ${{ secrets.DOCKER_PASSWORD }}
+      registry_username: ${{ secrets.DOCKER_USERNAME }}
+
+  publish-readme:
+    name: Publish docs to DockerHub
+    needs:
+      - build-multi-arch-image
+      - config
+      - docker-secrets
+      - metadata
+    if: github.event_name == 'release' && needs.metadata.outputs.latest == 'true'
+    uses: felddy/reusable-workflows/.github/workflows/dockerhub-description.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
     with:
       image_name: ${{ needs.config.outputs.image_name }}
     secrets:

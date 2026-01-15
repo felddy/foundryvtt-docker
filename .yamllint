@@ -2,11 +2,32 @@
 extends: default
 
 rules:
+  braces:
+    # Do not allow non-empty flow mappings
+    forbid: non-empty
+    # Allow up to one space inside braces. This is required for Ansible compatibility.
+    max-spaces-inside: 1
+
+  brackets:
+    # Do not allow non-empty flow sequences
+    forbid: non-empty
+
+  comments:
+    # Ensure that inline comments have at least one space before the preceding content.
+    # This is required for Ansible compatibility.
+    min-spaces-from-content: 1
+
   # yamllint does not like it when you comment out different parts of
   # dictionaries in a list. You can see
   # https://github.com/adrienverge/yamllint/issues/384 for some examples of
   # this behavior.
   comments-indentation: disable
+
+  indentation:
+    # Ensure that block sequences inside of a mapping are indented
+    indent-sequences: true
+    # Enforce a specific number of spaces
+    spaces: 2
 
   # yamllint does not allow inline mappings that exceed the line length by
   # default. There are many scenarios where the inline mapping may be a key,
@@ -15,9 +36,33 @@ rules:
   line-length:
     # This rule implies the allow-non-breakable-words rule
     allow-non-breakable-inline-mappings: true
-    # Allows a 250% overage from the default limit of 80
-    max: 200
+    # When pinning GitHub Actions with full SHAs and comments we run into the
+    # inability to wrap yaml in any sane way.
+    # Likewise, issue template placeholder text can be quite wide.
+    ignore: |
+      /.github/workflows/*.yml
+      /.github/ISSUE_TEMPLATE/*.yml
+    # Allows a 10% overage from the default limit of 80
+    max: 88
 
-  # yamllint doesn't like when we use yes and no for true and false,
-  # but that's pretty standard in Ansible.
-  truthy: disable
+  # Using anything other than strings to express octal values can lead to unexpected
+  # and potentially unsafe behavior. Ansible strongly recommends against such practices
+  # and these rules are needed for Ansible compatibility. Please see the following for
+  # more information:
+  # https://ansible.readthedocs.io/projects/lint/rules/risky-octal/
+  octal-values:
+    # Do not allow explicit octal values (those beginning with a leading 0o).
+    forbid-explicit-octal: true
+    # Do not allow implicit octal values (those beginning with a leading 0).
+    forbid-implicit-octal: true
+
+  quoted-strings:
+    # Allow disallowed quotes (single quotes) for strings that contain allowed quotes
+    # (double quotes).
+    allow-quoted-quotes: true
+    # Apply these rules to keys in mappings as well
+    check-keys: true
+    # We prefer double quotes for strings when they are needed
+    quote-type: double
+    # Only require quotes when they are necessary for proper processing
+    required: only-when-needed

@@ -1,5 +1,4 @@
 ---
-
 # Any ignore directives should be uncommented in downstream projects to disable
 # Dependabot updates for the given dependency. Downstream projects will get
 # these updates when the pull request(s) in the appropriate skeleton are merged
@@ -10,55 +9,55 @@ updates:
   - directory: /
     package-ecosystem: docker
     schedule:
-      interval: "daily"
+      interval: daily
     labels:
       - "bot :robot:"
       - "dependencies :game_die:"
       - "docker :whale:"
     groups:
       docker-all:
-        applies-to: "version-updates"
+        applies-to: version-updates
         patterns:
           - "*"
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "daily"
+      interval: daily
     labels:
       - "bot :robot:"
       - "dependencies :game_die:"
       - "github-actions :octocat:"
     groups:
       github-actions-all:
-        applies-to: "version-updates"
+        applies-to: version-updates
         patterns:
           - "*"
 
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: "daily"
+      interval: daily
     labels:
       - "bot :robot:"
       - "dependencies :game_die:"
       - "javascript :coffee:"
     groups:
       npm-all:
-        applies-to: "version-updates"
+        applies-to: version-updates
         patterns:
           - "*"
 
   - directory: /
     package-ecosystem: pip
     schedule:
-      interval: "daily"
+      interval: daily
     labels:
       - "bot :robot:"
       - "dependencies :game_die:"
       - "python :snake:"
     groups:
       pip-all:
-        applies-to: "version-updates"
+        applies-to: version-updates
         patterns:
           - "*"

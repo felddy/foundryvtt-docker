@@ -2,9 +2,6 @@
 # Files already tracked by Git are not affected.
 # See: https://git-scm.com/docs/gitignore
 
-## Docker ##
-Dockerfile-x
-
 ## FoundryVTT ##
 cookiejar.json
 license.json

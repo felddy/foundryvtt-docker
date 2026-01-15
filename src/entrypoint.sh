@@ -31,8 +31,8 @@ for deprecated_env in $DEPRECATED_ENVS; do
 done
 
 # Setup the SIGTERM handler
-# shellcheck disable=SC2317
-# SC2317 - shellcheck does not understand reachability via traps
+# shellcheck disable=SC2329
+# SC2329 - shellcheck does not understand reachability via traps
 handle_sigterm() {
   log_warn "TERM signal received.  Shutting down server."
   # Only attempt to terminate if the child process is still running

@@ -228,28 +228,28 @@ Virtual Tabletop](https://foundryvtt.com/article/versioning/) that they support.
 > major version.
 
 | Image:tag | Description |
-|-----------|-------------|
-|`felddy/foundryvtt:13`| The most recent image matching the major version number.  Most users will use this tag. |
-|`felddy/foundryvtt:13.351`| The most recent image matching the major and minor version numbers. |
-|`felddy/foundryvtt:13.351.0`| An exact image version. |
-|`felddy/foundryvtt:release` | The most recent image from the `stable` channel.  These images are **considered stable**, and well-tested.  The `latest` tag always points to the same version as `release`.|
-|`felddy/foundryvtt:latest`| Same as the `release` tag.  [Why does `latest` == `release`?](https://vsupalov.com/docker-latest-tag/) |
+| ----------- | ------------- |
+| `felddy/foundryvtt:13` | The most recent image matching the major version number.  Most users will use this tag. |
+| `felddy/foundryvtt:13.351` | The most recent image matching the major and minor version numbers. |
+| `felddy/foundryvtt:13.351.0` | An exact image version. |
+| `felddy/foundryvtt:release` | The most recent image from the `stable` channel.  These images are **considered stable**, and well-tested.  The `latest` tag always points to the same version as `release`. |
+| `felddy/foundryvtt:latest` | Same as the `release` tag.  [Why does `latest` == `release`?](https://vsupalov.com/docker-latest-tag/) |
 
 See the [tags tab](https://hub.docker.com/r/felddy/foundryvtt/tags) on Docker
 Hub for a list of all the supported tags.
 
 ## Volumes ##
 
-| Mount point | Purpose        |
-|-------------|----------------|
-| `/data`    | Configuration, data, and log storage. |
+| Mount point | Purpose                               |
+| ----------- | ------------------------------------- |
+| `/data`     | Configuration, data, and log storage. |
 
 ## Ports ##
 
 The following ports are exposed by this container:
 
-| Port | Purpose        |
-|------|----------------|
+| Port    | Purpose                                       |
+| ------- | --------------------------------------------- |
 | `30000` | Foundry Virtual Tabletop server web interface |
 
 ## Environment variables ##
@@ -267,9 +267,9 @@ evaluated in the following order of precedence:
 
 #### Credentials variables ####
 
-| Name             | Purpose  |
-|------------------|----------|
-| `FOUNDRY_PASSWORD` | Account password for foundryvtt.com.  Required for downloading an application distribution. |
+| Name               | Purpose                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `FOUNDRY_PASSWORD` | Account password for foundryvtt.com.  Required for downloading an application distribution.                  |
 | `FOUNDRY_USERNAME` | Account username or email address for foundryvtt.com.  Required for downloading an application distribution. |
 
 ***Note:*** `FOUNDRY_USERNAME` and `FOUNDRY_PASSWORD` may be set [using
@@ -277,17 +277,17 @@ secrets](#using-secrets) instead of environment variables.
 
 #### Presigned URL variable ####
 
-| Name             | Purpose  |
-|------------------|----------|
-| `FOUNDRY_RELEASE_URL` | The presigned URL generate from the user's profile.  Required for downloading an application distribution. |
+| Name                  | Purpose                                                                                                     |
+| --------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `FOUNDRY_RELEASE_URL` | The presigned URL generated from the user's profile.  Required for downloading an application distribution. |
 
 ### Optional variables ###
 
-| Name  | Purpose | Default |
-|-------|---------|---------|
-| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry distribution archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container.  Set to `""` to disable.  ***Note***: When the cache is disabled the container may sleep instead of exiting, in certain circumstances, to prevent a download loop.  A distribution can be pre-downloaded and placed into a cache directory.  The distribution's name must be of the form: `foundryvtt-13.351.zip`| `/data/container_cache` |
-| `CONTAINER_CACHE_SIZE` | Set the maximum number of distribution versions to keep in the cache.  The minimum is `1`.  When the limit is exceeded, the oldest versions (lowest version numbers) are removed first.  Unset to disable cache size management and keep all versions.  | |
-| `CONTAINER_PATCHES` | Set a path to a directory of shell scripts to be sourced after Foundry is installed but before it is started.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_patches`  Patch files are sourced in lexicographic order.  `CONTAINER_PATCHES` are processed after `CONTAINER_PATCH_URLS`.| |
+| Name | Purpose | Default |
+| ---- | ------- | ------- |
+| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry distribution archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container.  Set to `""` to disable.  ***Note***: When the cache is disabled the container may sleep instead of exiting, in certain circumstances, to prevent a download loop.  A distribution can be pre-downloaded and placed into a cache directory.  The distribution's name must be of the form: `foundryvtt-13.351.zip` | `/data/container_cache` |
+| `CONTAINER_CACHE_SIZE` | Set the maximum number of distribution versions to keep in the cache.  The minimum is `1`.  When the limit is exceeded, the oldest versions (lowest version numbers) are removed first.  Unset to disable cache size management and keep all versions. | |
+| `CONTAINER_PATCHES` | Set a path to a directory of shell scripts to be sourced after Foundry is installed but before it is started.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_patches`  Patch files are sourced in lexicographic order.  `CONTAINER_PATCHES` are processed after `CONTAINER_PATCH_URLS`. | |
 | `CONTAINER_PATCH_URLS` | Set to a space-delimited list of URLs to be sourced after Foundry is installed but before it is started.  Patch URLs are sourced in the order specified.  `CONTAINER_PATCH_URLS` are processed before `CONTAINER_PATCHES`.  ⚠️ **Only use patch URLs from trusted sources!** | |
 | `CONTAINER_PRESERVE_CONFIG` | Normally new `options.json` and `admin.txt` files are generated by the container at each startup.  Setting this to `true` prevents the container from modifying these files when they exist.  If they do not exist, they will be created as normal. | `false` |
 | `CONTAINER_URL_FETCH_RETRY` | Number of times to retry fetching the presigned URL using exponential back off.  This behavior is useful in continuous integration environments where multiple parallel workflows can exceed the rate-limit of the URL generation service. | `0` |
@@ -296,7 +296,7 @@ secrets](#using-secrets) instead of environment variables.
 | `FOUNDRY_AWS_CONFIG` | An absolute or relative path that points to the [awsConfig.json](https://foundryvtt.com/article/aws-s3/) or `true` for AWS environment variable [credentials evaluation](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html) usage. | `null` |
 | `FOUNDRY_COMPRESS_WEBSOCKET` | Set to `true` to enable compression of data sent from the server to the client via websocket. This is recommended for network performance. | `false` |
 | `FOUNDRY_CSS_THEME` | Choose the CSS theme for the setup page.  Choose from `foundry`, `fantasy`, or `scifi`. | `foundry` |
-| `FOUNDRY_DEMO_CONFIG` | Demo mode allows you to configure a world which will be automatically launched and reset at a frequency of your choosing.  When the world is reset, it is deactivated.  The source data for the world is restored to its original state using a provided `.zip` file, and the next reset is automatically scheduled.  See: [Configuring demo mode](https://foundryvtt.com/article/configuration/#command-line). |  |
+| `FOUNDRY_DEMO_CONFIG` | Demo mode allows you to configure a world which will be automatically launched and reset at a frequency of your choosing.  When the world is reset, it is deactivated.  The source data for the world is restored to its original state using a provided `.zip` file, and the next reset is automatically scheduled.  See: [Configuring demo mode](https://foundryvtt.com/article/configuration/#command-line). | |
 | `FOUNDRY_HOSTNAME` | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | `null` |
 | `FOUNDRY_HOT_RELOAD` | Set to `true` to allow packages to hot-reload certain assets, such as CSS, HTML, and localization files without a full refresh. This setting is only recommended for developers. | `false` |
 | `FOUNDRY_IP_DISCOVERY` | Allow the Foundry server to discover and report the accessibility of the host machine's public IP address and port.  Setting this to `false` may reduce server startup time in instances where this discovery would timeout. | `true` |
@@ -316,7 +316,7 @@ secrets](#using-secrets) instead of environment variables.
 | `FOUNDRY_UPNP_LEASE_DURATION` | Sets the Universal Plug and Play lease duration, allowing for the possibility of permanent leases for routers which do not support temporary leases.  To define an indefinite lease duration set the value to `0`. | `null` |
 | `FOUNDRY_VERSION` | Version of Foundry Virtual Tabletop to install. | `13.351` |
 | `FOUNDRY_WORLD` | The directory name of the world to launch at system start. | `null` |
-| `TZ`     | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | `UTC` |
+| `TZ` | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | `UTC` |
 
 ### Node.js variables ###
 
@@ -327,7 +327,7 @@ server running FoundryVTT.  Listed below are some variables that are
 particularly useful.
 
 | Name | Purpose |
-|------|---------|
+| ---- | ------- |
 | `NODE_DEBUG` | `,`-separated list of core modules that should print debug information. |
 | `NODE_EXTRA_CA_CERTS` | When set, the well known "root" CAs (like VeriSign) will be extended with the extra certificates.  The file should consist of one or more trusted certificates in PEM format.  A message will be emitted (once) with `process.emitWarning()` if the file is missing or malformed, but any errors are otherwise ignored. |
 | `NODE_OPTIONS` | A space-separated list of command-line options that are interpreted before command-line options, so command-line options will override or compound after anything supplied.  Node.js will exit with an error if an option that is not allowed in the environment is used, such as `-p` or a script file. |
@@ -335,13 +335,13 @@ particularly useful.
 
 ## Secrets ##
 
-| Filename     | Key | Purpose |
-|--------------|-----|---------|
-| `config.json` | `foundry_admin_key` | Overrides `FOUNDRY_ADMIN_KEY` environment variable. |
-| `config.json` | `foundry_license_key` | Overrides `FOUNDRY_LICENSE_KEY` environment variable. |
-| `config.json` | `foundry_password` | Overrides `FOUNDRY_PASSWORD` environment variable. |
+| Filename      | Key                     | Purpose                                                 |
+| ------------  | ----------------------- | ------------------------------------------------------- |
+| `config.json` | `foundry_admin_key`     | Overrides `FOUNDRY_ADMIN_KEY` environment variable.     |
+| `config.json` | `foundry_license_key`   | Overrides `FOUNDRY_LICENSE_KEY` environment variable.   |
+| `config.json` | `foundry_password`      | Overrides `FOUNDRY_PASSWORD` environment variable.      |
 | `config.json` | `foundry_password_salt` | Overrides `FOUNDRY_PASSWORD_SALT` environment variable. |
-| `config.json` | `foundry_username` | Overrides `FOUNDRY_USERNAME` environment variable. |
+| `config.json` | `foundry_username`      | Overrides `FOUNDRY_USERNAME` environment variable.      |
 
 ## Building from source ##
 

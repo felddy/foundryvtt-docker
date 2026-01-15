@@ -1,12 +1,14 @@
 ---
 name: Label auto-merge PRs
 
-on:
+on: # yamllint disable-line rule:truthy
   pull_request_target:
-    types: [auto_merge_enabled, auto_merge_disabled]
+    types:
+      - auto_merge_enabled
+      - auto_merge_disabled
 
 env:
-  LABEL_NAME: 'automerge :bell:'
+  LABEL_NAME: "automerge :bell:"
 
 jobs:
   add-remove-label:

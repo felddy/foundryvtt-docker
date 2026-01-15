@@ -1,7 +1,8 @@
 ---
 name: 💥 Regression Report
 description: Report unexpected behavior that worked in previous versions
-labels: ["regression :boom:"]
+labels:
+  - "regression :boom:"
 assignees:
   - felddy
 body:

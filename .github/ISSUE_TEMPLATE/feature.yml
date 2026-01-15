@@ -1,7 +1,8 @@
 ---
 name: 🚀 Feature Proposal
 description: Submit a proposal for a new feature
-labels: ["feature request :bulb:"]
+labels:
+  - "feature request :bulb:"
 assignees:
   - felddy
 body:

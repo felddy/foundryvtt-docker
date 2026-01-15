@@ -1,39 +1,38 @@
 ---
-
 name: config
 
-on:
+on: # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
       platforms:
-        description: "The platforms to build (CSV)"
+        description: The platforms to build (CSV)
         default: linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
         required: false
         type: string
     outputs:
       image_name:
-        description: "The Docker image name"
+        description: The container image name
         value: felddy/foundryvtt
       data_artifact_name:
-        description: "The name of the test data artifact"
+        description: The name of the test data artifact
         value: test-output
       data_artifact_path:
-        description: "The path to include in the test data artifact"
+        description: The path to include in the test data artifact
         value: data
       image_artifact_name_stem:
-        description: "The name of the image archives artifact"
+        description: The name of the image archives artifact
         value: image-archive
       platforms:
-        description: "The platforms to build (CSV)"
+        description: The platforms to build (CSV)
         value: ${{ inputs.platforms }}
       platforms_json:
-        description: "The platforms to build (JSON)"
+        description: The platforms to build (JSON)
         value: ${{ jobs.csv-to-json.outputs.json }}
       sbom_artifact_name_stem:
-        description: "The stem name for sbom artifacts"
+        description: The stem name for sbom artifacts
         value: sbom
       test_platform:
-        description: "The platform to use for testing"
+        description: The platform to use for testing
         value: linux/amd64
 
 permissions:
@@ -41,7 +40,7 @@ permissions:
 
 jobs:
   csv-to-json:
-    name: "Convert CSV to JSON"
-    uses: felddy/reusable-workflows/.github/workflows/csv-to-json.yml@v2
+    name: Convert CSV to JSON
+    uses: felddy/reusable-workflows/.github/workflows/csv-to-json.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
     with:
       csv: ${{ inputs.platforms }}

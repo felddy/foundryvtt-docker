@@ -1,7 +1,8 @@
 ---
 name: 🐛 Bug Report
 description: File a bug report
-labels: ["bug :bug:"]
+labels:
+  - "bug :bug:"
 assignees:
   - felddy
 body:

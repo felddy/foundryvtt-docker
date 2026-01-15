@@ -132,11 +132,10 @@ you can begin to use `pyenv`.
 For a list of Python versions that are already installed and ready to
 use with `pyenv`, use the command `pyenv versions`.  To see a list of
 the Python versions available to be installed and used with `pyenv`
-use the command `pyenv install --list`.  You can read more
-[here](https://github.com/pyenv/pyenv/blob/master/COMMANDS.md) about
-the many things that `pyenv` can do.  See
-[here](https://github.com/pyenv/pyenv-virtualenv#usage) for the
-additional capabilities that pyenv-virtualenv adds to the `pyenv`
+use the command `pyenv install --list`.  You can read more about
+the [many things that `pyenv` can do](https://github.com/pyenv/pyenv/blob/master/COMMANDS.md).
+See the [usage information](https://github.com/pyenv/pyenv-virtualenv#usage)
+for the additional capabilities that pyenv-virtualenv adds to the `pyenv`
 command.
 
 #### Creating the Python virtual environment ####
