@@ -39,11 +39,11 @@ var fetch: typeof nodeFetch;
 var logger: winston.Logger;
 
 // Constants
+const AGENT = getProxyAgent();
 const BASE_URL = "https://foundryvtt.com";
 const LOCAL_DOMAIN = "felddy.com";
 const LOGIN_URL = BASE_URL + "/auth/login/";
 const USERNAME_RE = /\/community\/(?<username>.+)/;
-const AGENT = getProxyAgent();
 
 const HEADERS: Headers = new Headers({
   DNT: "1",

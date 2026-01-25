@@ -34,8 +34,8 @@ import { CookieJar } from "tough-cookie";
 import FileCookieStore from "tough-cookie-file-store";
 import * as cheerio from "cheerio";
 import createLogger from "./logging.js";
-import { getProxyAgent } from "./proxy.js";
 import docopt from "docopt";
+import { getProxyAgent } from "./proxy.js";
 import fetchCookie from "fetch-cookie";
 import nodeFetch, { Headers } from "node-fetch";
 import process from "process";
@@ -47,9 +47,9 @@ var fetch: typeof nodeFetch;
 var logger: winston.Logger;
 
 // Constants
+const AGENT = getProxyAgent();
 const BASE_URL: string = "https://foundryvtt.com";
 const LOCAL_DOMAIN: string = "felddy.com";
-const AGENT = getProxyAgent();
 
 const HEADERS: Headers = new Headers({
   DNT: "1",

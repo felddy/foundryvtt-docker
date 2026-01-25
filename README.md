@@ -303,9 +303,9 @@ secrets](#using-secrets) instead of environment variables.
 | `FOUNDRY_UPNP_LEASE_DURATION` | Sets the Universal Plug and Play lease duration, allowing for the possibility of permanent leases for routers which do not support temporary leases.  To define an indefinite lease duration set the value to `0`. | `null` |
 | `FOUNDRY_VERSION` | Version of Foundry Virtual Tabletop to install. | `13.351` |
 | `FOUNDRY_WORLD` | The directory name of the world to launch at system start. | `null` |
+| `HTTP_PROXY` | Http proxy to use for init scripts, see [proxy-agent](https://www.npmjs.com/package/proxy-agent) for list of supported proxies | `null` |
+| `HTTPS_PROXY` | Https proxy to use for init scripts, see [proxy-agent](https://www.npmjs.com/package/proxy-agent) for list of supported proxies | `null` |
 | `TZ` | Container [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) | `UTC` |
-| `HTTP_PROXY` | http proxy to use for init scripts, see [proxy-agent](https://www.npmjs.com/package/proxy-agent) for list of supported proxies | `null` |
-| `HTTPS_PROXY` | https proxy to use for init scripts, see [proxy-agent](https://www.npmjs.com/package/proxy-agent) for list of supported proxies | `null` |
 
 ### Node.js variables ###
 

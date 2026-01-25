@@ -30,8 +30,8 @@ Options:
 import { CookieJar } from "tough-cookie";
 import FileCookieStore from "tough-cookie-file-store";
 import createLogger from "./logging.js";
-import { getProxyAgent } from "./proxy.js";
 import docopt from "docopt";
+import { getProxyAgent } from "./proxy.js";
 import fetchCookie from "fetch-cookie";
 import nodeFetch, { Headers, Response } from "node-fetch";
 import process from "process";
@@ -43,8 +43,8 @@ var fetch: typeof nodeFetch;
 var logger: winston.Logger;
 
 // Constants
-const BASE_URL = "https://foundryvtt.com";
 const AGENT = getProxyAgent();
+const BASE_URL = "https://foundryvtt.com";
 
 const HEADERS: Headers = new Headers({
   DNT: "1",
