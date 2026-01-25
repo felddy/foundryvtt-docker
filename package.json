@@ -8,6 +8,7 @@
     "docopt": "^0.6.2",
     "fetch-cookie": "^3.2.0",
     "node-fetch": "^3.3.2",
+    "proxy-agent": "^6.5.0",
     "tough-cookie-file-store": "^3.3.0",
     "winston": "^3.19.0"
   },

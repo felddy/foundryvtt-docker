@@ -30,6 +30,7 @@ Options:
 import { CookieJar } from "tough-cookie";
 import FileCookieStore from "tough-cookie-file-store";
 import createLogger from "./logging.js";
+import { getProxyAgent } from "./proxy.js";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie";
 import nodeFetch, { Headers, Response } from "node-fetch";
@@ -43,6 +44,7 @@ var logger: winston.Logger;
 
 // Constants
 const BASE_URL = "https://foundryvtt.com";
+const AGENT = getProxyAgent();
 
 const HEADERS: Headers = new Headers({
   DNT: "1",
@@ -107,6 +109,7 @@ async function fetchReleaseURL(
     const response: Response = await fetch(release_url, {
       method: "GET",
       headers: HEADERS,
+      agent: AGENT,
     });
     // Check for a successful 200 response
     if (response.status !== 200) {

@@ -26,6 +26,7 @@ import { CookieJar, Cookie } from "tough-cookie";
 import FileCookieStore from "tough-cookie-file-store";
 import * as cheerio from "cheerio";
 import createLogger from "./logging.js";
+import { getProxyAgent } from "./proxy.js";
 import winston from "winston";
 import docopt from "docopt";
 import fetchCookie from "fetch-cookie";
@@ -42,6 +43,7 @@ const BASE_URL = "https://foundryvtt.com";
 const LOCAL_DOMAIN = "felddy.com";
 const LOGIN_URL = BASE_URL + "/auth/login/";
 const USERNAME_RE = /\/community\/(?<username>.+)/;
+const AGENT = getProxyAgent();
 
 const HEADERS: Headers = new Headers({
   DNT: "1",
@@ -62,6 +64,7 @@ async function fetchTokens(): Promise<string> {
   const response = await fetch(BASE_URL, {
     method: "GET",
     headers: HEADERS,
+    agent: AGENT,
   });
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
@@ -103,6 +106,7 @@ async function login(
     body: form_params,
     method: "POST",
     headers: HEADERS,
+    agent: AGENT,
   });
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
