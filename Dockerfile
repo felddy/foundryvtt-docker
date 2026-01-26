@@ -34,7 +34,6 @@ COPY --from=compile-typescript-stage \
   /root/dist/authenticate.js \
   /root/dist/get_release_url.js \
   /root/dist/logging.js \
-  /root/dist/proxy.js \
   ./
 # .placeholder file to mitigate https://github.com/moby/moby/issues/37965
 RUN mkdir dist && touch dist/.placeholder

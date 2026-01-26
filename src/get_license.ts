@@ -31,12 +31,12 @@ Options:
 
 // Imports
 import { CookieJar } from "tough-cookie";
-import FileCookieStore from "tough-cookie-file-store";
+import { ProxyAgent } from "proxy-agent";
 import * as cheerio from "cheerio";
 import createLogger from "./logging.js";
 import docopt from "docopt";
-import { getProxyAgent } from "./proxy.js";
 import fetchCookie from "fetch-cookie";
+import FileCookieStore from "tough-cookie-file-store";
 import nodeFetch, { Headers } from "node-fetch";
 import process from "process";
 import winston from "winston";
@@ -47,7 +47,7 @@ var fetch: typeof nodeFetch;
 var logger: winston.Logger;
 
 // Constants
-const AGENT = getProxyAgent();
+const AGENT = new ProxyAgent();
 const BASE_URL: string = "https://foundryvtt.com";
 const LOCAL_DOMAIN: string = "felddy.com";
 
@@ -69,9 +69,9 @@ async function fetchLicenses(username: string): Promise<string[]> {
   const LICENSE_URL = `${BASE_URL}/community/${username}/licenses`;
   logger.debug(`Fetching: ${LICENSE_URL}`);
   const response = await fetch(LICENSE_URL, {
-    method: "GET",
-    headers: HEADERS,
     agent: AGENT,
+    headers: HEADERS,
+    method: "GET",
   });
   if (!response.ok) {
     throw new Error(`Unexpected response ${response.statusText}`);
