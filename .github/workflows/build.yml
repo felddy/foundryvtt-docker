@@ -37,7 +37,7 @@ defaults:
 jobs:
   diagnostics:
     name: Diagnostics
-    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
 
   config:
     name: Config
@@ -47,7 +47,7 @@ jobs:
     name: Metadata
     needs:
       - config
-    uses: felddy/reusable-workflows/.github/workflows/container-metadata.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/container-metadata.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
     with:
       image_name: ${{ needs.config.outputs.image_name }}
 
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # tag=v2.16.0
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # tag=v2.16.1
         with:
           egress-policy: block
 
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # tag=v2.16.0
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # tag=v2.16.1
         with:
           egress-policy: block
 
@@ -100,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # tag=v2.16.0
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # tag=v2.16.1
         with:
           egress-policy: block
 
@@ -115,7 +115,7 @@ jobs:
     name: Lint
     needs:
       - config
-    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
 
   build-normal-container-for-testing:
     name: Build normal container for testing
@@ -123,7 +123,7 @@ jobs:
       - config
       - lint
       - metadata
-    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
     with:
       artifact_name: ${{ needs.config.outputs.image_artifact_name_stem }}-${{ needs.config.outputs.test_platform }}
       cache_from_scopes: ${{ needs.config.outputs.test_platform }}
@@ -140,7 +140,7 @@ jobs:
       - foundry-secrets
       - lint
       - metadata
-    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
     with:
       artifact_name: pre-installed-${{ needs.config.outputs.image_artifact_name_stem }}-${{ needs.config.outputs.test_platform }}
       build_secret_1_name: foundry_password
@@ -208,7 +208,7 @@ jobs:
         platform: ${{ fromJson(needs.config.outputs.platforms_json) }}
         exclude:
           - platform: ${{ needs.config.outputs.test_platform }}
-    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
     with:
       artifact_name: ${{ needs.config.outputs.image_artifact_name_stem }}-${{ matrix.platform }}
       cache_from_scopes: ${{ matrix.platform }}
@@ -227,7 +227,7 @@ jobs:
     strategy:
       matrix:
         platform: ${{ fromJson(needs.config.outputs.platforms_json) }}
-    uses: felddy/reusable-workflows/.github/workflows/container-sbom.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/container-sbom.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
     with:
       image_artifact_name: ${{ needs.config.outputs.image_artifact_name_stem }}-${{ matrix.platform }}
       sbom_artifact_name: ${{ needs.config.outputs.sbom_artifact_name_stem }}-${{ matrix.platform }}
@@ -241,7 +241,7 @@ jobs:
     if: github.event_name != 'pull_request'
     permissions:
       packages: write
-    uses: felddy/reusable-workflows/.github/workflows/container-publish-multiarch.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/container-publish-multiarch.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
     with:
       artifact_name_pattern: ${{ needs.config.outputs.image_artifact_name_stem }}-*
       image_tags: ${{ needs.metadata.outputs.image_tags }}
@@ -257,7 +257,7 @@ jobs:
     permissions:
       contents: read
       packages: read
-    uses: felddy/reusable-workflows/.github/workflows/container-mirror.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/container-mirror.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
     with:
       image_name: ${{ needs.config.outputs.image_name }}
       image_tag_names: ${{ needs.metadata.outputs.image_tag_names }}
@@ -274,7 +274,7 @@ jobs:
       - docker-secrets
       - metadata
     if: github.event_name == 'release' && needs.metadata.outputs.latest == 'true'
-    uses: felddy/reusable-workflows/.github/workflows/dockerhub-description.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/dockerhub-description.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
     with:
       image_name: ${{ needs.config.outputs.image_name }}
     secrets:

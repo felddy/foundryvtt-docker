@@ -41,6 +41,6 @@ permissions:
 jobs:
   csv-to-json:
     name: Convert CSV to JSON
-    uses: felddy/reusable-workflows/.github/workflows/csv-to-json.yml@64c533d92826ed147972fab05311f9ac35fdb48e # tag=v3.0.0
+    uses: felddy/reusable-workflows/.github/workflows/csv-to-json.yml@0af1bb7b989350f76e7289643b425e32ba68541c # tag=v4
     with:
       csv: ${{ inputs.platforms }}
