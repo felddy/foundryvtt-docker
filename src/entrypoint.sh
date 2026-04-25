@@ -238,6 +238,11 @@ END_OF_LINE
     fi
   fi
 
+  # If another instance is already downloading the requested version, wait
+  while [[ -f "${downloading_filename}" ]]; do
+    sleep 1
+  done
+
   if [[ "${presigned_url:-}" ]]; then
     log "Downloading Foundry Virtual Tabletop release."
     # Temporarily disable errexit for the curl command to capture its exit status
