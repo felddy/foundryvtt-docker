@@ -201,8 +201,8 @@ END_OF_LINE
   fi
 
   set +o nounset
-  downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading.zip"
   release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
+  downloading_filename="${release_filename}.part"
   set -o nounset
 
   if [[ ! -f "${release_filename"} ]]; then
