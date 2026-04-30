@@ -130,9 +130,13 @@ If all goes well you should be prompted with the license agreement, and then
 ## Using secrets ##
 
 This container also supports passing sensitive values via [Docker
-secrets](https://docs.docker.com/engine/swarm/secrets/).  Passing sensitive
+secrets](https://docs.docker.com/compose/how-tos/use-secrets/).  Passing sensitive
 values like your credentials can be more secure using secrets than using
-environment variables.  Your secrets json file can have any name.  This example
+environment variables.
+
+### Config file ###
+
+Your secrets json file can have any name.  This example
 uses `secrets.json`.  Regardless of the name you choose it must be targeted to
 `config.json` within the container as in the example below.  See the
 [secrets](#secrets) section below for a table of all supported secret keys.
@@ -172,6 +176,45 @@ uses `secrets.json`.  Regardless of the name you choose it must be targeted to
           - source: config_json
             target: config.json
     ```
+
+> [!NOTE]
+> A config file variable will override an environment variable.
+
+### Environment variable files ###
+
+The environment variables that are listed in the [secrets](#secrets)
+section below can have `_FILE` appended to them, and then the contents of the
+file can be used instead, this can be more useful when you store them in a
+`.env` file outside of docker:
+
+```yaml
+---
+secrets:
+  foundry_username:
+    environment: "FOUNDRY_USERNAME"
+  foundry_password:
+    environment: "FOUNDRY_PASSWORD"
+
+services:
+  foundry:
+    image: ghcr.io/felddy/foundryvtt:14
+    hostname: my_foundry_host
+    volumes:
+      - type: bind
+        source: <your_data_dir>
+        target: /data
+    environment:
+      - FOUNDRY_USERNAME_FILE="/run/secrets/foundry_username"
+      - FOUNDRY_PASSWORD_FILE="/run/secrets/foundry_password"
+    ports:
+      - target: 30000
+        published: 30000
+        protocol: tcp
+    secrets:
+      - foundry_username
+      - foundry_password
+```
+
 
 ## Updating your container ##
 

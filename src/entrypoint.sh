@@ -144,6 +144,56 @@ if [[ ${image_version%.*} != "${FOUNDRY_VERSION}" ]]; then
   log_warn "The container may not function properly with this version mismatch."
 fi
 
+# Check if running docker secrets
+if [[ "${FOUNDRY_ADMIN_KEY_FILE:-}" ]]; then
+  if [ -f "${FOUNDRY_ADMIN_KEY_FILE}" ]; then
+    log_debug "Loading FOUNDRY_ADMIN_KEY from file"
+    FOUNDRY_ADMIN_KEY="$(<${FOUNDRY_ADMIN_KEY_FILE})"
+  else
+    log_warn "Trying to load FOUNDRY_ADMIN_KEY from file but it does not exist"
+  fi
+fi
+if [[ "${FOUNDRY_LICENSE_KEY_FILE:-}" ]]; then
+  if [ -f "${FOUNDRY_LICENSE_KEY_FILE}" ]; then
+    log_debug "Loading FOUNDRY_LICENSE_KEY from file"
+    FOUNDRY_LICENSE_KEY="$(<${FOUNDRY_LICENSE_KEY_FILE})"
+  else
+    log_warn "Trying to load FOUNDRY_LICENSE_KEY from file but it does not exist"
+  fi
+fi
+if [[ "${FOUNDRY_PASSWORD_FILE:-}" ]]; then
+  if [ -f "${FOUNDRY_PASSWORD_FILE}" ]; then
+    log_debug "Loading FOUNDRY_PASSWORD from file"
+    FOUNDRY_PASSWORD="$(<${FOUNDRY_PASSWORD_FILE})"
+  else
+    log_warn "Trying to load FOUNDRY_PASSWORD from file but it does not exist"
+  fi
+fi
+if [[ "${FOUNDRY_PASSWORD_SALT_FILE:-}" ]]; then
+  if [ -f "${FOUNDRY_PASSWORD_SALT_FILE}" ]; then
+    log_debug "Loading FOUNDRY_PASSWORD_SALT from file"
+    FOUNDRY_PASSWORD_SALT="$(<${FOUNDRY_PASSWORD_SALT_FILE})"
+  else
+    log_warn "Trying to load FOUNDRY_PASSWORD_SALT from file but it does not exist"
+  fi
+fi
+if [[ "${FOUNDRY_SERVICE_KEY_FILE:-}" ]]; then
+  if [ -f "${FOUNDRY_SERVICE_KEY_FILE}" ]; then
+    log_debug "Loading FOUNDRY_SERVICE_KEY from file"
+    FOUNDRY_SERVICE_KEY="$(<${FOUNDRY_SERVICE_KEY_FILE})"
+  else
+    log_warn "Trying to load FOUNDRY_SERVICE_KEY from file but it does not exist"
+  fi
+fi
+if [[ "${FOUNDRY_USERNAME_FILE:-}" ]]; then
+  if [ -f "${FOUNDRY_USERNAME_FILE}" ]; then
+    log_debug "Loading FOUNDRY_USERNAME from file"
+    FOUNDRY_USERNAME="$(<${FOUNDRY_USERNAME_FILE})"
+  else
+    log_warn "Trying to load FOUNDRY_USERNAME from file but it does not exist"
+  fi
+fi
+
 # Check for raft secrets
 if [ -f "${secret_file}" ]; then
   log "Reading configured secrets from: ${secret_file}"
