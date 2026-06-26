@@ -99,9 +99,9 @@ guides show how to run it well on a given platform.
 
 | Guide | Description |
 | ----- | ----------- |
-| [Docker Compose](docs/deployment/docker-compose.md) | Single-host setup with the image, configuration, storage, and ports in one file. |
-| [Podman](docs/deployment/podman.md) | Daemonless and rootless, optionally managed by `systemd`. |
 | [Kubernetes](docs/deployment/kubernetes/README.md) | Cluster deployment, including running multiple Foundry instances. |
+| [Podman](docs/deployment/podman.md) | Daemonless and rootless, optionally managed by `systemd`. |
+| [Docker Compose](docs/deployment/docker-compose.md) | Single-host setup with the image, configuration, storage, and ports in one file. |
 | [Reverse proxy with Caddy](docs/deployment/reverse-proxy-caddy/README.md) | Automatic HTTPS in front of the server. |
 | [Cloudflare Tunnel](docs/deployment/cloudflare-tunnel/README.md) | Public access without port forwarding or NAT. |
 
