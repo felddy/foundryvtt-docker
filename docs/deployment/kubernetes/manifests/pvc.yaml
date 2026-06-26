@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: foundryvtt-data
+  namespace: foundryvtt
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 16Gi
+  # Omit storageClassName to use the cluster default, or set one explicitly:
+  # storageClassName: standard

@@ -1,0 +1,57 @@
+---
+services:
+  foundry:
+    image: ghcr.io/felddy/foundryvtt:{{ major_version }}
+    hostname: my_foundry_host
+    environment:
+      - FOUNDRY_HOSTNAME=<vtt.example.com>
+      - FOUNDRY_PROXY_SSL=true
+      - FOUNDRY_TELEMETRY=true
+    volumes:
+      - type: bind
+        source: ./volumes/foundry_data
+        target: /data
+    secrets:
+      - source: foundry_secrets
+        target: config.json
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    depends_on:
+      - foundry
+    environment:
+      - SITE_ADDRESS=<vtt.example.com>
+    ports:
+      # HTTP, used for ACME challenges and redirecting to HTTPS.
+      - target: 80
+        published: 80
+        protocol: tcp
+      # HTTPS.
+      - target: 443
+        published: 443
+        protocol: tcp
+      # HTTPS over HTTP/3 (QUIC).
+      - target: 443
+        published: 443
+        protocol: udp
+    volumes:
+      - type: bind
+        source: ./Caddyfile
+        target: /etc/caddy/Caddyfile
+        read_only: true
+      - type: volume
+        source: caddy_data
+        target: /data
+      - type: volume
+        source: caddy_config
+        target: /config
+    restart: unless-stopped
+
+volumes:
+  caddy_config:
+  caddy_data:
+
+secrets:
+  foundry_secrets:
+    file: foundry_secrets.json

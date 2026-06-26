@@ -205,7 +205,7 @@ repos:
         name: render-docs-check
         language: system
         entry: ./render-docs-check
-        files: ^(README\.md|README\.md\.j2|src/version\.txt)$
+        files: ^(.*\.j2|docs/.*|README\.md|src/version\.txt)$
         pass_filenames: false
 
   # Terraform hooks

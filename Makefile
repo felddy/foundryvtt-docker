@@ -11,15 +11,20 @@ IMAGE := ghcr.io/felddy/foundryvtt
 REPO := felddy/foundryvtt-docker
 RULESET_DIR := .github/rulesets
 
-.PHONY: guard-version guard-gh guard-jq build test version github-output help release apply-ruleset export-ruleset
+.PHONY: guard-version guard-gh guard-jq build test version github-output help release apply-ruleset export-ruleset docs docs-check
 
 ## guard-version: fail loudly if the version source is missing or empty.
 guard-version:
 	@test -n "$(CONTAINER_VERSION)" || { echo "ERROR: src/version.txt missing or empty" >&2; exit 1; }
 
-## README.md: render the documentation from its template using the version.
-README.md: README.md.j2 src/version.txt guard-version
-	uv run --group dev render-docs README.md.j2 README.md $(CONTAINER_VERSION)
+## docs: render the README and every document under docs/ from its template.
+docs: guard-version
+	uv run --group dev render-docs --all $(CONTAINER_VERSION)
+
+## docs-check: verify every rendered document is in sync with its template.
+docs-check: guard-version
+	uv run --group dev render-docs --check $(CONTAINER_VERSION)
+
 ## build: build the container image tagged with the CONTAINER_VERSION.
 build: guard-version
 	docker buildx build --build-arg CONTAINER_VERSION=$(CONTAINER_VERSION) --build-arg FOUNDRY_VERSION=$(FOUNDRY_VERSION) --load --tag $(IMAGE):$(CONTAINER_VERSION) .
@@ -82,10 +87,11 @@ help:
 	@echo "Available targets:"
 	@echo "  apply-ruleset  Create/update the branch and tag protection rulesets (resolved by name)."
 	@echo "  build          Build the container image tagged with the CONTAINER_VERSION."
+	@echo "  docs           Render the README and all docs/ from their templates."
+	@echo "  docs-check     Verify every rendered document is in sync with its template."
 	@echo "  export-ruleset Overwrite the ruleset JSON files from the live rulesets."
 	@echo "  github-output  Print key=value lines for CI."
 	@echo "  help           Show this help message."
-	@echo "  README.md      Render README.md from README.md.j2 using the version."
 	@echo "  release        Bump VERSION, re-render docs, and commit (make release VERSION=x.y.z)."
 	@echo "  test           Run the test suite (uv run pytest tests/)."
 	@echo "  version        Print the derived CONTAINER_VERSION and FOUNDRY_VERSION."
@@ -94,6 +100,6 @@ help:
 release: guard-version
 	@test -n "$(VERSION)" || { echo "ERROR: VERSION is required (make release VERSION=x.y.z)" >&2; exit 1; }
 	./bump-version set $(VERSION)
-	$(MAKE) README.md
-	git add README.md
+	$(MAKE) docs
+	git add README.md docs
 	git commit --message "Render docs for $(VERSION)"

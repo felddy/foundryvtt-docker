@@ -1,22 +1,17 @@
 #!/usr/bin/env sh
 
-# render-docs-check: verify README.md is in sync with README.md.j2.
+# render-docs-check: verify every rendered document is in sync with its template.
 #
-# Renders README.md.j2 to a temporary file using the CONTAINER_VERSION derived
-# from src/version.txt, then performs a byte-for-byte comparison against the
-# committed README.md.  Exits 0 when they match.  Intended to run as a local
+# Derives the CONTAINER_VERSION from src/version.txt (the single source of
+# truth) and asks render-docs to re-render every '*.j2' template in the
+# repository in memory, comparing each against its committed output.  Exits 0
+# when everything matches; otherwise prints a unified diff for each stale file
+# and exits non-zero.  Nothing is written.  Intended to run as a local
 # pre-commit hook.
 
 set -eu
 
-TEMPLATE="README.md.j2"
 VERSION_FILE="src/version.txt"
-COMMITTED="README.md"
-
-# Create a temporary file for the rendered output and ensure it is always
-# cleaned up, regardless of how the script exits (success, diff, or failure).
-tmpfile=$(mktemp -t render-docs-check.XXXXXX)
-trap 'rm -f "$tmpfile"' EXIT INT TERM
 
 if [ ! -s "$VERSION_FILE" ]; then
   echo "ERROR: ${VERSION_FILE} is missing or empty." >&2
@@ -26,21 +21,6 @@ fi
 # Derive CONTAINER_VERSION from the single source of truth (whitespace trimmed).
 CONTAINER_VERSION=$(tr -d '[:space:]' < "$VERSION_FILE")
 
-# Render the template to the temp file.  On any render failure (missing or
-# unparseable template, non-zero render-docs exit) report and abort without
-# touching the committed README.md.
-if ! uv run --group dev render-docs "$TEMPLATE" "$tmpfile" "$CONTAINER_VERSION"; then
-  echo "ERROR: render-docs failed to render ${TEMPLATE}; ${COMMITTED} left unmodified." >&2
-  exit 1
-fi
-
-# Byte-for-byte comparison of the rendered output against the committed README.md.
-if cmp -s "$tmpfile" "$COMMITTED"; then
-  exit 0
-fi
-
-echo "ERROR: ${COMMITTED} is out of sync with ${TEMPLATE}." >&2
-echo "Regenerate it with 'make README.md' and commit the result." >&2
-echo "--- diff (committed ${COMMITTED} vs. freshly rendered) ---" >&2
-diff -u "$COMMITTED" "$tmpfile" >&2 || true
-exit 1
+# Render every template in memory and compare against the committed outputs.
+# render-docs prints diffs and exits non-zero when anything is stale.
+exec uv run --group dev render-docs --check "$CONTAINER_VERSION"
