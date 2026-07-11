@@ -19,7 +19,7 @@ COPY \
   package-lock.json \
   tsconfig.json \
   ./
-RUN npm install && npx tsc --version
+RUN npm ci && npx tsc --version
 COPY /src/*.ts src/
 RUN npx tsc
 RUN grep -l "#!" dist/*.js | xargs chmod a+x
@@ -51,7 +51,7 @@ RUN mkdir dist && touch dist/.placeholder
 RUN \
   --mount=type=secret,id=foundry_username,required=false \
   --mount=type=secret,id=foundry_password,required=false \
-  npm install && \
+  npm ci --omit=dev && \
   if [ -f /run/secrets/foundry_username ] && [ -f /run/secrets/foundry_password ]; then \
   ./authenticate.js "$(cat /run/secrets/foundry_username)" "$(cat /run/secrets/foundry_password)" cookiejar.json && \
   presigned_url=$(./get_release_url.js --retry 5 cookiejar.json "${FOUNDRY_VERSION}") && \
@@ -109,7 +109,7 @@ RUN mkdir -p resources /data \
   tzdata \
   unzip \
   && rm -rf /var/lib/apt/lists/* \
-  && npm install && echo ${CONTAINER_VERSION} > image_version.txt \
+  && npm ci --omit=dev && echo ${CONTAINER_VERSION} > image_version.txt \
   && npm uninstall -g npm \
   && rm -rf /usr/local/lib/node_modules/npm
 
