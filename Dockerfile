@@ -109,7 +109,7 @@ RUN mkdir -p resources /data \
   tzdata \
   unzip \
   && rm -rf /var/lib/apt/lists/* \
-  && npm install && echo ${CONTAINER_VERSION} > image_version.txt \
+  && npm install --omit=dev && echo ${CONTAINER_VERSION} > image_version.txt \
   && npm uninstall -g npm \
   && rm -rf /usr/local/lib/node_modules/npm
 
