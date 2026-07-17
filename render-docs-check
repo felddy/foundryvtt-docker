@@ -29,7 +29,7 @@ CONTAINER_VERSION=$(tr -d '[:space:]' < "$VERSION_FILE")
 # Render the template to the temp file.  On any render failure (missing or
 # unparseable template, non-zero render-docs exit) report and abort without
 # touching the committed README.md.
-if ! uv run --group dev render-docs "$TEMPLATE" "$tmpfile" "$CONTAINER_VERSION"; then
+if ! uv run --group dev python tools/render_docs.py "$TEMPLATE" "$tmpfile" "$CONTAINER_VERSION"; then
   echo "ERROR: render-docs failed to render ${TEMPLATE}; ${COMMITTED} left unmodified." >&2
   exit 1
 fi
