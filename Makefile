@@ -19,7 +19,7 @@ guard-version:
 
 ## README.md: render the documentation from its template using the version.
 README.md: README.md.j2 src/version.txt guard-version
-	uv run --group dev render-docs README.md.j2 README.md $(CONTAINER_VERSION)
+	uv run --group dev python tools/render_docs.py README.md.j2 README.md $(CONTAINER_VERSION)
 ## build: build the container image tagged with the CONTAINER_VERSION.
 build: guard-version
 	docker buildx build --build-arg CONTAINER_VERSION=$(CONTAINER_VERSION) --build-arg FOUNDRY_VERSION=$(FOUNDRY_VERSION) --load --tag $(IMAGE):$(CONTAINER_VERSION) .

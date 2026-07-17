@@ -14,7 +14,7 @@ def main() -> None:
     """Render a template to an output file from command-line arguments."""
     if len(sys.argv) != 4:
         print(
-            "usage: render-docs <template.j2> <output> <container_version>",
+            "usage: render_docs.py <template.j2> <output> <container_version>",
             file=sys.stderr,
         )
         sys.exit(1)
