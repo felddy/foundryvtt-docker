@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+
+# render-docs-update: regenerate README.md from README.md.j2.
+#
+# Renders the template in place using the CONTAINER_VERSION derived from
+# src/version.txt.  Equivalent to `make README.md` without requiring make;
+# used by Renovate's postUpgradeTasks so the rendered README.md lands in
+# the same commit as the version bump.
+
+set -eu
+
+TEMPLATE="README.md.j2"
+VERSION_FILE="src/version.txt"
+OUTPUT="README.md"
+
+if [ ! -s "$TEMPLATE" ]; then
+  echo "ERROR: ${TEMPLATE} is missing or empty." >&2
+  exit 1
+fi
+if ! command -v uv > /dev/null 2>&1; then
+  echo "ERROR: uv is required but not on the PATH.  Renovate must run the" >&2
+  echo "full image variant (renovate-version: NN-full), which ships uv." >&2
+  exit 1
+fi
+
+if [ ! -s "$VERSION_FILE" ]; then
+  echo "ERROR: ${VERSION_FILE} is missing or empty." >&2
+  exit 1
+fi
+
+# Derive CONTAINER_VERSION from the single source of truth (whitespace trimmed).
+CONTAINER_VERSION=$(tr -d '[:space:]' < "$VERSION_FILE")
+
+# Render to a sibling temp file so a failed render leaves README.md
+# untouched and the final mv is an atomic same-directory rename.
+tmpfile=$(mktemp "${OUTPUT}.XXXXXX")
+trap 'rm -f "$tmpfile"' EXIT INT TERM
+
+if ! uv run --group dev python tools/render_docs.py "$TEMPLATE" "$tmpfile" "$CONTAINER_VERSION"; then
+  echo "ERROR: render-docs-update failed to render ${TEMPLATE}; ${OUTPUT} left unmodified." >&2
+  exit 1
+fi
+
+mv "$tmpfile" "$OUTPUT"

@@ -40,8 +40,17 @@
       "matchDatasources": [
         "custom.foundryvtt"
       ],
+      "postUpgradeTasks": {
+        "commands": [
+          "sh render-docs-update"
+        ],
+        "executionMode": "branch",
+        "fileFilters": [
+          "README.md"
+        ]
+      },
       "prBodyNotes": [
-        "The `renovate-readme-sync` workflow re-renders `README.md` from `README.md.j2` on this branch automatically."
+        "`README.md` was re-rendered from `README.md.j2` as part of this update."
       ]
     }
   ]
