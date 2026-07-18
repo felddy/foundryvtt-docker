@@ -1,0 +1,48 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "customDatasources": {
+    "foundryvtt": {
+      "defaultRegistryUrlTemplate": "https://api.github.com/repos/foundryvtt/foundryvtt/milestones?state=closed&per_page=100&sort=due_on&direction=desc",
+      "format": "json",
+      "transformTemplates": [
+        "{ \"releases\": [$[state = \"closed\" and $contains(title, \"Stable\")].{ \"version\": $match(title, /- (\\d+\\.\\d+)$/).groups[0] & \".0\", \"releaseTimestamp\": updated_at, \"changelogUrl\": \"https://foundryvtt.com/releases/\" & $match(title, /- (\\d+\\.\\d+)$/).groups[0] }[version != \".0\"]], \"homepage\": \"https://foundryvtt.com\", \"sourceUrl\": \"https://github.com/foundryvtt/foundryvtt\" }"
+      ]
+    }
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "datasourceTemplate": "custom.foundryvtt",
+      "depNameTemplate": "foundryvtt",
+      "description": "Track FoundryVTT stable releases via src/version.txt",
+      "managerFilePatterns": [
+        "/^src/version\\.txt$/"
+      ],
+      "matchStrings": [
+        "^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\s*$"
+      ],
+      "versioningTemplate": "semver"
+    }
+  ],
+  "enabledManagers": [
+    "custom.regex"
+  ],
+  "extends": [
+    "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "commitMessageTopic": "FoundryVTT",
+      "labels": [
+        "bot :robot:",
+        "dependencies :game_die:"
+      ],
+      "matchDatasources": [
+        "custom.foundryvtt"
+      ],
+      "prBodyNotes": [
+        "The `renovate-readme-sync` workflow re-renders `README.md` from `README.md.j2` on this branch automatically."
+      ]
+    }
+  ]
+}

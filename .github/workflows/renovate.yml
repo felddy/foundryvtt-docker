@@ -1,0 +1,81 @@
+---
+name: Renovate
+
+on: # yamllint disable-line rule:truthy
+  schedule:
+    - cron: 38 */6 * * * # four times a day, offset from the build cron
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        default: false
+        description: Log what would happen without creating branches or PRs
+        required: false
+        type: boolean
+      log-level:
+        default: info
+        description: Renovate log level
+        options:
+          - debug
+          - info
+        required: false
+        type: choice
+
+defaults:
+  run:
+    shell: bash -Eueo pipefail -x {0}
+
+concurrency:
+  # Only one Renovate run at a time; a second scheduled run would race the
+  # first on branch creation and rebasing.
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    name: Run Diagnostics
+    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+
+  renovate:
+    needs:
+      - diagnostics
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # tag=v2.20.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            ghcr.io:443
+            github.com:443
+            objects.githubusercontent.com:443
+            pkg-containers.githubusercontent.com:443
+      - name: Generate a GitHub App installation token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # tag=v3.2.0
+        with:
+          client-id: ${{ vars.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+      - name: Run Renovate
+        uses: renovatebot/github-action@22e0a16091fc706b04affe6ae53d5e3358ac4023 # tag=v46.1.19
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+        env:
+          LOG_LEVEL: ${{ inputs.log-level || 'info' }}
+          # Only operate on this repository; the repository-level config at
+          # .github/renovate.json controls what gets updated.
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          # The config is committed, so skip onboarding PRs.
+          RENOVATE_ONBOARDING: "false"
+          # Commit via the GitHub API as the App instead of `git push`.  This
+          # produces GitHub-verified (signed) commits and makes the commit
+          # author identical to the one used by the renovate-readme-sync
+          # workflow, so Renovate does not treat the rendered README commit
+          # as a user modification and keeps rebasing its branches.
+          RENOVATE_PLATFORM_COMMIT: enabled
+          RENOVATE_DRY_RUN: ${{ inputs.dry-run == true && 'full' || null }}
