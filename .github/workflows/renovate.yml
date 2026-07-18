@@ -49,10 +49,13 @@ jobs:
           egress-policy: block
           allowed-endpoints: >
             api.github.com:443
+            files.pythonhosted.org:443
             ghcr.io:443
             github.com:443
             objects.githubusercontent.com:443
             pkg-containers.githubusercontent.com:443
+            pypi.org:443
+            release-assets.githubusercontent.com:443
       - name: Generate a GitHub App installation token
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # tag=v3.2.0
@@ -65,6 +68,9 @@ jobs:
         uses: renovatebot/github-action@22e0a16091fc706b04affe6ae53d5e3358ac4023 # tag=v46.1.19
         with:
           token: ${{ steps.app-token.outputs.token }}
+          # The full image ships python and uv, which the postUpgradeTasks
+          # render of README.md needs (the slim default image has neither).
+          renovate-version: 46-full
         env:
           LOG_LEVEL: ${{ inputs.log-level || 'info' }}
           # Only operate on this repository; the repository-level config at
@@ -72,6 +78,10 @@ jobs:
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           # The config is committed, so skip onboarding PRs.
           RENOVATE_ONBOARDING: "false"
+          # postUpgradeTasks commands are opt-in; only the README render
+          # script may run.  This is a global (bot admin) option, so it
+          # lives here rather than in .github/renovate.json.
+          RENOVATE_ALLOWED_COMMANDS: '["^sh render-docs-update$"]'
           # Commit via the GitHub API as the App instead of `git push`.  This
           # produces GitHub-verified (signed) commits and makes the commit
           # author identical to the one used by the renovate-readme-sync
