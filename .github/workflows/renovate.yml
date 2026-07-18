@@ -70,7 +70,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           # The full image ships python and uv, which the postUpgradeTasks
           # render of README.md needs (the slim default image has neither).
-          renovate-version: 46-full
+          renovate-version: full
         env:
           LOG_LEVEL: ${{ inputs.log-level || 'info' }}
           # Only operate on this repository; the repository-level config at
