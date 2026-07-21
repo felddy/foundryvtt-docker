@@ -87,4 +87,4 @@ jobs:
           # this workflow.
           permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
       - name: Apply suitable labels to a pull request
-        uses: actions/labeler@v6
+        uses: actions/labeler@v7
