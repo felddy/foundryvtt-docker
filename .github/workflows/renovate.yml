@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # tag=v2.20.0
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # tag=v2.21.0
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -65,7 +65,7 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
       - name: Run Renovate
-        uses: renovatebot/github-action@22e0a16091fc706b04affe6ae53d5e3358ac4023 # tag=v46.1.19
+        uses: renovatebot/github-action@e09d604f8f803bb527bd8321ed5be06c460b8682 # tag=v46.2.2
         with:
           token: ${{ steps.app-token.outputs.token }}
           # The full image ships python and uv, which the postUpgradeTasks
