@@ -3,10 +3,41 @@
 ARG CONTAINER_VERSION
 ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_VERSION
-ARG NODE_IMAGE_VERSION=24-trixie-slim
+# Base image coordinates.  DEBIAN_SUITE is the single source of truth: it
+# selects the node image variant below and the Debian archives tracked by the
+# archive-state stage.  Global ARG defaults are expanded against previously
+# declared global ARGs, so the declaration order here matters.
+ARG NODE_MAJOR_VERSION=24
+ARG DEBIAN_SUITE=trixie
+ARG NODE_IMAGE_VERSION=${NODE_MAJOR_VERSION}-${DEBIAN_SUITE}-slim
 ARG NPM_VERSION=11.12.1
 
-FROM public.ecr.aws/docker/library/node:${NODE_IMAGE_VERSION} AS base
+# This stage exists solely to track the state of the Debian archives that carry
+# security fixes.  BuildKit revalidates remote ADD sources on every build and
+# derives their cache key from the fetched content, so patched-base below - and
+# everything downstream of it - is invalidated exactly when these archives are
+# republished.  Without this, the RUN in patched-base would be cached
+# indefinitely and would silently stop applying new security updates.
+#
+# The InRelease files are architecture independent (~45 KB each) and are only
+# bind-mounted, so nothing from this stage is committed to any image layer.
+FROM scratch AS archive-state
+ARG DEBIAN_SUITE
+ADD https://deb.debian.org/debian-security/dists/${DEBIAN_SUITE}-security/InRelease /security
+ADD https://deb.debian.org/debian/dists/${DEBIAN_SUITE}-updates/InRelease /updates
+
+# Apply Debian security updates for every downstream stage.  The upstream node
+# image's Debian rootfs is built from the main archive only, so fixes published
+# to <suite>-security are absent from it until a Debian point release folds
+# them into main.  This affects the shipped image and the stages that handle
+# credentials and untrusted downloads alike.
+FROM public.ecr.aws/docker/library/node:${NODE_IMAGE_VERSION} AS patched-base
+RUN --mount=type=bind,from=archive-state,target=/run/archive-state \
+  apt-get update \
+  && apt-get upgrade -y --with-new-pkgs \
+  && rm -rf /var/lib/apt/lists/*
+
+FROM patched-base AS base
 ARG NPM_VERSION
 RUN npm install -g npm@${NPM_VERSION}
 
