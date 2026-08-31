@@ -77,14 +77,16 @@ fi
 # Space separated list of regex rules which environment variables must meet to
 # be carried over to the new environment, which Node/Foundry will be running in.
 ENV_VAR_PASSLIST_REGEX='^HOME$ ^NODE_.+$ ^TZ$ .+_(PROXY|proxy)$'
-# Build list of environment variables to carry over into a clean environment
-ENV_VAR_CARRY_LIST=''
+# Build list of environment variables to carry over into a clean environment.
+# An array keeps values containing spaces (e.g. NODE_OPTIONS="--a --b") as
+# single NAME=VALUE arguments to env.
+ENV_VAR_CARRY=()
 # shellcheck disable=SC3045
 # busybox read supports the -rd option
 while IFS='=' read -rd '' ENV_VAR_NAME ENV_VAR_VALUE; do
   for VAR_REGEX in $ENV_VAR_PASSLIST_REGEX; do
     if [[ $ENV_VAR_NAME =~ ${VAR_REGEX} ]]; then
-      ENV_VAR_CARRY_LIST="${ENV_VAR_CARRY_LIST} ${ENV_VAR_NAME}=${ENV_VAR_VALUE}"
+      ENV_VAR_CARRY+=("${ENV_VAR_NAME}=${ENV_VAR_VALUE}")
       break
     fi
   done
@@ -92,6 +94,5 @@ done < <(env -0)
 
 # Exec node with clean environment to prevent credential leaks
 log "Starting Foundry Virtual Tabletop."
-# We want ENV_VAR_CARRY_LIST to word split
-# shellcheck disable=SC2086
-exec env -i $ENV_VAR_CARRY_LIST /usr/local/bin/node "$@" || log_error "Exec failed with code $?"
+# ${arr[@]+...} guards the empty-array case under `set -o nounset` on bash <4.4
+exec env -i ${ENV_VAR_CARRY[@]+"${ENV_VAR_CARRY[@]}"} /usr/local/bin/node "$@" || log_error "Exec failed with code $?"
