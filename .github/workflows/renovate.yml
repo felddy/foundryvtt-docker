@@ -65,7 +65,7 @@ jobs:
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
       - name: Run Renovate
-        uses: renovatebot/github-action@5402b206248e5a8c8427a15102702eb9c1793efc # tag=v46.2.4
+        uses: renovatebot/github-action@39b914146caeff8cd512e61c8992f1d5913af85c # tag=v46.2.5
         with:
           token: ${{ steps.app-token.outputs.token }}
           # The full image ships python and uv, which the postUpgradeTasks
