@@ -1,0 +1,93 @@
+---
+services:
+  foundry:
+    image: ghcr.io/felddy/foundryvtt:release
+    hostname: my_foundry_host
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data
+    environment:
+      - FOUNDRY_PASSWORD=<your_password>
+      - FOUNDRY_USERNAME=<your_username>
+      - FOUNDRY_ADMIN_KEY=atropos
+      - FOUNDRY_TELEMETRY=true
+      - FOUNDRY_HOSTNAME=foundry.example.com
+      - FOUNDRY_PROXY_SSL=true
+      - FOUNDRY_PROXY_PORT=443
+      # - CONTAINER_CACHE=/data/container_cache
+      # - CONTAINER_CACHE_SIZE=
+      # - CONTAINER_PATCHES=/data/container_patches
+      # - CONTAINER_PATCH_URLS=
+      #   https://raw.githubusercontent.com/felddy/...
+      #   https://raw.githubusercontent.com/felddy/...
+      # - CONTAINER_PRESERVE_CONFIG=false
+      # - CONTAINER_UMASK=
+      # - CONTAINER_URL_FETCH_RETRY=0
+      # - CONTAINER_VERBOSE=true
+      # - FOUNDRY_AWS_CONFIG=
+      # - FOUNDRY_COMPRESS_WEBSOCKET=true
+      # - FOUNDRY_CSS_THEME=dark
+      # - |
+      #   FOUNDRY_DEMO_CONFIG={
+      #   "worldName": "demo-world",
+      #   "sourceZip": "/data/demo-world.zip",
+      #   "resetSeconds": 3600
+      #   }
+      # - FOUNDRY_DELETE_NEDB=false
+      # - FOUNDRY_HOT_RELOAD=false
+      # - FOUNDRY_IP_DISCOVERY=
+      # - FOUNDRY_LANGUAGE=
+      # - FOUNDRY_LICENSE_KEY=
+      # - FOUNDRY_LOCAL_HOSTNAME=
+      # - FOUNDRY_LOG_SIZE=
+      # - FOUNDRY_MAX_LOGS=
+      # - FOUNDRY_MINIFY_STATIC_FILES=
+      # - FOUNDRY_NO_BACKUPS=false
+      # - FOUNDRY_PASSWORD_SALT=
+      # - FOUNDRY_PROTOCOL=
+      # - FOUNDRY_RELEASE_URL=
+      # - FOUNDRY_ROUTE_PREFIX=
+      # - FOUNDRY_SERVICE_CONFIG=
+      # - FOUNDRY_SERVICE_KEY=
+      # - FOUNDRY_SSL_CERT=
+      # - FOUNDRY_SSL_KEY=
+      # - FOUNDRY_TEMP_DIR=
+      # - FOUNDRY_UNIX_SOCKET=
+      # - FOUNDRY_UPNP=false
+      # - FOUNDRY_UPNP_LEASE_DURATION=
+      # - FOUNDRY_VERSION=<major.build>
+      # - FOUNDRY_WORLD=
+    expose:
+      - "30000"
+    networks:
+      - internal
+    restart: "unless-stopped"
+
+  nginx:
+    image: nginx:stable-alpine
+    restart: "unless-stopped"
+    depends_on:
+      - foundry
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/letsencrypt:ro
+      - ./nginx/www:/var/www/certbot:ro
+    networks:
+      - internal
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./nginx/certs:/etc/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;"
+    networks:
+      - internal
+
+networks:
+  internal:
