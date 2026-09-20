@@ -1,0 +1,27 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: foundryvtt-staging
+resources:
+  - ../../manifests
+patches:
+  # Every instance must present distinct hostnames: the container hostname
+  # (license binding), FOUNDRY_HOSTNAME (invitation links), and the HTTPRoute
+  # hostname (routing).
+  - patch: |
+      - op: replace
+        path: /spec/template/spec/hostname
+        value: foundryvtt-staging
+      - op: replace
+        path: /spec/template/spec/containers/0/env/1/value
+        value: vtt-staging.example.com
+    target:
+      kind: Deployment
+      name: foundryvtt
+  - patch: |
+      - op: replace
+        path: /spec/hostnames/0
+        value: vtt-staging.example.com
+    target:
+      kind: HTTPRoute
+      name: foundryvtt

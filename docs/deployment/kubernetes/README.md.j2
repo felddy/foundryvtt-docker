@@ -1,22 +1,40 @@
 # Deploying on Kubernetes #
 
 This guide runs Foundry Virtual Tabletop on a Kubernetes cluster using a small
-set of plain manifests.  They are intentionally generic — no specific ingress
+set of plain manifests.  They are intentionally generic — no specific gateway
 controller, storage provider, or secrets tooling is assumed — so you can adapt
 them to your environment.
 
-The manifests live in [`manifests/`](manifests), form a ready-to-use
-[Kustomize] base, and are pinned to the major image tag
-`:{{ major_version }}`:
+The deployment is built up in stages, and every stage follows the same
+rhythm: a diagram of the target, the files involved, the steps to apply them,
+and the reasoning behind the choices.  Each stage is a complete, working
+system — stop whenever you have what you need:
 
-| File | Resource | Purpose |
-| ---- | -------- | ------- |
-| [`namespace.yaml`](manifests/namespace.yaml) | `Namespace` | Isolates the instance. |
-| [`pvc.yaml`](manifests/pvc.yaml) | `PersistentVolumeClaim` | Persistent `/data` storage. |
-| [`secret.yaml`](manifests/secret.yaml) | `Secret` | Credentials as a `config.json`. |
-| [`deployment.yaml`](manifests/deployment.yaml) | `Deployment` | The Foundry pod. |
-| [`service.yaml`](manifests/service.yaml) | `Service` | Cluster-internal endpoint. |
-| [`httproute.yaml`](manifests/httproute.yaml) | `HTTPRoute` | External HTTPS access via the [Gateway API]. |
+1. [Deploy a single instance](#deploy-a-single-instance) — the
+   [`manifests/`](manifests) base.
+1. [Add a staging instance](#add-a-staging-instance) — a thin overlay over
+   the same base.
+1. [Share the download cache](#share-the-download-cache) — every instance
+   downloads a release once, together.
+1. [Publish through a Cloudflare Tunnel](#publish-through-a-cloudflare-tunnel)
+   — the whole system on the internet, with no open ports.
+
+## Prerequisites ##
+
+- A Kubernetes cluster and `kubectl` configured to reach it.
+- A default `StorageClass` (or edit [`pvc.yaml`](manifests/pvc.yaml)).
+- A [Gateway API] implementation with a `Gateway` you can attach routes to,
+  plus DNS, if you want external access.  (The
+  [tunnel stage](#publish-through-a-cloudflare-tunnel) provides one.)
+- A [foundryvtt.com](https://foundryvtt.com/auth/register/) account with a
+  purchased software license.
+
+Stages that need anything more say so at the top.
+
+## Deploy a single instance ##
+
+One namespace holding one Foundry server: persistent data, credentials from a
+secret, and HTTPS routed in through your cluster's gateway.
 
 ```mermaid
 graph LR
@@ -29,16 +47,21 @@ graph LR
     end
 ```
 
-## Prerequisites ##
+### Files ###
 
-- A Kubernetes cluster and `kubectl` configured to reach it.
-- A default `StorageClass` (or edit [`pvc.yaml`](manifests/pvc.yaml)).
-- A [Gateway API] implementation with a `Gateway` you can attach routes to,
-  plus DNS, if you want external access.
-- A [foundryvtt.com](https://foundryvtt.com/auth/register/) account with a
-  purchased software license.
+Everything lives in [`manifests/`](manifests), a ready-to-use [Kustomize]
+base pinned to the major image tag `:{{ major_version }}`:
 
-## Deploy ##
+| File | Resource | Purpose |
+| ---- | -------- | ------- |
+| [`namespace.yaml`](manifests/namespace.yaml) | `Namespace` | Isolates the instance. |
+| [`pvc.yaml`](manifests/pvc.yaml) | `PersistentVolumeClaim` | Persistent `/data` storage. |
+| [`secret.yaml`](manifests/secret.yaml) | `Secret` | Credentials as a `config.json`. |
+| [`deployment.yaml`](manifests/deployment.yaml) | `Deployment` | The Foundry pod. |
+| [`service.yaml`](manifests/service.yaml) | `Service` | Cluster-internal endpoint. |
+| [`httproute.yaml`](manifests/httproute.yaml) | `HTTPRoute` | External HTTPS access via the [Gateway API]. |
+
+### Steps ###
 
 1. Edit [`secret.yaml`](manifests/secret.yaml) with your credentials, and set
    `FOUNDRY_HOSTNAME` (in [`deployment.yaml`](manifests/deployment.yaml)) and
@@ -67,9 +90,7 @@ graph LR
    Then open [http://localhost:30000](http://localhost:30000).  Once your
    gateway and DNS are in place, browse to your configured hostname instead.
 
-## How it works ##
-
-A few choices are worth understanding before you adapt these.
+### How it works ###
 
 - **Stable hostname for licensing.** Foundry binds its license to the container
   hostname.  The Deployment sets `hostname: foundryvtt` so the binding survives
@@ -80,8 +101,8 @@ A few choices are worth understanding before you adapt these.
   `ReadWriteOnce` volume and is not designed to run as multiple concurrent
   replicas.  `replicas: 1` plus `strategy: Recreate` guarantees the old pod
   releases the volume before the new pod claims it.  (To run *several* games,
-  see [running multiple instances](#running-multiple-foundry-instances) — each
-  is its own single-replica deployment.)
+  see [adding a staging instance](#add-a-staging-instance) — each is its own
+  single-replica deployment.)
 
 - **Hardened, read-only root filesystem.** The pod runs as non-root
   (UID/GID `1000`), drops all capabilities, and mounts its root filesystem
@@ -110,75 +131,12 @@ A few choices are worth understanding before you adapt these.
 > [`httproute.yaml`](manifests/httproute.yaml) for an `Ingress` routing your
 > host to the `foundryvtt` Service on port `80`.  Nothing else changes.
 
-## Running multiple Foundry instances ##
+## Add a staging instance ##
 
-A common need is hosting more than one game at once — for example a stable
-"production" table and a "staging" instance for testing modules.  Run each as an
-independent, single-replica deployment.  Each instance needs:
-
-- **its own namespace** (or a unique name prefix), so the resources do not
-  collide;
-- **its own `PersistentVolumeClaim`**, since data must not be shared;
-- **its own `Secret`**; and
-- **a unique container `hostname`, `FOUNDRY_HOSTNAME`, and `HTTPRoute`
-  hostname.**  Foundry binds each license to the container hostname, so every
-  instance needs its own stable, distinct value.
-
-The simplest approach is to deploy the same manifests into a second namespace
-with different values:
-
-```console
-kubectl apply -k manifests/    # namespace: foundryvtt        -> vtt.example.com
-# ...copy and edit for a second instance...
-kubectl apply -k staging/      # namespace: foundryvtt-staging -> vtt-staging.example.com
-```
-
-To avoid copy-pasting, layer the differences with [Kustomize].  Treat
-[`manifests/`](manifests) as a `base` and add a small overlay per instance that
-patches only what differs — the namespace, the `FOUNDRY_HOSTNAME`, the
-`HTTPRoute` hostname, and optionally the image tag:
-
-```yaml
-# overlays/staging/kustomization.yaml
----
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: foundryvtt-staging
-resources:
-  - ../../manifests
-patches:
-  - patch: |
-      - op: replace
-        path: /spec/template/spec/hostname
-        value: foundryvtt-staging
-      - op: replace
-        path: /spec/template/spec/containers/0/env/1/value
-        value: vtt-staging.example.com
-    target:
-      kind: Deployment
-      name: foundryvtt
-  - patch: |
-      - op: replace
-        path: /spec/hostnames/0
-        value: vtt-staging.example.com
-    target:
-      kind: HTTPRoute
-      name: foundryvtt
-```
-
-Apply an overlay with `kubectl apply -k overlays/staging/`.  This is exactly how
-the maintainer runs production and staging side by side: one shared base, a thin
-overlay per instance that changes the hostnames (and, for staging, tracks a
-newer image tag).
-
-> [!NOTE]
-> Different instances can run different Foundry versions.  Pin each overlay's
-> image tag — for example `:{{ foundry_version }}` for an exact minor release —
-> and set the `FOUNDRY_VERSION` environment variable to match the version you
-> want installed.
-
-The resulting topology, with the optional shared download cache described
-below:
+A second, independent Foundry server — for example a stable "production"
+table and a "staging" instance for testing modules — built from the same base
+with a thin overlay.  This is exactly how the maintainer runs production and
+staging side by side.
 
 ```mermaid
 graph LR
@@ -188,60 +146,150 @@ graph LR
     subgraph staging ["namespace: foundryvtt-staging"]
         SvcS("Service") --> PodS("Foundry pod") --> PVCS[("PVC /data")]
     end
+```
+
+### Files ###
+
+The base is untouched; each additional instance is one small overlay beside
+it:
+
+| File | Resource | Purpose |
+| ---- | -------- | ------- |
+| [`overlays/staging/kustomization.yaml`](overlays/staging/kustomization.yaml) | `Kustomization` | Renames the namespace and hostnames over the base; optionally pins a different image tag. |
+
+```yaml
+{% include 'overlays/staging/kustomization.yaml' %}
+```
+
+### Steps ###
+
+1. Copy [`overlays/staging/`](overlays/staging) and replace the hostnames
+   with your own.
+
+1. Apply the overlay:
+
+    ```console
+    kubectl apply -k overlays/staging/
+    ```
+
+1. Watch it start, exactly as in the first stage:
+
+    ```console
+    kubectl --namespace foundryvtt-staging rollout status deployment/foundryvtt
+    ```
+
+### How it works ###
+
+- **One base, thin overlays.** Every instance shares the hardened manifests;
+  an overlay patches only what differs.  A fix to the base reaches every
+  instance on its next apply.
+
+- **Everything that must be unique, is.** The namespace keeps resources from
+  colliding, each instance gets its own `PersistentVolumeClaim` (game data is
+  never shared) and its own `Secret`, and the three hostnames — container
+  `hostname` (license binding), `FOUNDRY_HOSTNAME` (invitation links), and the
+  `HTTPRoute` hostname (routing) — are distinct and stable per instance.
+
+> [!NOTE]
+> Different instances can run different Foundry versions.  Pin each overlay's
+> image tag — for example `:{{ foundry_version }}` for an exact minor release —
+> and set the `FOUNDRY_VERSION` environment variable to match the version you
+> want installed.
+
+## Share the download cache ##
+
+One cache volume serving every instance, so each Foundry release is
+downloaded exactly once no matter how many instances want it.  This stage
+needs a `StorageClass` capable of `ReadWriteMany` (NFS, CephFS, EFS, Azure
+Files, and similar).
+
+```mermaid
+graph LR
+    subgraph prod ["namespace: foundryvtt"]
+        PodP("Foundry pod") --> PVCP[("PVC /data")]
+    end
+    subgraph staging ["namespace: foundryvtt-staging"]
+        PodS("Foundry pod") --> PVCS[("PVC /data")]
+    end
     PodP & PodS -.-> Cache[("shared RWX volume<br>container cache")]
 ```
 
-### Sharing the download cache ###
+### Files ###
 
-Instances can share a single download cache, so each Foundry release is
-downloaded once no matter how many instances want it.  Simultaneous start-ups
-coordinate through the cache itself: one instance downloads while the others
-wait for the finished file, a crashed downloader's claim is taken over, and
-different versions never collide.
+Each instance adds a claim and a small Deployment patch to its overlay:
 
-Give each instance a `ReadWriteMany` volume backed by the *same underlying
-share* and point `CONTAINER_CACHE` at it:
+| File | Resource | Purpose |
+| ---- | -------- | ------- |
+| `cache-pvc.yaml` (one per instance) | `PersistentVolumeClaim` | `ReadWriteMany` claim onto one shared backing directory. |
+| additions to `overlays/*/kustomization.yaml` | `Kustomization` | Includes the claim and mounts the cache. |
 
-```yaml
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: foundryvtt-shared-cache
-spec:
-  accessModes: [ReadWriteMany]
-  storageClassName: <your-rwx-class>
-  resources:
-    requests:
-      storage: 5Gi
-```
+### Steps ###
 
-Mount it and redirect the cache in each instance's Deployment (or overlay):
+1. Create a `cache-pvc.yaml` in each instance's overlay:
 
-```yaml
-          env:
-            - name: CONTAINER_CACHE
-              value: /cache
-          volumeMounts:
-            - name: shared-cache
+    ```yaml
+    ---
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: foundryvtt-shared-cache
+    spec:
+      accessModes: [ReadWriteMany]
+      storageClassName: <your-rwx-class>
+      resources:
+        requests:
+          storage: 5Gi
+    ```
+
+1. In each overlay's `kustomization.yaml`, add the claim to `resources:` and
+   patch the Deployment to mount it and point `CONTAINER_CACHE` at it:
+
+    ```yaml
+      - patch: |
+          - op: add
+            path: /spec/template/spec/volumes/-
+            value:
+              name: shared-cache
+              persistentVolumeClaim:
+                claimName: foundryvtt-shared-cache
+          - op: add
+            path: /spec/template/spec/containers/0/volumeMounts/-
+            value:
+              name: shared-cache
               mountPath: /cache
-```
+          - op: replace
+            path: /spec/template/spec/containers/0/env/0/value
+            value: /cache
+        target:
+          kind: Deployment
+          name: foundryvtt
+    ```
+
+1. Re-apply each overlay.
+
+### How it works ###
+
+- **Start-ups coordinate through the cache itself.** One instance downloads a
+  release while the others wait for the finished file; a crashed downloader's
+  claim is taken over; different versions never collide.
+
+- **Namespaces don't share claims.** `PersistentVolumeClaim`s are namespaced,
+  so instances in different namespaces need their claims provisioned onto the
+  same backing directory — for example an NFS CSI storage class with a fixed
+  `subDir`, or static `PersistentVolume`s pointing at one export.
 
 > [!NOTE]
-> `PersistentVolumeClaim`s are namespaced, so instances in different
-> namespaces need their claims provisioned onto the same backing directory —
-> for example an NFS CSI storage class with a fixed `subDir`, or static
-> `PersistentVolume`s pointing at one export.  With mixed major versions in
-> one cache, leave `CONTAINER_CACHE_SIZE` unset: its cleanup keeps the
-> highest version numbers, which would evict the older major's releases.
+> With mixed major versions in one cache, leave `CONTAINER_CACHE_SIZE`
+> unset: its cleanup keeps the highest version numbers, which would evict the
+> older major's releases.
 
-## Publishing through a Cloudflare Tunnel ##
+## Publish through a Cloudflare Tunnel ##
 
-Because the manifests speak the Gateway API, a [Cloudflare Tunnel] can carry
-the public traffic without changing the application at all: run a Gateway
-implementation whose data plane is the tunnel, and re-point the `HTTPRoute`'s
-`parentRefs` at it.  No inbound ports open on the cluster, TLS terminates at
-Cloudflare's edge, and `cloudflared` maintains outbound-only connections.
+The whole system on the internet with no inbound ports: a [Cloudflare Tunnel]
+acts as the Gateway implementation, so the `HTTPRoute`s are unchanged except
+for their `parentRefs`.  TLS terminates at Cloudflare's edge and `cloudflared`
+maintains outbound-only connections.  This stage needs a
+[Cloudflare](https://www.cloudflare.com) account with a domain you manage.
 This is how the maintainer publishes their own instances.
 
 ```mermaid
@@ -253,6 +301,23 @@ graph LR
         CFD -->|vtt-staging.example.com| SvcS("staging Service")
     end
 ```
+
+### Files ###
+
+The gateway definition lives in [`cloudflare/`](cloudflare); the API token is
+created imperatively so it never lands in a file:
+
+| File | Resource | Purpose |
+| ---- | -------- | ------- |
+| [`cloudflare/gatewayclass.yaml`](cloudflare/gatewayclass.yaml) | `GatewayClass` | The tunnel as a [Gateway API] implementation. |
+| [`cloudflare/gateway.yaml`](cloudflare/gateway.yaml) | `Gateway` | The edge gateway that routes attach to. |
+
+```yaml
+{% include 'cloudflare/gatewayclass.yaml' %}
+{% include 'cloudflare/gateway.yaml' %}
+```
+
+### Steps ###
 
 1. Install the [cloudflare-kubernetes-gateway] controller (pin a release):
 
@@ -270,40 +335,13 @@ graph LR
       --from-literal=TOKEN='<your_api_token>'
     ```
 
-1. Define the `GatewayClass` and a `Gateway`.  The controller creates and
-   manages the tunnel and its `cloudflared` Deployment for you:
+1. Apply the gateway definition:
 
-    ```yaml
-    ---
-    apiVersion: gateway.networking.k8s.io/v1
-    kind: GatewayClass
-    metadata:
-      name: cloudflare-gateway
-    spec:
-      controllerName: github.com/pl4nty/cloudflare-kubernetes-gateway
-      parametersRef:
-        group: ""
-        kind: Secret
-        name: cloudflare-api-token
-        namespace: cloudflare-gateway
-    ---
-    apiVersion: gateway.networking.k8s.io/v1
-    kind: Gateway
-    metadata:
-      name: cloudflare-edge
-      namespace: cloudflare-gateway
-    spec:
-      gatewayClassName: cloudflare-gateway
-      listeners:
-        - name: http
-          port: 80
-          protocol: HTTP
-          allowedRoutes:
-            namespaces:
-              from: All
+    ```console
+    kubectl apply -f cloudflare/
     ```
 
-1. Point the route at the tunnel by editing the `parentRefs` in
+1. Point each instance's route at the tunnel by editing the `parentRefs` in
    [`httproute.yaml`](manifests/httproute.yaml):
 
     ```yaml
@@ -312,8 +350,17 @@ graph LR
           namespace: cloudflare-gateway
     ```
 
-   The controller creates the DNS record for each `HTTPRoute` hostname; there
-   is no port forwarding or NAT to configure.
+   Re-apply each overlay.
+
+### How it works ###
+
+- **The controller does the lifting.** It creates and manages the tunnel and
+  its `cloudflared` Deployment, and publishes a DNS record for every
+  `HTTPRoute` hostname — there is no port forwarding or NAT to configure.
+
+- **The application never noticed.** Routing stayed an `HTTPRoute`; only the
+  `parentRefs` changed.  `FOUNDRY_PROXY_SSL=true` keeps invitation links and
+  audio/video on `https`, now terminated at Cloudflare's edge.
 
 > [!TIP]
 > The tunnel and an in-cluster `Gateway` compose nicely: keep a second

@@ -27,7 +27,7 @@ graph LR
 ```
 
 > [!NOTE]
-> Running on Kubernetes?  The [Kubernetes guide](../kubernetes/README.md#publishing-through-a-cloudflare-tunnel)
+> Running on Kubernetes?  The [Kubernetes guide](../kubernetes/README.md#publish-through-a-cloudflare-tunnel)
 > shows the tunnel as a Gateway API implementation instead — no `cloudflared`
 > service to manage yourself.
 
