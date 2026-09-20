@@ -305,9 +305,9 @@ Each instance adds a claim and a small Deployment patch to its overlay:
   `subDir`, or static `PersistentVolume`s pointing at one export.
 
 > [!NOTE]
-> With mixed major versions in one cache, leave `CONTAINER_CACHE_SIZE`
-> unset: its cleanup keeps the highest version numbers, which would evict the
-> older major's releases.
+> `CONTAINER_CACHE_SIZE` eviction is least-recently-used, so a cache shared
+> across major versions keeps whatever its instances actually install — an
+> older major's release survives as long as some instance still uses it.
 
 ## Publish through a Cloudflare Tunnel ##
 
