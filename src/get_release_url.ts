@@ -184,6 +184,23 @@ async function main(): Promise<number> {
     );
 
     if (releaseURL) {
+        // The endpoint is keyed on the build number alone, so requesting a
+        // nonexistent generation (e.g. 11.331 when build 331 belongs to v12)
+        // returns a different generation's release.  The presigned URL embeds
+        // the real version; catch the mismatch before a download.  Best
+        // effort: an unparseable URL skips the check, and the entrypoint
+        // verifies the archive contents as the backstop.
+        const url_version = releaseURL.match(
+            /(?:releases\/|foundryvtt[^/]*?-)(\d+\.\d+(?:\.\d+)?)/i,
+        )?.[1];
+        if (url_version && url_version !== foundry_version) {
+            logger.error(
+                `Build ${foundry_build} belongs to Foundry Virtual Tabletop ` +
+                    `${url_version}, not the requested ${foundry_version}.  ` +
+                    `Version ${foundry_version} does not appear to exist.`,
+            );
+            return -1;
+        }
         process.stdout.write(releaseURL);
         return 0;
     } else {

@@ -21,6 +21,8 @@ source backoff.sh
 source lifecycle.sh
 # shellcheck source=src/download_lock.sh
 source download_lock.sh
+# shellcheck source=src/release_verify.sh
+source release_verify.sh
 
 # ── Trap handlers ─────────────────────────────────────────────────────────────
 
@@ -74,6 +76,29 @@ trap_exit() {
   fi
 }
 trap trap_exit EXIT
+
+# verify_release_file <archive> — fail hard when the archive's contents do
+# not match FOUNDRY_VERSION.  The release endpoint is keyed on build number
+# alone, so requesting a nonexistent generation (e.g. 11.331 when build 331
+# belongs to v12) yields a different generation's release (#1051); without
+# this check the mislabeled file poisons the cache and reinstalls on every
+# start.  An undeterminable version is a warning, never a failure.
+verify_release_file() {
+  local file="$1"
+  local found
+  if found=$(release_archive_version "${file}"); then
+    if [ "${found}" != "${FOUNDRY_VERSION}" ]; then
+      log_error "The release archive contains Foundry Virtual Tabletop ${found}, not the requested ${FOUNDRY_VERSION}."
+      log_error "Version ${FOUNDRY_VERSION} most likely does not exist.  See: https://foundryvtt.com/releases/"
+      log_warn "Deleting the mislabeled release file."
+      rm -f "${file}"
+      exit 1
+    fi
+    log_debug "Release archive verified as version ${found}."
+  else
+    log_warn "Unable to determine the version inside the release archive.  Proceeding without verification."
+  fi
+}
 
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -348,6 +373,12 @@ END_OF_LINE
         exit 1
       fi
     else
+      # Verify a fresh download before it is renamed into the cache, so a
+      # wrong-version archive never lands under the requested version's
+      # name.  (On a --time-cond cache hit there is no new file to check.)
+      if [ -f "${downloading_filename}" ]; then
+        verify_release_file "${downloading_filename}"
+      fi
       # Download succeeded so rename the file to the final name.
       # If we had a cache hit, the file is already renamed.
       mv "${downloading_filename}" "${release_filename}" > /dev/null 2>&1 || true
@@ -357,6 +388,7 @@ END_OF_LINE
 
   if [ -f "${release_filename}" ]; then
     log "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
+    verify_release_file "${release_filename}"
 
     # Check the mime-type of the file
     log_debug "Checking mime-type of release file: ${release_filename}"
