@@ -395,3 +395,70 @@ def test_auth_failure_state_file_identical_to_generic(tmp_path: Path) -> None:
     generic_state = run_failure(2, generic_dir)
 
     assert auth_state["consecutive_failures"] == generic_state["consecutive_failures"]
+
+
+# ── Failure count decay ───────────────────────────────────────────────────────
+
+
+def _write_state(cache_dir: Path, failures: int, epoch: int | None) -> None:
+    state: dict = {
+        "consecutive_failures": failures,
+        "last_failure_timestamp": "2024-01-01T00:00:00Z",
+    }
+    if epoch is not None:
+        state["last_failure_epoch"] = epoch
+    (cache_dir / "backoff_state.json").write_text(json.dumps(state))
+
+
+def _fail_once(cache_dir: Path, env: dict | None = None) -> dict:
+    script = textwrap.dedent(f"""\
+        CONTAINER_CACHE={cache_dir}
+        sleep() {{ :; }}
+        export -f sleep
+        backoff_on_failure 1
+    """)
+    _run(script, env=env)  # exits with 1, that's expected
+    return json.loads((cache_dir / "backoff_state.json").read_text())
+
+
+def test_stale_failure_resets_count(tmp_path: Path) -> None:
+    """A failure long after the previous one restarts the count at 1.
+
+    Failures separated by more than BACKOFF_DECAY_SECONDS are independent
+    incidents, not a restart loop, so the delay must not keep growing.
+    """
+    _write_state(tmp_path, failures=5, epoch=int(time.time()) - 7200)
+    data = _fail_once(tmp_path)
+    assert data["consecutive_failures"] == 1, (
+        f"Stale failure should reset the count to 1, got "
+        f"consecutive_failures={data['consecutive_failures']}"
+    )
+
+
+def test_recent_failure_still_increments_count(tmp_path: Path) -> None:
+    """A failure shortly after the previous one keeps escalating."""
+    _write_state(tmp_path, failures=5, epoch=int(time.time()) - 10)
+    data = _fail_once(tmp_path)
+    assert data["consecutive_failures"] == 6
+
+
+def test_state_without_epoch_still_increments(tmp_path: Path) -> None:
+    """A pre-decay state file (no last_failure_epoch) keeps the old behavior."""
+    _write_state(tmp_path, failures=5, epoch=None)
+    data = _fail_once(tmp_path)
+    assert data["consecutive_failures"] == 6
+
+
+def test_decay_window_is_overridable(tmp_path: Path) -> None:
+    """BACKOFF_DECAY_SECONDS from the environment controls the reset window."""
+    _write_state(tmp_path, failures=5, epoch=int(time.time()) - 30)
+    data = _fail_once(tmp_path, env={"BACKOFF_DECAY_SECONDS": "10"})
+    assert data["consecutive_failures"] == 1
+
+
+def test_state_file_records_epoch(tmp_path: Path) -> None:
+    """backoff_on_failure records last_failure_epoch for the decay check."""
+    before = int(time.time())
+    data = _fail_once(tmp_path)
+    assert isinstance(data.get("last_failure_epoch"), int)
+    assert before <= data["last_failure_epoch"] <= int(time.time())
