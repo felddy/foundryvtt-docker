@@ -23,6 +23,8 @@ source lifecycle.sh
 source download_lock.sh
 # shellcheck source=src/release_verify.sh
 source release_verify.sh
+# shellcheck source=src/cache_prune.sh
+source cache_prune.sh
 
 # ── Trap handlers ─────────────────────────────────────────────────────────────
 
@@ -389,6 +391,8 @@ END_OF_LINE
   if [ -f "${release_filename}" ]; then
     log "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
     verify_release_file "${release_filename}"
+    # Record the use: cache eviction is least-recently-used by mtime.
+    touch "${release_filename}" 2> /dev/null || true
 
     # Check the mime-type of the file
     log_debug "Checking mime-type of release file: ${release_filename}"
@@ -439,26 +443,8 @@ END_OF_LINE
       fi
 
       log "Cleaning up cache directory: ${CONTAINER_CACHE}"
-      log "Keeping ${CONTAINER_CACHE_SIZE} latest versions."
-      # Initialize counter
-      cache_files_removed_count=0
-
-      # Store the list of cache files to remove
-      file_list=$(find "${CONTAINER_CACHE}" -maxdepth 1 -name 'foundryvtt-*.zip' \
-        | sort -Vr \
-        | awk -v keep="${CONTAINER_CACHE_SIZE}" 'NR > keep')
-
-      # Iterate over the file list
-      if [ -n "$file_list" ]; then
-        for file in $file_list; do
-          log_warn "Removing: $file"
-          rm -f "$file"
-          cache_files_removed_count=$((cache_files_removed_count + 1))
-        done
-        log "Completed cache cleanup. Removed ${cache_files_removed_count} files."
-      else
-        log "No cache cleanup was necessary."
-      fi
+      log "Keeping the ${CONTAINER_CACHE_SIZE} most recently used releases."
+      cache_prune "${cache_root}" "${CONTAINER_CACHE_SIZE}"
     else
       log_debug "CONTAINER_CACHE_SIZE is not set. Skipping cache cleanup."
     fi

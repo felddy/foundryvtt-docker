@@ -123,6 +123,7 @@ COPY \
   package.json \
   package-lock.json \
   src/backoff.sh \
+  src/cache_prune.sh \
   src/check_health.sh \
   src/download_lock.sh \
   src/entrypoint.sh \
