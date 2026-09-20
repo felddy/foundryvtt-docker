@@ -184,37 +184,6 @@ fi
 
 # Install FoundryVTT if needed
 if [ $install_required = true ]; then
-  # Determine how we are going to get the release URL
-  if [ "${FOUNDRY_RELEASE_URL:-}" ]; then
-    log "Using FOUNDRY_RELEASE_URL to download release."
-    presigned_url="${FOUNDRY_RELEASE_URL}"
-  fi
-  if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
-    log "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
-    # If credentials are provided attempt authentication.
-    # The resulting cookiejar is used to get a release URL or license.
-
-    # Temporarily disable errexit to capture failure from authenticate.js
-    set +e
-    ./authenticate.js ${CONTAINER_VERBOSE+--log-level=debug} \
-      --user-agent="${node_user_agent}" \
-      "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
-    auth_exit_code=$?
-    set -e
-
-    if [ ${auth_exit_code} -ne 0 ]; then
-      log_warn "Authentication failed with exit code ${auth_exit_code}."
-      rm -f "${cookiejar_file}"
-    elif [[ ! "${presigned_url:-}" ]]; then
-      # If the presigned_url wasn't set by FOUNDRY_RELEASE_URL generate one now.
-      log "Using authenticated credentials to fetch release URL."
-      presigned_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} \
-        ${CONTAINER_URL_FETCH_RETRY+--retry=${CONTAINER_URL_FETCH_RETRY}} \
-        --user-agent="${node_user_agent}" \
-        "${cookiejar_file}" "${FOUNDRY_VERSION}")
-    fi
-  fi
-
   # If CONTAINER_CACHE is null, set it to a default.
   # If it is set to an empty string, disable the caching.
   CONTAINER_CACHE="${CONTAINER_CACHE-${DATA_DIR}/container_cache}"
@@ -237,6 +206,49 @@ END_OF_LINE
   downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading.zip"
   release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
   set -o nounset
+
+  # Determine how we are going to get the release URL
+  if [ "${FOUNDRY_RELEASE_URL:-}" ]; then
+    log "Using FOUNDRY_RELEASE_URL to download release."
+    presigned_url="${FOUNDRY_RELEASE_URL}"
+  fi
+  if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
+    # Authentication serves two purposes: fetching a presigned release URL
+    # and fetching a license key.  When the requested release is already
+    # cached and licensing is settled, neither is needed — skip the account
+    # round-trips so simultaneous container start-ups sharing a cache do not
+    # get rate-limited by foundryvtt.com (#1399).
+    license_key_for_check="${FOUNDRY_LICENSE_KEY:-}"
+    if [[ -f "${release_filename}" &&
+      (-f "${LICENSE_FILE}" || ${#license_key_for_check} -ge ${license_min_length}) ]]; then
+      log "Requested release is cached and licensing is settled.  Skipping authentication."
+    else
+      log "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
+      # If credentials are provided attempt authentication.
+      # The resulting cookiejar is used to get a release URL or license.
+
+      # Temporarily disable errexit to capture failure from authenticate.js
+      set +e
+      ./authenticate.js ${CONTAINER_VERBOSE+--log-level=debug} \
+        --user-agent="${node_user_agent}" \
+        "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
+      auth_exit_code=$?
+      set -e
+
+      if [ ${auth_exit_code} -ne 0 ]; then
+        log_warn "Authentication failed with exit code ${auth_exit_code}."
+        rm -f "${cookiejar_file}"
+      elif [[ ! "${presigned_url:-}" && ! -f "${release_filename}" ]]; then
+        # If the presigned_url wasn't set by FOUNDRY_RELEASE_URL, and the
+        # release isn't already cached, generate one now.
+        log "Using authenticated credentials to fetch release URL."
+        presigned_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} \
+          ${CONTAINER_URL_FETCH_RETRY+--retry=${CONTAINER_URL_FETCH_RETRY}} \
+          --user-agent="${node_user_agent}" \
+          "${cookiejar_file}" "${FOUNDRY_VERSION}")
+      fi
+    fi
+  fi
 
   if [[ "${presigned_url:-}" ]]; then
     log "Downloading Foundry Virtual Tabletop release."
