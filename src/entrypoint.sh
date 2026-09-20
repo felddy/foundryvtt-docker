@@ -203,12 +203,16 @@ END_OF_LINE
   fi
 
   set +o nounset
+  # extglob is required for the +(/) pattern that trims trailing slashes;
+  # without it the trim silently no-ops.
+  shopt -s extglob
   # The in-progress name is version-unique so instances downloading
   # different versions into a shared cache cannot clobber each other and
   # mislabel a release (#1399).  It must not match the foundryvtt-*.zip
   # glob used by the cache-size cleanup below.
   downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading-${FOUNDRY_VERSION}.zip"
   release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
+  shopt -u extglob
   set -o nounset
 
   # Determine how we are going to get the release URL
