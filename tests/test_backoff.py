@@ -395,3 +395,98 @@ def test_auth_failure_state_file_identical_to_generic(tmp_path: Path) -> None:
     generic_state = run_failure(2, generic_dir)
 
     assert auth_state["consecutive_failures"] == generic_state["consecutive_failures"]
+
+
+# ── Failure count decay ───────────────────────────────────────────────────────
+
+
+def _write_state(cache_dir: Path, failures: int, epoch: int | None) -> None:
+    state: dict = {
+        "consecutive_failures": failures,
+        "last_failure_timestamp": "2024-01-01T00:00:00Z",
+    }
+    if epoch is not None:
+        state["last_failure_epoch"] = epoch
+    (cache_dir / "backoff_state.json").write_text(json.dumps(state))
+
+
+def _fail_once(cache_dir: Path, env: dict | None = None) -> dict:
+    script = textwrap.dedent(f"""\
+        CONTAINER_CACHE={cache_dir}
+        sleep() {{ :; }}
+        export -f sleep
+        backoff_on_failure 1
+    """)
+    # Pin the decay window unless a test overrides it, so an exported
+    # BACKOFF_DECAY_SECONDS in the developer's environment cannot leak in
+    # (_run merges os.environ).
+    _run(script, env={"BACKOFF_DECAY_SECONDS": "3600", **(env or {})})
+    return json.loads((cache_dir / "backoff_state.json").read_text())
+
+
+def test_stale_failure_resets_count(tmp_path: Path) -> None:
+    """A failure long after the previous one restarts the count at 1.
+
+    Failures separated by more than BACKOFF_DECAY_SECONDS are independent
+    incidents, not a restart loop, so the delay must not keep growing.
+    """
+    _write_state(tmp_path, failures=5, epoch=int(time.time()) - 7200)
+    data = _fail_once(tmp_path)
+    assert data["consecutive_failures"] == 1, (
+        f"Stale failure should reset the count to 1, got "
+        f"consecutive_failures={data['consecutive_failures']}"
+    )
+
+
+def test_recent_failure_still_increments_count(tmp_path: Path) -> None:
+    """A failure shortly after the previous one keeps escalating."""
+    _write_state(tmp_path, failures=5, epoch=int(time.time()) - 10)
+    data = _fail_once(tmp_path)
+    assert data["consecutive_failures"] == 6
+
+
+def test_state_without_epoch_still_increments(tmp_path: Path) -> None:
+    """A pre-decay state file (no last_failure_epoch) keeps the old behavior."""
+    _write_state(tmp_path, failures=5, epoch=None)
+    data = _fail_once(tmp_path)
+    assert data["consecutive_failures"] == 6
+
+
+def test_decay_window_is_overridable(tmp_path: Path) -> None:
+    """BACKOFF_DECAY_SECONDS from the environment controls the reset window."""
+    _write_state(tmp_path, failures=5, epoch=int(time.time()) - 30)
+    data = _fail_once(tmp_path, env={"BACKOFF_DECAY_SECONDS": "10"})
+    assert data["consecutive_failures"] == 1
+
+
+def test_garbage_decay_override_falls_back_to_default(tmp_path: Path) -> None:
+    """A non-numeric BACKOFF_DECAY_SECONDS must not zero the decay window.
+
+    In bash arithmetic an unset-variable name evaluates to 0, which would
+    make every failure look stale and reset the count.  The guard falls
+    back to the default window instead, so a recent failure still escalates.
+    """
+    _write_state(tmp_path, failures=5, epoch=int(time.time()) - 10)
+    data = _fail_once(tmp_path, env={"BACKOFF_DECAY_SECONDS": "soon"})
+    assert data["consecutive_failures"] == 6
+
+
+def test_leading_zero_override_is_decimal(tmp_path: Path) -> None:
+    """A leading-zero override is decimal, not an octal arithmetic error.
+
+    "08" passes digit validation but is an invalid octal constant in bash
+    arithmetic; without base-10 normalization the comparison errors and the
+    decay is silently skipped.  Here it must mean 8 seconds: a failure 30s
+    after the previous one is stale and resets the count.
+    """
+    _write_state(tmp_path, failures=5, epoch=int(time.time()) - 30)
+    data = _fail_once(tmp_path, env={"BACKOFF_DECAY_SECONDS": "08"})
+    assert data["consecutive_failures"] == 1
+
+
+def test_state_file_records_epoch(tmp_path: Path) -> None:
+    """backoff_on_failure records last_failure_epoch for the decay check."""
+    before = int(time.time())
+    data = _fail_once(tmp_path)
+    assert isinstance(data.get("last_failure_epoch"), int)
+    assert before <= data["last_failure_epoch"] <= int(time.time())
