@@ -447,6 +447,13 @@ else
   log "Not modifying existing installation license key."
 fi
 
+# The cookiejar holds a live foundryvtt.com session and has no further use
+# once installation and licensing are settled.
+if [ -f "${cookiejar_file}" ]; then
+  log_debug "Removing session cookiejar: ${cookiejar_file}"
+  rm -f "${cookiejar_file}"
+fi
+
 # Export variables that were possibly set from secrets
 # and are used by the launcher.
 export FOUNDRY_ADMIN_KEY FOUNDRY_PASSWORD_SALT FOUNDRY_SERVICE_KEY
