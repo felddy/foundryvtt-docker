@@ -117,6 +117,16 @@ def test_garbage_tunables_fall_back_to_defaults(tmp_path: Path) -> None:
     assert "poll=5 ticks=8 limit=3" in result.stdout
 
 
+def test_zero_poll_interval_falls_back(tmp_path: Path) -> None:
+    """A zero poll interval would busy-spin waiters; it falls back to 5."""
+    result = _run(
+        'echo "poll=$DOWNLOAD_LOCK_POLL_SECONDS"',
+        env={"DOWNLOAD_LOCK_POLL_SECONDS": "0.0"},
+    )
+    assert result.returncode == 0, result.stderr
+    assert "poll=5" in result.stdout
+
+
 # ── Waiting behavior ──────────────────────────────────────────────────────────
 
 

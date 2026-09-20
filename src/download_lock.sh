@@ -39,7 +39,8 @@ DOWNLOAD_LOCK_STEAL_LIMIT="${DOWNLOAD_LOCK_STEAL_LIMIT:-3}"
 # The tunables feed arithmetic contexts and sleep; a non-numeric override
 # would abort startup under nounset/errexit, and a leading zero would be
 # read as octal.  Fall back to the defaults with a warning instead.
-if ! [[ "${DOWNLOAD_LOCK_POLL_SECONDS}" =~ ^[0-9]*\.?[0-9]+$ ]]; then
+if ! [[ "${DOWNLOAD_LOCK_POLL_SECONDS}" =~ ^[0-9]*\.?[0-9]+$ ]] \
+  || [[ "${DOWNLOAD_LOCK_POLL_SECONDS}" =~ ^[0.]+$ ]]; then
   log_warn "DOWNLOAD_LOCK_POLL_SECONDS must be a positive number.  Found: '${DOWNLOAD_LOCK_POLL_SECONDS}'.  Using 5."
   DOWNLOAD_LOCK_POLL_SECONDS=5
 fi
