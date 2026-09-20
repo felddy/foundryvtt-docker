@@ -202,18 +202,18 @@ END_OF_LINE
     log_warn "CONTAINER_CACHE has been unset.  Release caching is disabled."
   fi
 
-  set +o nounset
-  # extglob is required for the +(/) pattern that trims trailing slashes;
-  # without it the trim silently no-ops.
-  shopt -s extglob
+  # Trim trailing slashes without extglob (the historical +(/) pattern
+  # required it and silently no-opped without it).
+  cache_root="${CONTAINER_CACHE:-}"
+  while [[ "${cache_root}" == */ ]]; do
+    cache_root="${cache_root%/}"
+  done
   # The in-progress name is version-unique so instances downloading
   # different versions into a shared cache cannot clobber each other and
   # mislabel a release (#1399).  It must not match the foundryvtt-*.zip
   # glob used by the cache-size cleanup below.
-  downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading-${FOUNDRY_VERSION}.zip"
-  release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
-  shopt -u extglob
-  set -o nounset
+  downloading_filename="${cache_root}${cache_root:+/}downloading-${FOUNDRY_VERSION}.zip"
+  release_filename="${cache_root}${cache_root:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
 
   # Determine how we are going to get the release URL
   if [ "${FOUNDRY_RELEASE_URL:-}" ]; then
