@@ -471,6 +471,19 @@ def test_garbage_decay_override_falls_back_to_default(tmp_path: Path) -> None:
     assert data["consecutive_failures"] == 6
 
 
+def test_leading_zero_override_is_decimal(tmp_path: Path) -> None:
+    """A leading-zero override is decimal, not an octal arithmetic error.
+
+    "08" passes digit validation but is an invalid octal constant in bash
+    arithmetic; without base-10 normalization the comparison errors and the
+    decay is silently skipped.  Here it must mean 8 seconds: a failure 30s
+    after the previous one is stale and resets the count.
+    """
+    _write_state(tmp_path, failures=5, epoch=int(time.time()) - 30)
+    data = _fail_once(tmp_path, env={"BACKOFF_DECAY_SECONDS": "08"})
+    assert data["consecutive_failures"] == 1
+
+
 def test_state_file_records_epoch(tmp_path: Path) -> None:
     """backoff_on_failure records last_failure_epoch for the decay check."""
     before = int(time.time())

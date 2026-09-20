@@ -133,6 +133,9 @@ backoff_on_failure() {
     log_warn "BACKOFF_DECAY_SECONDS must be a non-negative integer.  Found: '${BACKOFF_DECAY_SECONDS}'.  Using 3600."
     BACKOFF_DECAY_SECONDS=3600
   fi
+  # Force base 10: in arithmetic contexts a leading zero selects octal, where
+  # "08"/"09" are errors and "060" would silently mean 48.
+  BACKOFF_DECAY_SECONDS=$((10#${BACKOFF_DECAY_SECONDS}))
 
   # Failures separated by more than BACKOFF_DECAY_SECONDS are independent
   # incidents, not a restart loop; start counting from scratch.
