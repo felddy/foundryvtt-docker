@@ -157,6 +157,13 @@ patches:
     target:
       kind: Deployment
       name: foundryvtt
+  - patch: |
+      - op: replace
+        path: /spec/hostnames/0
+        value: vtt-staging.example.com
+    target:
+      kind: HTTPRoute
+      name: foundryvtt
 ```
 
 Apply an overlay with `kubectl apply -k overlays/staging/`.  This is exactly how

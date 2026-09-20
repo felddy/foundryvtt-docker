@@ -114,15 +114,22 @@ def render_single(template_path: Path, output: str, container_version: str) -> N
 
 
 def render_all(container_version: str) -> None:
-    """Render every discovered template to its sibling output file."""
+    """Render every discovered template to its sibling output file.
+
+    All templates are rendered in memory before anything is written, so a
+    failing template (this is the Renovate and pre-commit regeneration path)
+    cannot leave the repository partially regenerated.
+    """
     context = version_context(container_version)
     templates = discover_templates(Path("."))
     if not templates:
         print("WARNING: no '*.j2' templates found.", file=sys.stderr)
         return
+    rendered_outputs: list[tuple[Path, Path, str]] = []
     for template_path in templates:
         rendered = render(template_path, context)
-        out = output_path(template_path)
+        rendered_outputs.append((template_path, output_path(template_path), rendered))
+    for template_path, out, rendered in rendered_outputs:
         out.write_text(rendered, encoding="utf-8", newline="\n")
         print(f"rendered {template_path} -> {out}")
 
