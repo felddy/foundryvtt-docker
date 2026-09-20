@@ -17,6 +17,8 @@ LOG_NAME="Entrypoint"
 source logging.sh
 # shellcheck source=src/backoff.sh
 source backoff.sh
+# shellcheck source=src/lifecycle.sh
+source lifecycle.sh
 
 # ── Trap handlers ─────────────────────────────────────────────────────────────
 
@@ -434,8 +436,10 @@ trap trap_sigterm TERM
 ./launcher.sh "$@" &
 child_pid=$!
 log_debug "Waiting for child pid: ${child_pid} to exit."
-wait "$child_pid"
-exit_code=$?
+# A trapped SIGTERM interrupts `wait` before the child exits; wait_for_child
+# keeps waiting so PID 1 outlives the child's shutdown (see lifecycle.sh).
+exit_code=0
+wait_for_child "${child_pid}" exit_code
 trap - TERM
 log_debug "Child process exited with code: ${exit_code}."
 
