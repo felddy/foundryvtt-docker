@@ -148,15 +148,16 @@ async function main(): Promise<number> {
     logger = createLogger("ReleaseURL", log_level);
 
     // Validate the whole argument: parseInt would accept prefixes such as
-    // "1abc", "1.5", or "1e2", and NaN would make the fetch loop run zero
-    // times with a misleading "Failed to fetch release URL" error.
-    if (!/^\d+$/.test(retry_option)) {
+    // "1abc", "1.5", or "1e2" (NaN would run the fetch loop zero times with
+    // a misleading error), and a huge digit string parses to Infinity,
+    // which would make the loop unbounded.
+    const retries: number = parseInt(retry_option, 10);
+    if (!/^\d+$/.test(retry_option) || !Number.isSafeInteger(retries)) {
         logger.error(
-            `--retry must be a non-negative integer.  Found: ${retry_option}`,
+            `--retry must be a non-negative safe integer.  Found: ${retry_option}`,
         );
         return -1;
     }
-    const retries: number = parseInt(retry_option, 10);
 
     // Setup global cookie jar, storage, and fetch library
     logger.debug(`Loading cookies from: ${cookiejar_filename}`);
