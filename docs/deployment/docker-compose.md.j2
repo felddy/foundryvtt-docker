@@ -1,7 +1,7 @@
 # Deploying with Docker Compose #
 
 [Docker Compose] is the simplest way to run a single Foundry Virtual Tabletop
-instance on one host.  A `compose.yml` file captures the image, configuration,
+instance on one host.  A `compose.yaml` file captures the image, configuration,
 storage, and ports in one place, so the server is easy to start, stop, and
 reproduce.
 
@@ -21,9 +21,9 @@ README.
 > drop-in backends such as [Colima] or [Rancher Desktop].  Use whichever you
 > prefer; the commands are the same.
 
-## Minimal example ##
+## Deploy ##
 
-1. Create a `compose.yml` file.  Supply your credentials as the values of the
+1. Create a `compose.yaml` file.  Supply your credentials as the values of the
    environment variables:
 
     ```yaml
@@ -63,12 +63,12 @@ README.
 > container hostname.  Without one, the runtime assigns a random container ID on
 > each start and license verification fails after every restart.
 
-## How configuration works ##
+## How it works ##
 
 [Configuration options] are supplied as [environment variables].  Each time the
 container starts, it regenerates Foundry's configuration files from those
 variables.  This means **changes made in the in-application configuration GUI do
-not persist across restarts** — manage configuration through `compose.yml`
+not persist across restarts** — manage configuration through `compose.yaml`
 instead.  To preserve hand-edited configuration files, set
 `CONTAINER_PRESERVE_CONFIG` to `true`.
 
@@ -88,7 +88,7 @@ inside the container.  See the [secrets] reference for every supported key.
     }
     ```
 
-1. Reference it from `compose.yml` and drop the matching environment variables:
+1. Reference it from `compose.yaml` and drop the matching environment variables:
 
     ```yaml
     ---
@@ -128,7 +128,7 @@ docker compose up --detach
 
 Because the image is pinned to the major tag `:{{ major_version }}`, `pull`
 fetches the newest release that is compatible with your existing data.  To move
-to a new major version, change the tag in `compose.yml` first, then pull.
+to a new major version, change the tag in `compose.yaml` first, then pull.
 
 ## Next steps ##
 

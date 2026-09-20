@@ -31,7 +31,7 @@ graph LR
 - Inbound TCP `80` and `443` (and UDP `443` for HTTP/3) reachable from the
   internet — Caddy needs them to obtain certificates.
 
-## How to create this setup ##
+## Deploy ##
 
 1. Create the following layout using the
    [`compose.yaml`](compose.yaml), [`Caddyfile`](Caddyfile), and
@@ -61,10 +61,15 @@ graph LR
 1. Browse to your domain over HTTPS, for example `https://vtt.example.com`.
    Caddy obtains a certificate on first request, which can take a few seconds.
 
-> [!TIP]
-> `FOUNDRY_PROXY_SSL=true` tells Foundry it is being served over HTTPS so that
-> invitation links and audio/video use the correct protocol.  The container
-> `hostname` is fixed so the software license binding survives restarts.
+## How it works ##
+
+- Caddy terminates TLS and proxies plain HTTP to the Foundry service; the
+  address in the [`Caddyfile`](Caddyfile) is supplied by the `SITE_ADDRESS`
+  environment variable.
+- `FOUNDRY_PROXY_SSL=true` tells Foundry it is being served over HTTPS so
+  that invitation links and audio/video use the correct protocol.
+- The container `hostname` is fixed so the software license binding survives
+  restarts.
 
 [Caddy]: https://caddyserver.com
 [Let's Encrypt]: https://letsencrypt.org

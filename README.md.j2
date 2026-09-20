@@ -71,12 +71,12 @@ supplied through [environment variables](#environment-variables).  Each time the
 container starts, it generates the configuration files Foundry needs from the
 values of those variables.  This means **changes made in the in-application
 configuration GUI do not persist between container restarts**.  Manage
-configuration through your runtime's environment settings — a `compose.yml`
+configuration through your runtime's environment settings — a `compose.yaml`
 file, a Kubernetes manifest, or similar.  To disable the regeneration of these
 files, set `CONTAINER_PRESERVE_CONFIG` to `true`.
 
 > [!IMPORTANT]
-> Always set a stable hostname for the container (`hostname:` in a `compose.yml`
+> Always set a stable hostname for the container (`hostname:` in a `compose.yaml`
 > file, `--hostname` for `docker`/`podman`, or `hostname:` in a pod spec).
 > Foundry binds its software license to the container hostname.  If no hostname
 > is set, the runtime assigns a random container ID on each start, causing
@@ -189,7 +189,7 @@ secrets](#using-secrets) instead of environment variables.
 
 | Name | Purpose | Default |
 | ---- | ------- | ------- |
-| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry distribution archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container.  Set to `""` to disable.</br>***Note***: When the cache is disabled the container will sleep indefinitely on failure rather than exiting, to prevent a restart loop.  A distribution can be pre-downloaded and placed into a cache directory.  The distribution's name must be of the form: `foundryvtt-{{ foundry_version }}.zip` | `/data/container_cache` |
+| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry distribution archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container.  Set to `""` to disable.  The cache may be shared by multiple containers: simultaneous startups coordinate among themselves so each release is downloaded only once.</br>***Note***: When the cache is disabled the container will sleep indefinitely on failure rather than exiting, to prevent a restart loop.  A distribution can be pre-downloaded and placed into a cache directory.  The distribution's name must be of the form: `foundryvtt-{{ foundry_version }}.zip` | `/data/container_cache` |
 | `CONTAINER_CACHE_SIZE` | Set the maximum number of distribution versions to keep in the cache.  The minimum is `1`.  When the limit is exceeded, the oldest versions (lowest version numbers) are removed first.  Unset to disable cache size management and keep all versions. | |
 | `CONTAINER_PATCHES` | Set a path to a directory of shell scripts to be sourced after Foundry is installed but before it is started.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_patches`  Patch files are sourced in lexicographic order.  `CONTAINER_PATCHES` are processed after `CONTAINER_PATCH_URLS`. | |
 | `CONTAINER_PATCH_URLS` | Set to a space-delimited list of URLs to be sourced after Foundry is installed but before it is started.  Patch URLs are sourced in the order specified.  `CONTAINER_PATCH_URLS` are processed before `CONTAINER_PATCHES`.  ⚠️ **Only use patch URLs from trusted sources!** | |
@@ -206,7 +206,7 @@ secrets](#using-secrets) instead of environment variables.
 | `FOUNDRY_HOSTNAME` | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | `null` |
 | `FOUNDRY_HOT_RELOAD` | Set to `true` to allow packages to hot-reload certain assets, such as CSS, HTML, and localization files without a full refresh. This setting is only recommended for developers. | `false` |
 | `FOUNDRY_IP_DISCOVERY` | Allow the Foundry server to discover and report the accessibility of the host machine's public IP address and port.  Setting this to `false` may reduce server startup time in instances where this discovery would timeout. | `true` |
-| `FOUNDRY_LANGUAGE` | The default application language and module which provides the core translation files. | `en.core` |
+| `FOUNDRY_LANGUAGE` | The default application language, as `<language>.<module>`.  Languages other than English are provided by a translation module that must already be installed in your user data — for example, install the [fr-core](https://foundryvtt.com/packages/fr-core) module and set `fr.fr-core` for French.  The default English translations are built in. | `en.core` |
 | `FOUNDRY_LOCAL_HOSTNAME` | Override the local network address used for invitation links, mirroring the functionality of the `FOUNDRY_HOSTNAME` option which configures the external address. | `null` |
 | `FOUNDRY_LICENSE_KEY` | The license key to install. e.g.; `AAAA-BBBB-CCCC-DDDD-EEEE-FFFF`  If left unset, a license key will be fetched when using account authentication.   If multiple license keys are associated with an account, one will be chosen at random.  Specific licenses can be selected by passing in an integer index.  The first license key being `1`.  May be set [using secrets](#using-secrets). | |
 | `FOUNDRY_LOG_SIZE` | The maximum size a log file can reach before it is rotated.  Units must be included. e.g.; `1024k`, `64m`, `1g`. | |

@@ -1,0 +1,3 @@
+# Keep this directory in git but ignore the Foundry data written into it.
+*
+!.gitignore

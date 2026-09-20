@@ -34,7 +34,7 @@ graph LR
 - The [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)
   CLI installed locally to create the tunnel.
 
-## How to create this setup ##
+## Deploy ##
 
 1. Create the following layout using the
    [`compose.yaml`](compose.yaml), [`foundry_secrets.json`](foundry_secrets.json),
@@ -89,6 +89,16 @@ graph LR
 
 1. Foundry is now reachable at your hostname, for example
    `https://vtt.example.com`.
+
+## How it works ##
+
+- `cloudflared` makes an outbound-only connection to Cloudflare's edge, so no
+  inbound port ever opens on the host.
+- TLS terminates at the edge; `FOUNDRY_PROXY_SSL=true` tells Foundry it is
+  served over HTTPS so invitation links and audio/video use the correct
+  protocol.
+- The container `hostname` is fixed so the software license binding survives
+  restarts.
 
 > [!IMPORTANT]
 > `tunnel_creds.json` grants control of your tunnel — keep it secret.  This

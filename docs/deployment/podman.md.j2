@@ -3,7 +3,7 @@
 [Podman] runs the image without a daemon and, by default, as a rootless user.
 The image is [OCI] compliant, so everything in the
 [Docker Compose guide](docker-compose.md) applies here too: `podman` mirrors the
-`docker` command line, and `podman compose` reads the same `compose.yml`.  This
+`docker` command line, and `podman compose` reads the same `compose.yaml`.  This
 guide focuses on the Podman-specific details.
 
 ## Prerequisites ##
@@ -87,6 +87,20 @@ image expects it.
 `podman compose` (or the `podman-compose` package) runs the examples from the
 [Docker Compose guide](docker-compose.md) and the recipes unchanged — substitute
 `podman compose` for `docker compose`.
+
+## Updating ##
+
+The in-application "Update Software" tab is disabled in this image.  For
+containers started with `podman run` or Compose, pull a fresh image and
+recreate the container.  Quadlet units can keep themselves current: add
+`AutoUpdate=registry` to the `[Container]` section and the
+`podman-auto-update.timer` will re-pull the `:{{ major_version }}` tag and
+restart the service whenever a new image is published.  To update on demand
+instead, run:
+
+```console
+podman auto-update
+```
 
 ## nerdctl and containerd ##
 
