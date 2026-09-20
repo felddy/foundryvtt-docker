@@ -23,8 +23,10 @@ MD013:
 # same content
 MD024:
   # Allow headers with the same content as long as they are not in the same
-  # parent heading
+  # parent heading.  (`allow_different_nesting` is the legacy mdl spelling;
+  # markdownlint-cli reads `siblings_only`.)
   allow_different_nesting: true
+  siblings_only: true
 
 # MD029/ol-prefix - Ordered list item prefix
 MD029:

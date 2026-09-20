@@ -1,0 +1,13 @@
+---
+# Makes manifests/ a valid Kustomize base: apply it directly with
+# `kubectl apply -k manifests/`, or layer per-instance overlays on top of it
+# as shown in the guide.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - pvc.yaml
+  - secret.yaml
+  - deployment.yaml
+  - service.yaml
+  - httproute.yaml

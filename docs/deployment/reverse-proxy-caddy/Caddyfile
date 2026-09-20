@@ -1,0 +1,6 @@
+# Caddy automatically provisions and renews a TLS certificate for this address
+# and proxies traffic to the Foundry service.  WebSocket connections, which
+# Foundry relies on, are handled transparently.
+{$SITE_ADDRESS} {
+	reverse_proxy foundry:30000
+}

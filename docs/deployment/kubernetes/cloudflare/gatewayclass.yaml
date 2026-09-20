@@ -1,0 +1,14 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: cloudflare-gateway
+spec:
+  controllerName: github.com/pl4nty/cloudflare-kubernetes-gateway
+  # The Secret holding the Cloudflare API token; created imperatively so the
+  # token never lands in a file.  See the guide.
+  parametersRef:
+    group: ""
+    kind: Secret
+    name: cloudflare-api-token
+    namespace: cloudflare-gateway

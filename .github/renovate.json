@@ -46,11 +46,12 @@
         ],
         "executionMode": "branch",
         "fileFilters": [
-          "README.md"
+          "README.md",
+          "docs/**"
         ]
       },
       "prBodyNotes": [
-        "`README.md` was re-rendered from `README.md.j2` as part of this update."
+        "The rendered documentation (`README.md` and `docs/**`) was regenerated from its templates as part of this update."
       ]
     }
   ]

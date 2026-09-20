@@ -1,4 +1,5 @@
 <div align="center">
+
 <img width="460"
   src="https://raw.githubusercontent.com/felddy/foundryvtt-docker/develop/assets/logo.png"
   alt="Docker whale logo carrying the FoundryVTT icosahedron logo while floating
@@ -17,10 +18,15 @@
 [![Platforms](https://img.shields.io/badge/platforms-amd64%20%7C%20arm64%20%7C%20ppc64le%20%7C%20s390x-blue)](https://github.com/felddy/foundryvtt-docker/pkgs/container/foundryvtt)
 
 You can get a [Foundry Virtual Tabletop](https://foundryvtt.com) instance up and
-running in minutes using this container.  This Docker container is designed to
-be secure, reliable, compact, and simple to use.  It only requires that you
-provide the credentials or URL needed to download a Foundry Virtual Tabletop
-distribution.
+running in minutes using this container.  This image is designed to be secure,
+reliable, compact, and simple to use.  It only requires that you provide the
+credentials or URL needed to download a Foundry Virtual Tabletop distribution.
+
+This README is the reference for the image itself — its
+[tags](#image-tags), [volumes](#volumes), [ports](#ports),
+[environment variables](#environment-variables), and [secrets](#secrets).  For
+step-by-step setups on a particular platform, see the
+[deployment guides](#deployment-guides).
 
 ## Prerequisites ##
 
@@ -29,184 +35,84 @@ distribution.
 - A [FoundryVTT.com](https://foundryvtt.com/auth/register/) account with a purchased
   software license.
 
-## Running ##
+## Quick start ##
 
-### Running with Docker and credentials ###
-
-You can use the following command to start up a Foundry Virtual Tabletop server.
-Your [foundryvtt.com](https://foundryvtt.com) credentials are required so the
-container can install and license your server.
+The fastest way to see the server running is a single command.  Your
+[foundryvtt.com](https://foundryvtt.com) credentials let the container install
+and license your server:
 
 ```console
 docker run \
   --env FOUNDRY_USERNAME='<your_username>' \
   --env FOUNDRY_PASSWORD='<your_password>' \
+  --hostname my_foundry_host \
   --publish 30000:30000/tcp \
   --volume <your_data_dir>:/data \
   ghcr.io/felddy/foundryvtt:14
 ```
+
+Then open [http://localhost:30000](http://localhost:30000).
 
 > [!TIP]
-> If you are using `bash`, or a similar shell, consider pre-pending the Docker
-> command with a space to prevent your credentials from being committed to the
-> shell history list.  See:
-> [`HISTCONTROL`](https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html#index-HISTCONTROL)
+> Don't want to share your password with the container?  Acquire a temporary
+> download URL from the [Purchased Software Licenses
+> page](https://foundryvtt.com/me/licenses) (set `Operating System` to
+> `Node.js`, then use the `🔗 Timed URL` button) and pass it as
+> `FOUNDRY_RELEASE_URL` instead of your username and password.  Sensitive values
+> can also be supplied as [secrets](#using-secrets).
 
-### Running with Docker and a temporary URL ###
+This is enough to try things out.  For a durable, real-world deployment, pick a
+[deployment guide](#deployment-guides) below.
 
-Alternatively, you may acquire a temporary download URL from your user profile
-page on the Foundry website.
-
-1. Navigate to the [`Purchased Software Licenses` page](https://foundryvtt.com/me/licenses).
-1. Change the `Operating System` menu item to `Node.js`.
-1. Click the `🔗 Timed URL` button to obtain the temporary URL.
-1. Use the following command to start up a Foundry Virtual Tabletop server:
-
-```console
-docker run \
-  --env FOUNDRY_RELEASE_URL='<temporary_url>' \
-  --publish 30000:30000/tcp \
-  --volume <your_data_dir>:/data \
-  ghcr.io/felddy/foundryvtt:14
-```
-
-### Configuration management ###
+## Configuration ##
 
 [Configuration options](https://foundryvtt.com/article/configuration/) are
-specified using [environment variables](#environment-variables).  It is highly
-recommended that you use [`docker compose`](https://docs.docker.com/compose/) or
-similar container orchestration to manage your server's configuration.  A
-`compose.yml` file, like the example below, is a reliable way to start
-and maintain a container while capturing its configurations.
-
-Each time the container starts it generates the configuration files needed by
-Foundry Virtual Tabletop using the values of the environment variables.  That
-means **changes made in the server's configuration GUI will not persist between
-container restarts**.  If you would like to disable the regeneration of these
-configuration files, set `CONTAINER_PRESERVE_CONFIG` to `true`.
+supplied through [environment variables](#environment-variables).  Each time the
+container starts, it generates the configuration files Foundry needs from the
+values of those variables.  This means **changes made in the in-application
+configuration GUI do not persist between container restarts**.  Manage
+configuration through your runtime's environment settings — a `compose.yaml`
+file, a Kubernetes manifest, or similar.  To disable the regeneration of these
+files, set `CONTAINER_PRESERVE_CONFIG` to `true`.
 
 > [!IMPORTANT]
-> Always set a stable `hostname` in your `compose.yml` (or `--hostname` in
-> `docker run`).  Foundry binds its software license to the container hostname.
-> If no hostname is set, Docker assigns a random container ID on each start,
-> causing license verification to fail after every restart.
-
-1. Create a `compose.yml` file similar to the one below.  Provide
-   your credentials as values to the environment variables:
-
-    ```yaml
-    ---
-    services:
-      foundry:
-        image: ghcr.io/felddy/foundryvtt:14
-        hostname: my_foundry_host
-        volumes:
-          - type: bind
-            source: <your_data_dir>
-            target: /data
-        environment:
-          - FOUNDRY_USERNAME=<your_username>
-          - FOUNDRY_PASSWORD=<your_password>
-          - FOUNDRY_ADMIN_KEY=atropos
-          - FOUNDRY_TELEMETRY=true
-        ports:
-          - target: 30000
-            published: 30000
-            protocol: tcp
-    ```
-
-1. Start the container and detach:
-
-    ```console
-    docker compose up --detach
-    ```
-
-1. Access the web application at:
-[http://localhost:30000](http://localhost:30000).
-
-If all goes well you should be prompted with the license agreement, and then
-"admin access key" set with the `FOUNDRY_ADMIN_KEY` variable.
+> Always set a stable hostname for the container (`hostname:` in a `compose.yaml`
+> file, `--hostname` for `docker`/`podman`, or `hostname:` in a pod spec).
+> Foundry binds its software license to the container hostname.  If no hostname
+> is set, the runtime assigns a random container ID on each start, causing
+> license verification to fail after every restart.
 
 ## Using secrets ##
 
-This container also supports passing sensitive values via [Docker
-secrets](https://docs.docker.com/engine/swarm/secrets/).  Passing sensitive
-values like your credentials can be more secure using secrets than using
-environment variables.  Your secrets json file can have any name.  This example
-uses `secrets.json`.  Regardless of the name you choose it must be targeted to
-`config.json` within the container as in the example below.  See the
-[secrets](#secrets) section below for a table of all supported secret keys.
+Sensitive values — your credentials, admin key, or license key — can be supplied
+through a secret file instead of environment variables.  The file may have any
+name, but it must be presented to the container as `config.json`.  See the
+[secrets](#secrets) reference below for the full list of supported keys, and the
+[deployment guides](#deployment-guides) for how to wire up a secret on your
+runtime.
 
-1. To use secrets, create a `secrets.json` file containing the values you want set:
+## Deployment guides ##
 
-    ```json
-    {
-      "foundry_admin_key": "atropos",
-      "foundry_password": "your_password",
-      "foundry_username": "your_username"
-    }
-    ```
+The [deployment guides](docs/deployment/README.md) cover each runtime in depth
+and include worked networking examples.  The image is the same everywhere; these
+guides show how to run it well on a given platform.
 
-1. Then add the secret to your `compose.yml` file:
+| Guide | Description |
+| ----- | ----------- |
+| [Kubernetes](docs/deployment/kubernetes/README.md) | Cluster deployment, including running multiple Foundry instances. |
+| [Podman](docs/deployment/podman.md) | Daemonless and rootless, optionally managed by `systemd`. |
+| [Docker Compose](docs/deployment/docker-compose.md) | Single-host setup with the image, configuration, storage, and ports in one file. |
+| [Reverse proxy with Caddy](docs/deployment/reverse-proxy-caddy/README.md) | Automatic HTTPS in front of the server. |
+| [Cloudflare Tunnel](docs/deployment/cloudflare-tunnel/README.md) | Public access without port forwarding or NAT. |
 
-    ```yaml
-    ---
-    secrets:
-      config_json:
-        file: secrets.json
-
-    services:
-      foundry:
-        image: ghcr.io/felddy/foundryvtt:14
-        hostname: my_foundry_host
-        volumes:
-          - type: bind
-            source: <your_data_dir>
-            target: /data
-        environment:
-        ports:
-          - target: 30000
-            published: 30000
-            protocol: tcp
-        secrets:
-          - source: config_json
-            target: config.json
-    ```
-
-## Updating your container ##
+## Updating ##
 
 The Foundry "Update Software" tab is disabled by default in this container.  To
-upgrade to a new version of Foundry pull an updated image version.
-
-### Updating with Docker Compose ###
-
-1. Pull the new image from the registry:
-
-    ```console
-    docker compose pull
-    ```
-
-1. Recreate the running container:
-
-    ```console
-    docker compose up --detach
-    ```
-
-### Updating with Docker ###
-
-1. Stop the running container:
-
-    ```console
-    docker stop <container_id>
-    ```
-
-1. Pull the new image:
-
-    ```console
-    docker pull ghcr.io/felddy/foundryvtt:14
-    ```
-
-1. Follow the previous instructions for [running](#running) the container above.
+upgrade to a new version of Foundry, pull an updated image and recreate the
+container.  Because the recommended `:14` tag tracks the latest
+release for that major version, pulling it fetches the newest version compatible
+with your data.  Your [deployment guide](#deployment-guides) lists the exact
+commands for your runtime.
 
 ## Image tags ##
 
@@ -283,7 +189,7 @@ secrets](#using-secrets) instead of environment variables.
 
 | Name | Purpose | Default |
 | ---- | ------- | ------- |
-| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry distribution archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container.  Set to `""` to disable.</br>***Note***: When the cache is disabled the container will sleep indefinitely on failure rather than exiting, to prevent a restart loop.  A distribution can be pre-downloaded and placed into a cache directory.  The distribution's name must be of the form: `foundryvtt-14.368.zip` | `/data/container_cache` |
+| `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry distribution archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container.  Set to `""` to disable.  The cache may be shared by multiple containers: simultaneous startups coordinate among themselves so each release is downloaded only once.</br>***Note***: When the cache is disabled the container will sleep indefinitely on failure rather than exiting, to prevent a restart loop.  A distribution can be pre-downloaded and placed into a cache directory.  The distribution's name must be of the form: `foundryvtt-14.368.zip` | `/data/container_cache` |
 | `CONTAINER_CACHE_SIZE` | Set the maximum number of distribution versions to keep in the cache.  The minimum is `1`.  When the limit is exceeded, the oldest versions (lowest version numbers) are removed first.  Unset to disable cache size management and keep all versions. | |
 | `CONTAINER_PATCHES` | Set a path to a directory of shell scripts to be sourced after Foundry is installed but before it is started.  The path should be in `/data` or another persistent mount point in the container. e.g.; `/data/container_patches`  Patch files are sourced in lexicographic order.  `CONTAINER_PATCHES` are processed after `CONTAINER_PATCH_URLS`. | |
 | `CONTAINER_PATCH_URLS` | Set to a space-delimited list of URLs to be sourced after Foundry is installed but before it is started.  Patch URLs are sourced in the order specified.  `CONTAINER_PATCH_URLS` are processed before `CONTAINER_PATCHES`.  ⚠️ **Only use patch URLs from trusted sources!** | |
@@ -300,7 +206,7 @@ secrets](#using-secrets) instead of environment variables.
 | `FOUNDRY_HOSTNAME` | A custom hostname to use in place of the host machine's public IP address when displaying the address of the game session. This allows for reverse proxies or DNS servers to modify the public address. | `null` |
 | `FOUNDRY_HOT_RELOAD` | Set to `true` to allow packages to hot-reload certain assets, such as CSS, HTML, and localization files without a full refresh. This setting is only recommended for developers. | `false` |
 | `FOUNDRY_IP_DISCOVERY` | Allow the Foundry server to discover and report the accessibility of the host machine's public IP address and port.  Setting this to `false` may reduce server startup time in instances where this discovery would timeout. | `true` |
-| `FOUNDRY_LANGUAGE` | The default application language and module which provides the core translation files. | `en.core` |
+| `FOUNDRY_LANGUAGE` | The default application language, as `<language>.<module>`.  Languages other than English are provided by a translation module that must already be installed in your user data — for example, install the [fr-core](https://foundryvtt.com/packages/fr-core) module and set `fr.fr-core` for French.  The default English translations are built in. | `en.core` |
 | `FOUNDRY_LOCAL_HOSTNAME` | Override the local network address used for invitation links, mirroring the functionality of the `FOUNDRY_HOSTNAME` option which configures the external address. | `null` |
 | `FOUNDRY_LICENSE_KEY` | The license key to install. e.g.; `AAAA-BBBB-CCCC-DDDD-EEEE-FFFF`  If left unset, a license key will be fetched when using account authentication.   If multiple license keys are associated with an account, one will be chosen at random.  Specific licenses can be selected by passing in an integer index.  The first license key being `1`.  May be set [using secrets](#using-secrets). | |
 | `FOUNDRY_LOG_SIZE` | The maximum size a log file can reach before it is rotated.  Units must be included. e.g.; `1024k`, `64m`, `1g`. | |
@@ -352,95 +258,11 @@ particularly useful.
 | `config.json` | `foundry_service_key`   | Overrides `FOUNDRY_SERVICE_KEY` environment variable.   |
 | `config.json` | `foundry_username`      | Overrides `FOUNDRY_USERNAME` environment variable.      |
 
-## Building from source ##
+## Building ##
 
-Build the image locally using this git repository as the [build context](https://docs.docker.com/engine/reference/commandline/build/#git-repositories):
-
-```console
-docker build \
-  --build-arg CONTAINER_VERSION=14.368.0 \
-  --build-arg FOUNDRY_VERSION=14.368 \
-  --tag ghcr.io/felddy/foundryvtt:14.368.0 \
-  https://github.com/felddy/foundryvtt-docker.git#develop
-```
-
-## Cross-platform builds ##
-
-To create images that are compatible with other platforms you can use the
-[`buildx`](https://docs.docker.com/buildx/working-with-buildx/) feature of
-Docker:
-
-1. Copy the project to your machine using the `Clone` button above
-   or the command line:
-
-    ```console
-    git clone https://github.com/felddy/foundryvtt-docker.git
-    cd foundryvtt-docker
-    ```
-
-1. Build the image using `buildx`:
-
-    ```console
-    docker buildx build \
-      --platform linux/amd64 \
-      --build-arg CONTAINER_VERSION=14.368.0 \
-      --build-arg FOUNDRY_VERSION=14.368 \
-      --output type=docker \
-      --tag ghcr.io/felddy/foundryvtt:14.368.0 .
-    ```
-
-## Pre-installed distribution builds ##
-
-It is possible to install a Foundry Virtual Tabletop distribution into the
-Docker image at build-time.  This results in a significantly larger Docker
-image, but removes the need to install a distribution at container startup,
-resulting in a faster startup.  It also moves the user authentication to
-build-time instead of start-time.
-
-### Image build with credentials ###
-
-> [!NOTE]
-> Credentials are only used to fetch a distribution, and are not stored
-> in the resulting image.
-
-```console
-docker build \
-  --build-arg CONTAINER_VERSION=14.368.0 \
-  --build-arg FOUNDRY_VERSION=14.368 \
-  --secret id=foundry_username,src=<(echo "<your_username>") \
-  --secret id=foundry_password,src=<(echo "<your_password>") \
-  --tag ghcr.io/felddy/foundryvtt:14.368.0 \
-  https://github.com/felddy/foundryvtt-docker.git#develop
-```
-
-> [!TIP]
-> If you have stored your credentials in a json file, as documented in the
-> [using secrets](#using-secrets) section above, you can extract the username
-> and password and pass them as build secrets using the following syntax:
->
-> ```console
-> docker build \
->   --build-arg CONTAINER_VERSION=14.368.0 \
->   --build-arg FOUNDRY_VERSION=14.368 \
->   --secret id=foundry_username,src=<(jq -r '.foundry_username' path/to/credentials.json) \
->   --secret id=foundry_password,src=<(jq -r '.foundry_password' path/to/credentials.json) \
->   --tag ghcr.io/felddy/foundryvtt:14.368.0 \
->   https://github.com/felddy/foundryvtt-docker.git#develop
-> ```
-
-More information about Docker build secrets can be found in the [Docker
-documentation](https://docs.docker.com/build/building/secrets/).
-
-### Image build with a temporary URL ###
-
-```console
-docker build \
-  --build-arg CONTAINER_VERSION=14.368.0 \
-  --build-arg FOUNDRY_VERSION=14.368 \
-  --build-arg FOUNDRY_RELEASE_URL='<temporary_url>' \
-  --tag ghcr.io/felddy/foundryvtt:14.368.0 \
-  https://github.com/felddy/foundryvtt-docker.git#develop
-```
+Most users should pull a published image.  If you want to build the image
+yourself — from source, for another architecture, or with a distribution
+pre-installed — see the [building guide](docs/building.md).
 
 ## Contributing ##
 
