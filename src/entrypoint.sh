@@ -318,6 +318,10 @@ END_OF_LINE
       ((sweep_minutes >= 5)) || sweep_minutes=5
       find "${cache_root}" -maxdepth 1 -name "downloading-${FOUNDRY_VERSION}.*.zip" \
         -mmin +${sweep_minutes} -delete 2> /dev/null || true
+      # Drop temp files left behind by older image generations (the shared
+      # and the version-only names); current instances never write these.
+      rm -f "${cache_root}/downloading.zip" \
+        "${cache_root}/downloading-${FOUNDRY_VERSION}.zip"
     fi
     # Temporarily disable errexit for the curl command to capture its exit status
     set +e
