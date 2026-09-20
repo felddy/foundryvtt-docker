@@ -47,7 +47,7 @@ spec:
               value: /data/container_cache
             - name: FOUNDRY_HOSTNAME
               value: vtt.example.com
-            # Set to "true" when an ingress / load balancer terminates TLS so
+            # Set to "true" when a gateway / load balancer terminates TLS so
             # invitation links and A/V use https.
             - name: FOUNDRY_PROXY_SSL
               value: "true"

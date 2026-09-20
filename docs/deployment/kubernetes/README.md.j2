@@ -16,13 +16,13 @@ The manifests live in [`manifests/`](manifests), form a ready-to-use
 | [`secret.yaml`](manifests/secret.yaml) | `Secret` | Credentials as a `config.json`. |
 | [`deployment.yaml`](manifests/deployment.yaml) | `Deployment` | The Foundry pod. |
 | [`service.yaml`](manifests/service.yaml) | `Service` | Cluster-internal endpoint. |
-| [`ingress.yaml`](manifests/ingress.yaml) | `Ingress` | External HTTPS access. |
+| [`httproute.yaml`](manifests/httproute.yaml) | `HTTPRoute` | External HTTPS access via the [Gateway API]. |
 
 ```mermaid
 graph LR
-    Users((Users)) -->|HTTPS / 443| Ingress
+    Users((Users)) -->|HTTPS / 443| Gateway
     subgraph Cluster
-        Ingress("Ingress") -->|HTTP / 80| Service("Service")
+        Gateway("Gateway + HTTPRoute") -->|HTTP / 80| Service("Service")
         Service --> Pod("Foundry pod")
         Pod --> PVC[("PersistentVolumeClaim<br>/data")]
         Secret("Secret<br>config.json") -.-> Pod
@@ -33,7 +33,8 @@ graph LR
 
 - A Kubernetes cluster and `kubectl` configured to reach it.
 - A default `StorageClass` (or edit [`pvc.yaml`](manifests/pvc.yaml)).
-- An ingress controller and DNS if you want external access.
+- A [Gateway API] implementation with a `Gateway` you can attach routes to,
+  plus DNS, if you want external access.
 - A [foundryvtt.com](https://foundryvtt.com/auth/register/) account with a
   purchased software license.
 
@@ -41,7 +42,8 @@ graph LR
 
 1. Edit [`secret.yaml`](manifests/secret.yaml) with your credentials, and set
    `FOUNDRY_HOSTNAME` (in [`deployment.yaml`](manifests/deployment.yaml)) and
-   the `host` (in [`ingress.yaml`](manifests/ingress.yaml)) to your domain.
+   the `hostnames` (in [`httproute.yaml`](manifests/httproute.yaml)) to your
+   domain.  Point the route's `parentRefs` at your cluster's `Gateway`.
 
 1. Apply the manifests:
 
@@ -63,7 +65,7 @@ graph LR
     ```
 
    Then open [http://localhost:30000](http://localhost:30000).  Once your
-   ingress and DNS are in place, browse to your configured hostname instead.
+   gateway and DNS are in place, browse to your configured hostname instead.
 
 ## How it works ##
 
@@ -98,15 +100,15 @@ A few choices are worth understanding before you adapt these.
   the [secrets reference](../../README.md#secrets) for every supported key.
 
 - **TLS at the edge.** The Service speaks plain HTTP on port `80`.  Terminate
-  TLS at your ingress controller and set `FOUNDRY_PROXY_SSL=true` (already in
+  TLS at your `Gateway` listener and set `FOUNDRY_PROXY_SSL=true` (already in
   the Deployment) so invitation links and audio/video use `https`.  Foundry
-  relies on WebSockets; most ingress controllers proxy them without extra
-  configuration, but confirm yours does.
+  relies on WebSockets, which the Gateway API's `HTTPRoute` carries without
+  extra configuration.
 
 > [!TIP]
-> Prefer the Gateway API?  Swap [`ingress.yaml`](manifests/ingress.yaml) for an
-> `HTTPRoute` pointing at the `foundryvtt` Service on port `80`.  Nothing else
-> changes.
+> Prefer the classic `Ingress`?  Swap
+> [`httproute.yaml`](manifests/httproute.yaml) for an `Ingress` routing your
+> host to the `foundryvtt` Service on port `80`.  Nothing else changes.
 
 ## Running multiple Foundry instances ##
 
@@ -118,8 +120,9 @@ independent, single-replica deployment.  Each instance needs:
   collide;
 - **its own `PersistentVolumeClaim`**, since data must not be shared;
 - **its own `Secret`**; and
-- **a unique `FOUNDRY_HOSTNAME`** and ingress `host`.  Foundry licenses are
-  bound per hostname, so each running instance must present a distinct one.
+- **a unique `FOUNDRY_HOSTNAME`** and `HTTPRoute` hostname.  Foundry licenses
+  are bound per hostname, so each running instance must present a distinct
+  one.
 
 The simplest approach is to deploy the same manifests into a second namespace
 with different values:
@@ -132,8 +135,8 @@ kubectl apply -k staging/      # namespace: foundryvtt-staging -> vtt-staging.ex
 
 To avoid copy-pasting, layer the differences with [Kustomize].  Treat
 [`manifests/`](manifests) as a `base` and add a small overlay per instance that
-patches only what differs — the namespace, the `FOUNDRY_HOSTNAME`, the ingress
-`host`, and optionally the image tag:
+patches only what differs — the namespace, the `FOUNDRY_HOSTNAME`, the
+`HTTPRoute` hostname, and optionally the image tag:
 
 ```yaml
 # overlays/staging/kustomization.yaml
@@ -178,4 +181,5 @@ To move to a new major version, change the image tag in
 [`deployment.yaml`](manifests/deployment.yaml) (and `FOUNDRY_VERSION` if you pin
 it) and re-apply.
 
+[Gateway API]: https://gateway-api.sigs.k8s.io/
 [Kustomize]: https://kustomize.io/

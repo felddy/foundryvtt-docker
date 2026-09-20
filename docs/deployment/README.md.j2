@@ -33,5 +33,5 @@ written as Compose examples that work with both Docker and Podman.
 | [Reverse proxy with Caddy](reverse-proxy-caddy/README.md) | Puts the server behind [Caddy](https://caddyserver.com) for automatic HTTPS with free, auto-renewing certificates. |
 | [Cloudflare Tunnel](cloudflare-tunnel/README.md) | Exposes the server to the internet without opening ports or configuring NAT. |
 
-Kubernetes users generally front the server with an `Ingress` instead; see the
-[Kubernetes guide](kubernetes/README.md) for an example.
+Kubernetes users generally front the server with a Gateway API `HTTPRoute`
+instead; see the [Kubernetes guide](kubernetes/README.md) for an example.
