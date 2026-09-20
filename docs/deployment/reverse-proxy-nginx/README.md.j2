@@ -12,7 +12,8 @@ HTTPS with zero certificate handling, use the
 - TLS terminated by nginx with certificates you provide.
 - WebSockets (which Foundry requires) proxied with the headers most
   hand-rolled configurations miss.
-- Foundry attached only to an internal network — never published to the host.
+- Foundry reachable only through nginx — port `30000` is never published on
+  the host.
 - Based on configurations verified in the project's
   [discussions][discussion-175].
 
@@ -74,8 +75,10 @@ graph LR
   audio/video use `https`/`wss` addresses.
 - `client_max_body_size 300M` allows large asset and world uploads through
   the proxy.
-- The `foundry` service sits on an internal network and is only reachable
-  through nginx; port `30000` is never published on the host.
+- The `foundry` service publishes no ports, so it is only reachable through
+  nginx on their shared bridge network.  (The network deliberately does not
+  use Compose's `internal: true`, which also blocks outbound traffic —
+  Foundry needs to reach foundryvtt.com to download releases.)
 - The container `hostname` is fixed so the software license binding survives
   restarts.
 

@@ -16,7 +16,7 @@ services:
       - source: foundry_secrets
         target: config.json
     networks:
-      - internal
+      - backend
     restart: unless-stopped
 
   nginx:
@@ -42,11 +42,13 @@ services:
         target: /etc/nginx/certs
         read_only: true
     networks:
-      - internal
+      - backend
     restart: unless-stopped
 
 networks:
-  internal:
+  # A private bridge shared by the two services.  Deliberately not
+  # `internal: true`: Foundry needs outbound access to download releases.
+  backend:
 
 secrets:
   foundry_secrets:
