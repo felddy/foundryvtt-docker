@@ -75,7 +75,7 @@ trap trap_exit EXIT
 
 image_version=$(cat image_version.txt)
 
-if [ "$1" = "--version" ]; then
+if [ "${1:-}" = "--version" ]; then
   echo "${image_version}"
   trap - EXIT
   exit 0
