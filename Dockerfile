@@ -129,6 +129,7 @@ COPY \
   src/launcher.sh \
   src/lifecycle.sh \
   src/logging.sh \
+  src/release_verify.sh \
   ./
 RUN mkdir -p resources /data \
   && chmod a+rx /home/node \
