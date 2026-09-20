@@ -6,6 +6,7 @@ logging.sh is stubbed out so tests have no terminal-color side-effects.
 
 # Standard Python Libraries
 from pathlib import Path
+import select
 import signal
 import subprocess
 import textwrap
@@ -118,9 +119,11 @@ def test_sigterm_waits_for_slow_child_shutdown() -> None:
     real exit code — not the 143 from the interrupted `wait`.
     """
     # The decoy sleep gets its stdio detached so the orphan cannot hold the
-    # test harness's stdout pipe open after the parent exits.
+    # test harness's stdout pipe open after the parent exits.  Both processes
+    # announce readiness after installing their TERM traps; the test only
+    # signals once both markers have been read, so no fixed delay is needed.
     child_cmd = (
-        'trap "sleep 1; echo child-done; exit 5" TERM; '
+        'trap "sleep 1; echo child-done; exit 5" TERM; echo child-ready; '
         "sleep 30 >/dev/null 2>&1 & wait $!"
     )
     body = textwrap.dedent(f"""\
@@ -128,6 +131,7 @@ def test_sigterm_waits_for_slow_child_shutdown() -> None:
         bash -c '{child_cmd}' &
         child=$!
         trap 'kill -TERM "$child" 2>/dev/null' TERM
+        echo parent-ready
         wait_for_child "$child" code
         echo "parent-saw=$code"
         exit "$code"
@@ -138,7 +142,18 @@ def test_sigterm_waits_for_slow_child_shutdown() -> None:
         stderr=subprocess.PIPE,
         text=True,
     )
-    time.sleep(0.5)  # let the child install its TERM trap
+    # A TERM that lands between parent-ready and the wait is still safe:
+    # traps run at the next command boundary and wait_for_child reaps an
+    # already-exited child, so readiness of both traps is all we need.
+    stdout_pipe = proc.stdout
+    assert stdout_pipe is not None
+    pending = {"child-ready", "parent-ready"}
+    deadline = time.time() + 10
+    while pending:
+        remaining = deadline - time.time()
+        readable = remaining > 0 and select.select([stdout_pipe], [], [], remaining)[0]
+        assert readable, f"timed out waiting for readiness; still missing {pending}"
+        pending.discard(stdout_pipe.readline().strip())
     proc.send_signal(signal.SIGTERM)
     stdout, stderr = proc.communicate(timeout=10)
     # The child had time to finish its cleanup and its status was preserved.
