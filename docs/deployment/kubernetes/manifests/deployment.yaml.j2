@@ -53,6 +53,28 @@ spec:
               value: "true"
             - name: FOUNDRY_TELEMETRY
               value: "true"
+          # Kubernetes ignores the image's built-in Docker HEALTHCHECK, so the
+          # probes are declared here against Foundry's status endpoint.  The
+          # first start downloads and installs the Foundry distribution, which
+          # can take minutes on a slow link; the startup probe budgets for
+          # that before the liveness probe takes over.  If you set
+          # FOUNDRY_ROUTE_PREFIX, prepend it to the probe paths.
+          startupProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            periodSeconds: 10
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            periodSeconds: 30
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

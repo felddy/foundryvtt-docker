@@ -17,6 +17,17 @@ image tag `:{{ major_version }}`:
 | [`service.yaml`](manifests/service.yaml) | `Service` | Cluster-internal endpoint. |
 | [`ingress.yaml`](manifests/ingress.yaml) | `Ingress` | External HTTPS access. |
 
+```mermaid
+graph LR
+    Users((Users)) -->|HTTPS / 443| Ingress
+    subgraph Cluster
+        Ingress("Ingress") -->|HTTP / 80| Service("Service")
+        Service --> Pod("Foundry pod")
+        Pod --> PVC[("PersistentVolumeClaim<br>/data")]
+        Secret("Secret<br>config.json") -.-> Pod
+    end
+```
+
 ## Prerequisites ##
 
 - A Kubernetes cluster and `kubectl` configured to reach it.
@@ -53,7 +64,7 @@ image tag `:{{ major_version }}`:
    Then open [http://localhost:30000](http://localhost:30000).  Once your
    ingress and DNS are in place, browse to your configured hostname instead.
 
-## How the manifests fit together ##
+## How it works ##
 
 A few choices are worth understanding before you adapt these.
 
@@ -73,6 +84,12 @@ A few choices are worth understanding before you adapt these.
   (UID/GID `1000`), drops all capabilities, and mounts its root filesystem
   read-only.  Foundry still needs to write a couple of paths outside `/data`, so
   `/tmp` and `/home/node/resources` are backed by ephemeral `emptyDir` volumes.
+
+- **Probes instead of the Docker `HEALTHCHECK`.** Kubernetes ignores the
+  image's built-in health check, so the Deployment declares its own probes
+  against Foundry's `/api/status` endpoint.  The startup probe carries a
+  generous budget because the first boot downloads and installs the Foundry
+  distribution before the server answers.
 
 - **Credentials as a mounted secret.** The `Secret` is projected to
   `/run/secrets/config.json`, the location the image reads for credentials.
