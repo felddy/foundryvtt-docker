@@ -204,16 +204,17 @@ END_OF_LINE
 
   # Trim trailing slashes without extglob (the historical +(/) pattern
   # required it and silently no-opped without it).
+  # An all-slash value ("/", "//") means the filesystem root, not "no cache".
   cache_root="${CONTAINER_CACHE:-}"
-  while [[ "${cache_root}" == */ ]]; do
+  while [[ "${cache_root}" == */ && "${cache_root}" != "/" ]]; do
     cache_root="${cache_root%/}"
   done
   # The in-progress name is version-unique so instances downloading
   # different versions into a shared cache cannot clobber each other and
   # mislabel a release (#1399).  It must not match the foundryvtt-*.zip
   # glob used by the cache-size cleanup below.
-  downloading_filename="${cache_root}${cache_root:+/}downloading-${FOUNDRY_VERSION}.zip"
-  release_filename="${cache_root}${cache_root:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
+  downloading_filename="${cache_root%/}${cache_root:+/}downloading-${FOUNDRY_VERSION}.zip"
+  release_filename="${cache_root%/}${cache_root:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
 
   # Determine how we are going to get the release URL
   if [ "${FOUNDRY_RELEASE_URL:-}" ]; then
