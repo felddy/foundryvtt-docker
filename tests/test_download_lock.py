@@ -83,19 +83,38 @@ def test_release_file_short_circuits(tmp_path: Path) -> None:
 
 
 def test_degraded_when_lock_cannot_be_created(tmp_path: Path) -> None:
-    """A read-only cache directory degrades to unarbitrated mode (rc=2)."""
-    ro = tmp_path / "ro"
-    ro.mkdir()
-    ro.chmod(0o555)
-    try:
-        result = _run(textwrap.dedent(f"""\
-                download_slot_acquire "{ro}/v.lock" "{ro}/release.zip" \\
-                  "{ro}/downloading-v.*.zip"
-                echo "rc=$?"
-            """))
-        assert "rc=2" in result.stdout, result.stderr
-    finally:
-        ro.chmod(0o755)
+    """An uncreatable lock path degrades to unarbitrated mode (rc=2).
+
+    A regular file blocking the lock path defeats mkdir at any UID --
+    unlike a chmod-based setup, which root (CAP_DAC_OVERRIDE) ignores.
+    """
+    (tmp_path / "v.lock").write_bytes(b"not a directory")
+    result = _run(textwrap.dedent(f"""\
+            download_slot_acquire "{tmp_path}/v.lock" "{tmp_path}/release.zip" \\
+              "{tmp_path}/downloading-v.*.zip"
+            echo "rc=$?"
+        """))
+    assert "rc=2" in result.stdout, result.stderr
+
+
+def test_garbage_tunables_fall_back_to_defaults(tmp_path: Path) -> None:
+    """Non-numeric or octal-looking overrides are replaced by the defaults.
+
+    These values feed arithmetic contexts; without validation a garbage
+    override would abort the sourcing shell under nounset/errexit.
+    """
+    result = _run(
+        'echo "poll=$DOWNLOAD_LOCK_POLL_SECONDS'
+        " ticks=$DOWNLOAD_LOCK_STALL_TICKS"
+        ' limit=$DOWNLOAD_LOCK_STEAL_LIMIT"',
+        env={
+            "DOWNLOAD_LOCK_POLL_SECONDS": "soon",
+            "DOWNLOAD_LOCK_STALL_TICKS": "08",
+            "DOWNLOAD_LOCK_STEAL_LIMIT": "many",
+        },
+    )
+    assert result.returncode == 0, result.stderr
+    assert "poll=5 ticks=8 limit=3" in result.stdout
 
 
 # ── Waiting behavior ──────────────────────────────────────────────────────────

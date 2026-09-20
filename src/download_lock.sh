@@ -36,6 +36,26 @@ DOWNLOAD_LOCK_POLL_SECONDS="${DOWNLOAD_LOCK_POLL_SECONDS:-5}"
 DOWNLOAD_LOCK_STALL_TICKS="${DOWNLOAD_LOCK_STALL_TICKS:-60}"
 DOWNLOAD_LOCK_STEAL_LIMIT="${DOWNLOAD_LOCK_STEAL_LIMIT:-3}"
 
+# The tunables feed arithmetic contexts and sleep; a non-numeric override
+# would abort startup under nounset/errexit, and a leading zero would be
+# read as octal.  Fall back to the defaults with a warning instead.
+if ! [[ "${DOWNLOAD_LOCK_POLL_SECONDS}" =~ ^[0-9]*\.?[0-9]+$ ]]; then
+  log_warn "DOWNLOAD_LOCK_POLL_SECONDS must be a positive number.  Found: '${DOWNLOAD_LOCK_POLL_SECONDS}'.  Using 5."
+  DOWNLOAD_LOCK_POLL_SECONDS=5
+fi
+if [[ "${DOWNLOAD_LOCK_STALL_TICKS}" =~ ^[0-9]+$ ]]; then
+  DOWNLOAD_LOCK_STALL_TICKS=$((10#${DOWNLOAD_LOCK_STALL_TICKS}))
+else
+  log_warn "DOWNLOAD_LOCK_STALL_TICKS must be a non-negative integer.  Found: '${DOWNLOAD_LOCK_STALL_TICKS}'.  Using 60."
+  DOWNLOAD_LOCK_STALL_TICKS=60
+fi
+if [[ "${DOWNLOAD_LOCK_STEAL_LIMIT}" =~ ^[0-9]+$ ]]; then
+  DOWNLOAD_LOCK_STEAL_LIMIT=$((10#${DOWNLOAD_LOCK_STEAL_LIMIT}))
+else
+  log_warn "DOWNLOAD_LOCK_STEAL_LIMIT must be a non-negative integer.  Found: '${DOWNLOAD_LOCK_STEAL_LIMIT}'.  Using 3."
+  DOWNLOAD_LOCK_STEAL_LIMIT=3
+fi
+
 # Lock directory currently held by this process, if any.
 _download_lock_held=""
 
