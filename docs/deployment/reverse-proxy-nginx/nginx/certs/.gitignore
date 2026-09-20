@@ -1,0 +1,4 @@
+# Keep this directory in git but never its contents: privkey.pem is your TLS
+# private key.
+*
+!.gitignore

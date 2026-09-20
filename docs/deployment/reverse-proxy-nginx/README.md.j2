@@ -42,6 +42,7 @@ graph LR
     ├── foundry_secrets.json
     ├── nginx/
     │   ├── certs/
+    │   │   ├── .gitignore
     │   │   ├── fullchain.pem   (your certificate chain)
     │   │   └── privkey.pem     (your private key)
     │   └── foundry.conf
@@ -62,6 +63,11 @@ graph LR
     ```
 
 1. Browse to your domain over HTTPS, for example `https://vtt.example.com`.
+
+> [!IMPORTANT]
+> `privkey.pem` is your TLS private key — keep it secret.  This recipe's
+> `nginx/certs/.gitignore` keeps the certificate directory out of version
+> control if you track your deployment in git.
 
 ## How it works ##
 
