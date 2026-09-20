@@ -91,12 +91,19 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+            # Mounted as a directory: a subPath file mount would need the
+            # image to already contain /run/secrets, and subPath interacts
+            # poorly with the read-only root filesystem on some runtimes.
             - name: config
-              mountPath: /run/secrets/config.json
-              subPath: config.json
+              mountPath: /run/secrets
               readOnly: true
-            # The root filesystem is read-only, so the few paths Foundry writes
-            # to outside /data are backed by ephemeral emptyDir volumes.
+            # The root filesystem is read-only, so the few paths written
+            # outside /data are backed by ephemeral emptyDir volumes.  The
+            # image ships resources/ empty and the entrypoint installs the
+            # Foundry distribution into it at startup; with the emptyDir the
+            # install is repeated from the CONTAINER_CACHE zip on every pod
+            # start.  If you build a pre-installed image, drop the resources
+            # mount so the baked-in application stays visible.
             - name: resources
               mountPath: /home/node/resources
             - name: tmp

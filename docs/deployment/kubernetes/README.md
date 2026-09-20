@@ -120,9 +120,9 @@ independent, single-replica deployment.  Each instance needs:
   collide;
 - **its own `PersistentVolumeClaim`**, since data must not be shared;
 - **its own `Secret`**; and
-- **a unique `FOUNDRY_HOSTNAME`** and `HTTPRoute` hostname.  Foundry licenses
-  are bound per hostname, so each running instance must present a distinct
-  one.
+- **a unique container `hostname`, `FOUNDRY_HOSTNAME`, and `HTTPRoute`
+  hostname.**  Foundry binds each license to the container hostname, so every
+  instance needs its own stable, distinct value.
 
 The simplest approach is to deploy the same manifests into a second namespace
 with different values:
@@ -149,6 +149,9 @@ resources:
 patches:
   - patch: |
       - op: replace
+        path: /spec/template/spec/hostname
+        value: foundryvtt-staging
+      - op: replace
         path: /spec/template/spec/containers/0/env/1/value
         value: vtt-staging.example.com
     target:
@@ -158,7 +161,7 @@ patches:
 
 Apply an overlay with `kubectl apply -k overlays/staging/`.  This is exactly how
 the maintainer runs production and staging side by side: one shared base, a thin
-overlay per instance that changes the hostname (and, for staging, tracks a
+overlay per instance that changes the hostnames (and, for staging, tracks a
 newer image tag).
 
 > [!NOTE]
