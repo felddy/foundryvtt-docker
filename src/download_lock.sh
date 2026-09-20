@@ -78,6 +78,9 @@ _download_progress_signature() {
   local sig="" f
   while IFS= read -r f; do
     [[ -f "${f}" ]] || continue
+    # wc -c on a regular file is fstat/lseek in both GNU coreutils and BSD
+    # (a 4 GB file answers in milliseconds) — metadata only, chosen over
+    # stat because the -c/-f flag split makes stat non-portable.
     sig+="${f}=$(wc -c < "${f}" 2> /dev/null || printf '?');"
   done < <(compgen -G "$1" 2> /dev/null || true)
   printf '%s' "${sig}"

@@ -308,6 +308,9 @@ END_OF_LINE
       # find takes whole minutes; floor a possibly-fractional poll override
       # and never sweep more aggressively than the 5-minute default window.
       poll_floor="${DOWNLOAD_LOCK_POLL_SECONDS%%.*}"
+      # A non-numeric remainder would be treated as a variable name inside
+      # the arithmetic below and abort under nounset.
+      [[ "${poll_floor}" =~ ^[0-9]+$ ]] || poll_floor=0
       sweep_minutes=$(((poll_floor * DOWNLOAD_LOCK_STALL_TICKS + 59) / 60))
       ((sweep_minutes >= 5)) || sweep_minutes=5
       find "${cache_root}" -maxdepth 1 -name "downloading-${FOUNDRY_VERSION}.*.zip" \
