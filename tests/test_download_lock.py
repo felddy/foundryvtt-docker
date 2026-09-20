@@ -127,6 +127,46 @@ def test_zero_poll_interval_falls_back(tmp_path: Path) -> None:
     assert "poll=5" in result.stdout
 
 
+def test_zombie_release_spares_reacquired_lock(tmp_path: Path) -> None:
+    """A stolen-and-reacquired lock survives the original holder's release.
+
+    Sequence: we acquire; a waiter presumes us dead, steals (rename) and
+    re-creates the lock as the new holder; we (the zombie) resume and
+    release.  The new holder's lock must remain, or a third instance
+    could acquire alongside an active downloader.
+    """
+    result = _run(textwrap.dedent(f"""\
+            download_slot_acquire "{tmp_path}/v.lock" "{tmp_path}/release.zip" \\
+              "{tmp_path}/downloading-v.*.zip"
+            # Simulate the steal + reacquisition by another instance.
+            mv "{tmp_path}/v.lock" "{tmp_path}/v.lock.stale.thief"
+            rm -rf "{tmp_path}/v.lock.stale.thief"
+            mkdir "{tmp_path}/v.lock"
+            echo "new-holder" > "{tmp_path}/v.lock/owner"
+            # Zombie resumes and releases.
+            download_slot_release
+            cat "{tmp_path}/v.lock/owner" 2>/dev/null || echo "LOCK-DELETED"
+        """))
+    assert "new-holder" in result.stdout, result.stderr
+    assert "LOCK-DELETED" not in result.stdout
+
+
+def test_release_spares_ownerless_lock(tmp_path: Path) -> None:
+    """A lock whose owner file is missing is never deleted on release.
+
+    It may be a new holder's mkdir observed before its owner write landed;
+    an ownerless lock of our own instead self-heals via stall-stealing.
+    """
+    result = _run(textwrap.dedent(f"""\
+            download_slot_acquire "{tmp_path}/v.lock" "{tmp_path}/release.zip" \\
+              "{tmp_path}/downloading-v.*.zip"
+            rm -f "{tmp_path}/v.lock/owner"
+            download_slot_release
+            [[ -d "{tmp_path}/v.lock" ]] && echo "lock-intact" || echo "LOCK-DELETED"
+        """))
+    assert "lock-intact" in result.stdout, result.stderr
+
+
 # ── Waiting behavior ──────────────────────────────────────────────────────────
 
 

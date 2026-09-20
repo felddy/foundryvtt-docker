@@ -84,9 +84,21 @@ _download_lock_try() {
 }
 
 download_slot_release() {
+  local owner
   if [[ -n "${_download_lock_held}" ]]; then
-    log_debug "download_lock: releasing ${_download_lock_held}"
-    rm -rf "${_download_lock_held}" 2> /dev/null || true
+    # Only remove the directory if it is still the one this process created.
+    # After a steal-and-reacquire the same path belongs to a newer holder,
+    # and deleting it would break mutual exclusion for everyone waiting.
+    # A missing owner file is treated as "not ours": it may be a new
+    # holder's mkdir caught before its owner write, and an ownerless lock
+    # of our own is self-healing (it stalls and gets stolen).
+    owner=$(cat "${_download_lock_held}/owner" 2> /dev/null) || owner=""
+    if [[ "${owner}" == "$(_download_lock_instance_id)" ]]; then
+      log_debug "download_lock: releasing ${_download_lock_held}"
+      rm -rf "${_download_lock_held}" 2> /dev/null || true
+    else
+      log_debug "download_lock: not removing ${_download_lock_held}: owner is '${owner:-unknown}', not us"
+    fi
     _download_lock_held=""
   fi
 }
