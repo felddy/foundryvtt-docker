@@ -89,7 +89,7 @@ done
 log "Starting felddy/foundryvtt container v${image_version}"
 log_debug "CONTAINER_VERBOSE set.  Debug logging enabled."
 log_debug "Running as: $(id)"
-log_debug "Environment:\n$(env | sort | sed -E 's/(.*PASSWORD|KEY.*)=.*/\1=[REDACTED]/g')"
+log_debug "Environment:\n$(env | sort | sed -E 's/([^=]*(PASSWORD|KEY|SECRET|TOKEN|SALT)[^=]*)=.*/\1=[REDACTED]/g')"
 log_debug "Data directory: ${DATA_DIR}"
 
 # Show the mount details for the data directory
