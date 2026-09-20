@@ -127,6 +127,13 @@ backoff_on_failure() {
     log_debug "backoff_on_failure: no state file found, starting from consecutive_failures=0"
   fi
 
+  # Guard the override before it reaches an arithmetic context, where a
+  # non-numeric value would evaluate to 0 (a zero-width decay window).
+  if ! [[ "${BACKOFF_DECAY_SECONDS}" =~ ^[0-9]+$ ]]; then
+    log_warn "BACKOFF_DECAY_SECONDS must be a non-negative integer.  Found: '${BACKOFF_DECAY_SECONDS}'.  Using 3600."
+    BACKOFF_DECAY_SECONDS=3600
+  fi
+
   # Failures separated by more than BACKOFF_DECAY_SECONDS are independent
   # incidents, not a restart loop; start counting from scratch.
   if ((consecutive_failures > 0)); then

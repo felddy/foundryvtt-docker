@@ -417,7 +417,10 @@ def _fail_once(cache_dir: Path, env: dict | None = None) -> dict:
         export -f sleep
         backoff_on_failure 1
     """)
-    _run(script, env=env)  # exits with 1, that's expected
+    # Pin the decay window unless a test overrides it, so an exported
+    # BACKOFF_DECAY_SECONDS in the developer's environment cannot leak in
+    # (_run merges os.environ).
+    _run(script, env={"BACKOFF_DECAY_SECONDS": "3600", **(env or {})})
     return json.loads((cache_dir / "backoff_state.json").read_text())
 
 
@@ -454,6 +457,18 @@ def test_decay_window_is_overridable(tmp_path: Path) -> None:
     _write_state(tmp_path, failures=5, epoch=int(time.time()) - 30)
     data = _fail_once(tmp_path, env={"BACKOFF_DECAY_SECONDS": "10"})
     assert data["consecutive_failures"] == 1
+
+
+def test_garbage_decay_override_falls_back_to_default(tmp_path: Path) -> None:
+    """A non-numeric BACKOFF_DECAY_SECONDS must not zero the decay window.
+
+    In bash arithmetic an unset-variable name evaluates to 0, which would
+    make every failure look stale and reset the count.  The guard falls
+    back to the default window instead, so a recent failure still escalates.
+    """
+    _write_state(tmp_path, failures=5, epoch=int(time.time()) - 10)
+    data = _fail_once(tmp_path, env={"BACKOFF_DECAY_SECONDS": "soon"})
+    assert data["consecutive_failures"] == 6
 
 
 def test_state_file_records_epoch(tmp_path: Path) -> None:
