@@ -110,93 +110,6 @@ A few choices are worth understanding before you adapt these.
 > [`httproute.yaml`](manifests/httproute.yaml) for an `Ingress` routing your
 > host to the `foundryvtt` Service on port `80`.  Nothing else changes.
 
-## Publishing through a Cloudflare Tunnel ##
-
-Because the manifests speak the Gateway API, a [Cloudflare Tunnel] can carry
-the public traffic without changing the application at all: run a Gateway
-implementation whose data plane is the tunnel, and re-point the `HTTPRoute`'s
-`parentRefs` at it.  No inbound ports open on the cluster, TLS terminates at
-Cloudflare's edge, and `cloudflared` maintains outbound-only connections.
-This is how the maintainer publishes their own instances.
-
-```mermaid
-graph LR
-    Users((Users)) -->|HTTPS| Edge("Cloudflare edge")
-    Edge <-->|outbound-only tunnel| CFD("cloudflared pods")
-    subgraph Cluster
-        CFD -->|vtt.example.com| SvcP("production Service")
-        CFD -->|vtt-staging.example.com| SvcS("staging Service")
-    end
-```
-
-1. Install the [cloudflare-kubernetes-gateway] controller (pin a release):
-
-    ```console
-    kubectl apply -k https://github.com/pl4nty/cloudflare-kubernetes-gateway/config/default?ref=v0.10.1
-    ```
-
-1. Create a namespace and a Secret holding a [Cloudflare API token] with the
-   `Account:Cloudflare Tunnel:Edit` and `Zone:DNS:Edit` permissions:
-
-    ```console
-    kubectl create namespace cloudflare-gateway
-    kubectl --namespace cloudflare-gateway create secret generic cloudflare-api-token \
-      --from-literal=ACCOUNT_ID='<your_account_id>' \
-      --from-literal=TOKEN='<your_api_token>'
-    ```
-
-1. Define the `GatewayClass` and a `Gateway`.  The controller creates and
-   manages the tunnel and its `cloudflared` Deployment for you:
-
-    ```yaml
-    ---
-    apiVersion: gateway.networking.k8s.io/v1
-    kind: GatewayClass
-    metadata:
-      name: cloudflare-gateway
-    spec:
-      controllerName: github.com/pl4nty/cloudflare-kubernetes-gateway
-      parametersRef:
-        group: ""
-        kind: Secret
-        name: cloudflare-api-token
-        namespace: cloudflare-gateway
-    ---
-    apiVersion: gateway.networking.k8s.io/v1
-    kind: Gateway
-    metadata:
-      name: cloudflare-edge
-      namespace: cloudflare-gateway
-    spec:
-      gatewayClassName: cloudflare-gateway
-      listeners:
-        - name: http
-          port: 80
-          protocol: HTTP
-          allowedRoutes:
-            namespaces:
-              from: All
-    ```
-
-1. Point the route at the tunnel by editing the `parentRefs` in
-   [`httproute.yaml`](manifests/httproute.yaml):
-
-    ```yaml
-      parentRefs:
-        - name: cloudflare-edge
-          namespace: cloudflare-gateway
-    ```
-
-   The controller creates the DNS record for each `HTTPRoute` hostname; there
-   is no port forwarding or NAT to configure.
-
-> [!TIP]
-> The tunnel and an in-cluster `Gateway` compose nicely: keep a second
-> `HTTPRoute` attached to an internal Gateway with a LAN-only hostname, and
-> the same Service is reachable both from the internet (through the tunnel)
-> and directly on your network — split-horizon with no extra application
-> configuration.
-
 ## Running multiple Foundry instances ##
 
 A common need is hosting more than one game at once — for example a stable
@@ -321,6 +234,93 @@ Mount it and redirect the cache in each instance's Deployment (or overlay):
 > `PersistentVolume`s pointing at one export.  With mixed major versions in
 > one cache, leave `CONTAINER_CACHE_SIZE` unset: its cleanup keeps the
 > highest version numbers, which would evict the older major's releases.
+
+## Publishing through a Cloudflare Tunnel ##
+
+Because the manifests speak the Gateway API, a [Cloudflare Tunnel] can carry
+the public traffic without changing the application at all: run a Gateway
+implementation whose data plane is the tunnel, and re-point the `HTTPRoute`'s
+`parentRefs` at it.  No inbound ports open on the cluster, TLS terminates at
+Cloudflare's edge, and `cloudflared` maintains outbound-only connections.
+This is how the maintainer publishes their own instances.
+
+```mermaid
+graph LR
+    Users((Users)) -->|HTTPS| Edge("Cloudflare edge")
+    Edge <-->|outbound-only tunnel| CFD("cloudflared pods")
+    subgraph Cluster
+        CFD -->|vtt.example.com| SvcP("production Service")
+        CFD -->|vtt-staging.example.com| SvcS("staging Service")
+    end
+```
+
+1. Install the [cloudflare-kubernetes-gateway] controller (pin a release):
+
+    ```console
+    kubectl apply -k https://github.com/pl4nty/cloudflare-kubernetes-gateway/config/default?ref=v0.10.1
+    ```
+
+1. Create a namespace and a Secret holding a [Cloudflare API token] with the
+   `Account:Cloudflare Tunnel:Edit` and `Zone:DNS:Edit` permissions:
+
+    ```console
+    kubectl create namespace cloudflare-gateway
+    kubectl --namespace cloudflare-gateway create secret generic cloudflare-api-token \
+      --from-literal=ACCOUNT_ID='<your_account_id>' \
+      --from-literal=TOKEN='<your_api_token>'
+    ```
+
+1. Define the `GatewayClass` and a `Gateway`.  The controller creates and
+   manages the tunnel and its `cloudflared` Deployment for you:
+
+    ```yaml
+    ---
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: GatewayClass
+    metadata:
+      name: cloudflare-gateway
+    spec:
+      controllerName: github.com/pl4nty/cloudflare-kubernetes-gateway
+      parametersRef:
+        group: ""
+        kind: Secret
+        name: cloudflare-api-token
+        namespace: cloudflare-gateway
+    ---
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+    metadata:
+      name: cloudflare-edge
+      namespace: cloudflare-gateway
+    spec:
+      gatewayClassName: cloudflare-gateway
+      listeners:
+        - name: http
+          port: 80
+          protocol: HTTP
+          allowedRoutes:
+            namespaces:
+              from: All
+    ```
+
+1. Point the route at the tunnel by editing the `parentRefs` in
+   [`httproute.yaml`](manifests/httproute.yaml):
+
+    ```yaml
+      parentRefs:
+        - name: cloudflare-edge
+          namespace: cloudflare-gateway
+    ```
+
+   The controller creates the DNS record for each `HTTPRoute` hostname; there
+   is no port forwarding or NAT to configure.
+
+> [!TIP]
+> The tunnel and an in-cluster `Gateway` compose nicely: keep a second
+> `HTTPRoute` attached to an internal Gateway with a LAN-only hostname, and
+> the same Service is reachable both from the internet (through the tunnel)
+> and directly on your network — split-horizon with no extra application
+> configuration.
 
 ## Updating ##
 
