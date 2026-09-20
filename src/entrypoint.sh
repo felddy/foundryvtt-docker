@@ -256,6 +256,11 @@ END_OF_LINE
 
   if [[ "${presigned_url:-}" ]]; then
     log "Downloading Foundry Virtual Tabletop release."
+    # Remove any stale in-progress file left by an interrupted run.  On a
+    # --time-cond cache hit (304) curl exits 0 without writing the output
+    # file, and the mv below would otherwise rename the stale partial over
+    # the good cached release.
+    rm -f "${downloading_filename}"
     # Temporarily disable errexit for the curl command to capture its exit status
     set +e
     # Download release if newer than cached version.
