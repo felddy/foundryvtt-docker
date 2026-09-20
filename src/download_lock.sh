@@ -176,14 +176,21 @@ download_slot_acquire() {
           # Atomic rename claims the stale lock: exactly one waiter's mv
           # succeeds, so two waiters can never both steal.  The RANDOM
           # suffix keeps a leftover stale directory from a previous run
-          # turning this mv into a move-into-directory.
+          # turning this mv into a move-into-directory.  Attempts count
+          # against the budget whether or not the mv succeeds: on a
+          # filesystem where the rename persistently fails (e.g. a
+          # sticky-bit cache directory), an uncounted failure would loop
+          # stall -> failed steal -> stall forever instead of failing
+          # cleanly into backoff.
+          steals=$((steals + 1))
           stale_dir="${lock_dir}.stale.$(_download_lock_instance_id)-${RANDOM}"
           if mv "${lock_dir}" "${stale_dir}" 2> /dev/null; then
-            steals=$((steals + 1))
             log_warn "Download lock holder is not making progress.  Stole stale lock (steal ${steals}/${DOWNLOAD_LOCK_STEAL_LIMIT})."
             rm -rf "${stale_dir}" 2> /dev/null || true
+          else
+            log_warn "Download lock holder is not making progress, and the stale lock could not be claimed (attempt ${steals}/${DOWNLOAD_LOCK_STEAL_LIMIT})."
           fi
-          # Whether we or another waiter stole it, retry acquisition.
+          # Whether we, another waiter, or nobody claimed it, retry.
           break
         fi
       fi

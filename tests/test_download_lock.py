@@ -12,6 +12,9 @@ from pathlib import Path
 import subprocess
 import textwrap
 
+# Third-Party Libraries
+import pytest
+
 SRC_DIR = Path(__file__).parent.parent / "src"
 
 LOG_STUBS = textwrap.dedent("""\
@@ -98,10 +101,11 @@ def test_degraded_when_lock_cannot_be_created(tmp_path: Path) -> None:
 
 
 def test_garbage_tunables_fall_back_to_defaults(tmp_path: Path) -> None:
-    """Non-numeric or octal-looking overrides are replaced by the defaults.
+    """Garbage overrides fall back to defaults; leading zeros parse as base 10.
 
-    These values feed arithmetic contexts; without validation a garbage
-    override would abort the sourcing shell under nounset/errexit.
+    These values feed arithmetic contexts; without validation a non-numeric
+    override would abort the sourcing shell under nounset/errexit, and a
+    leading zero would be read as an invalid octal constant.
     """
     result = _run(
         'echo "poll=$DOWNLOAD_LOCK_POLL_SECONDS'
@@ -269,6 +273,34 @@ def test_steal_limit_gives_up(tmp_path: Path) -> None:
     assert "rc=3" in result.stdout, result.stderr
     # The stalled lock was not stolen: the dead holder's lock is intact.
     assert (tmp_path / "v.lock").is_dir()
+
+
+def test_unstealable_stalled_lock_gives_up(tmp_path: Path) -> None:
+    """Failed steal attempts consume the budget and end in a clean give-up.
+
+    A stalled lock that cannot be renamed away must yield rc=3, not an
+    indefinite stall/steal wait loop.
+    """
+    if os.geteuid() == 0:
+        pytest.skip("read-only parent does not block rename for root")
+
+    locked = tmp_path / "locked"
+    locked.mkdir()
+    (locked / "v.lock").mkdir()
+    locked.chmod(0o555)  # rename (and re-mkdir) now fail; the lock persists
+    try:
+        result = _run(
+            textwrap.dedent(f"""\
+                download_slot_acquire "{locked}/v.lock" "{locked}/release.zip" \\
+                  "{locked}/downloading-v.*.zip"
+                echo "rc=$?"
+            """),
+            env={"DOWNLOAD_LOCK_STEAL_LIMIT": "2"},
+            timeout=20,
+        )
+        assert "rc=3" in result.stdout, result.stderr
+    finally:
+        locked.chmod(0o755)
 
 
 def test_errexit_safe(tmp_path: Path) -> None:
