@@ -311,6 +311,9 @@ END_OF_LINE
       # A non-numeric remainder would be treated as a variable name inside
       # the arithmetic below and abort under nounset.
       [[ "${poll_floor}" =~ ^[0-9]+$ ]] || poll_floor=0
+      # Force base 10: a leading zero ("08.0" floors to "08") is otherwise
+      # read as an invalid octal constant and aborts under errexit.
+      poll_floor=$((10#${poll_floor}))
       sweep_minutes=$(((poll_floor * DOWNLOAD_LOCK_STALL_TICKS + 59) / 60))
       ((sweep_minutes >= 5)) || sweep_minutes=5
       find "${cache_root}" -maxdepth 1 -name "downloading-${FOUNDRY_VERSION}.*.zip" \
