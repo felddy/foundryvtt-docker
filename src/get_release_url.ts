@@ -147,6 +147,15 @@ async function main(): Promise<number> {
     // Setup logging.
     logger = createLogger("ReleaseURL", log_level);
 
+    // A NaN retry count would make the fetch loop run zero times and fail
+    // with a misleading "Failed to fetch release URL" error.
+    if (Number.isNaN(retries) || retries < 0) {
+        logger.error(
+            `--retry must be a non-negative integer.  Found: ${options["--retry"]}`,
+        );
+        return -1;
+    }
+
     // Setup global cookie jar, storage, and fetch library
     logger.debug(`Loading cookies from: ${cookiejar_filename}`);
     cookieJar = new CookieJar(new FileCookieStore(cookiejar_filename));
