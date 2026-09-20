@@ -75,7 +75,7 @@ trap trap_exit EXIT
 
 image_version=$(cat image_version.txt)
 
-if [ "$1" = "--version" ]; then
+if [ "${1:-}" = "--version" ]; then
   echo "${image_version}"
   trap - EXIT
   exit 0
@@ -420,7 +420,8 @@ if [ ! -f "${LICENSE_FILE}" ]; then
     set -o nounset
     log "Applying license key passed via FOUNDRY_LICENSE_KEY."
     # FOUNDRY_LICENSE_KEY is long enough to be a key
-    echo "{ \"license\": \"${FOUNDRY_LICENSE_KEY}\" }" | tr -d '-' > "${LICENSE_FILE}"
+    jq --null-input --arg key "${FOUNDRY_LICENSE_KEY}" \
+      '{license: ($key | gsub("-"; ""))}' > "${LICENSE_FILE}"
   elif [ -f ${cookiejar_file} ]; then
     log "Attempting to fetch license key from authenticated account."
     if [[ "${FOUNDRY_LICENSE_KEY:-}" ]]; then
@@ -437,13 +438,20 @@ if [ ! -f "${LICENSE_FILE}" ]; then
         --user-agent="${node_user_agent}" \
         "${cookiejar_file}")
     fi
-    echo "{ \"license\": \"${fetched_license_key}\" }" > "${LICENSE_FILE}"
+    jq --null-input --arg key "${fetched_license_key}" '{license: $key}' > "${LICENSE_FILE}"
   else
     log_warn "Unable to apply a license key since neither a license key nor credentials were provided.  The license key will need to be entered in the browser."
   fi
   set -o nounset
 else
   log "Not modifying existing installation license key."
+fi
+
+# The cookiejar holds a live foundryvtt.com session and has no further use
+# once installation and licensing are settled.
+if [ -f "${cookiejar_file}" ]; then
+  log_debug "Removing session cookiejar: ${cookiejar_file}"
+  rm -f "${cookiejar_file}"
 fi
 
 # Export variables that were possibly set from secrets
