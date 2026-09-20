@@ -126,6 +126,7 @@ COPY \
   src/check_health.sh \
   src/entrypoint.sh \
   src/launcher.sh \
+  src/lifecycle.sh \
   src/logging.sh \
   ./
 RUN mkdir -p resources /data \
