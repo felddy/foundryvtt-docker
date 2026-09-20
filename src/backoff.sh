@@ -15,6 +15,12 @@
 # entrypoint.sh's trap_sigterm kills this PID to interrupt the sleep promptly.
 backoff_sleep_pid=""
 
+# Failures further apart than this many seconds are not a restart loop: the
+# stored failure count is reset instead of continuing to grow, so a container
+# that crashes rarely (e.g. weekly) is not punished with the maximum delay.
+# Overridable mainly for tests.
+BACKOFF_DECAY_SECONDS="${BACKOFF_DECAY_SECONDS:-3600}"
+
 # backoff_reset
 #   Delete ${CONTAINER_CACHE}/backoff_state.json if it exists; no-op otherwise.
 backoff_reset() {
@@ -45,7 +51,8 @@ backoff_reset() {
 #     Exit 0 on SIGTERM (clean operator-initiated shutdown).
 #
 #   Cache directory configured:
-#     Read state file (missing/corrupt → treat as consecutive_failures=0).
+#     Read state file (missing/corrupt → treat as consecutive_failures=0;
+#     a last failure older than BACKOFF_DECAY_SECONDS also resets the count).
 #     Compute delay = min(10 * 2^(n-2), 960) where n = consecutive_failures + 1.
 #     Log failure count and delay.
 #     Write updated state file atomically (.tmp + mv).
@@ -120,6 +127,30 @@ backoff_on_failure() {
     log_debug "backoff_on_failure: no state file found, starting from consecutive_failures=0"
   fi
 
+  # Guard the override before it reaches an arithmetic context, where a
+  # non-numeric value would evaluate to 0 (a zero-width decay window).
+  if ! [[ "${BACKOFF_DECAY_SECONDS}" =~ ^[0-9]+$ ]]; then
+    log_warn "BACKOFF_DECAY_SECONDS must be a non-negative integer.  Found: '${BACKOFF_DECAY_SECONDS}'.  Using 3600."
+    BACKOFF_DECAY_SECONDS=3600
+  fi
+  # Force base 10: in arithmetic contexts a leading zero selects octal, where
+  # "08"/"09" are errors and "060" would silently mean 48.
+  BACKOFF_DECAY_SECONDS=$((10#${BACKOFF_DECAY_SECONDS}))
+
+  # Failures separated by more than BACKOFF_DECAY_SECONDS are independent
+  # incidents, not a restart loop; start counting from scratch.
+  if ((consecutive_failures > 0)); then
+    local last_failure_epoch
+    last_failure_epoch=$(jq --raw-output '.last_failure_epoch // empty' "${state_file}" 2> /dev/null) || last_failure_epoch=""
+    if [[ "${last_failure_epoch}" =~ ^[0-9]+$ ]]; then
+      local seconds_since_failure=$(($(date +%s) - last_failure_epoch))
+      if ((seconds_since_failure > BACKOFF_DECAY_SECONDS)); then
+        log "Last failure was ${seconds_since_failure}s ago (> ${BACKOFF_DECAY_SECONDS}s).  Resetting failure count."
+        consecutive_failures=0
+      fi
+    fi
+  fi
+
   # n is the failure count we are about to record (1-based for the formula).
   local n=$((consecutive_failures + 1))
 
@@ -146,10 +177,11 @@ backoff_on_failure() {
   # If the write or rename fails (disk full, read-only volume, etc.), fall back
   # to the no-cache indefinite sleep so a broken write doesn't silently degrade
   # into a rapid restart loop.
-  local timestamp
+  local timestamp epoch
   timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-  if ! printf '{"consecutive_failures":%d,"last_failure_timestamp":"%s"}\n' \
-    "${n}" "${timestamp}" > "${tmp_file}" \
+  epoch=$(date +%s)
+  if ! printf '{"consecutive_failures":%d,"last_failure_timestamp":"%s","last_failure_epoch":%d}\n' \
+    "${n}" "${timestamp}" "${epoch}" > "${tmp_file}" \
     || ! mv "${tmp_file}" "${state_file}"; then
     log_error "Failed to write backoff state file '${state_file}'.  Falling back to indefinite sleep."
     rm -f "${tmp_file}" 2> /dev/null

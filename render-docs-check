@@ -23,4 +23,4 @@ CONTAINER_VERSION=$(tr -d '[:space:]' < "$VERSION_FILE")
 
 # Render every template in memory and compare against the committed outputs.
 # render-docs prints diffs and exits non-zero when anything is stale.
-exec uv run --group dev render-docs --check "$CONTAINER_VERSION"
+exec uv run --group dev python tools/render_docs.py --check "$CONTAINER_VERSION"

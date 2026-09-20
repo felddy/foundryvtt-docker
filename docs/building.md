@@ -11,9 +11,9 @@ Build the image using this git repository as the
 
 ```console
 docker build \
-  --build-arg CONTAINER_VERSION=14.364.0 \
-  --build-arg FOUNDRY_VERSION=14.364 \
-  --tag ghcr.io/felddy/foundryvtt:14.364.0 \
+  --build-arg CONTAINER_VERSION=14.368.0 \
+  --build-arg FOUNDRY_VERSION=14.368 \
+  --tag ghcr.io/felddy/foundryvtt:14.368.0 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```
 
@@ -34,10 +34,10 @@ To build images for other CPU architectures, use Docker's
     ```console
     docker buildx build \
       --platform linux/amd64 \
-      --build-arg CONTAINER_VERSION=14.364.0 \
-      --build-arg FOUNDRY_VERSION=14.364 \
+      --build-arg CONTAINER_VERSION=14.368.0 \
+      --build-arg FOUNDRY_VERSION=14.368 \
       --output type=docker \
-      --tag ghcr.io/felddy/foundryvtt:14.364.0 .
+      --tag ghcr.io/felddy/foundryvtt:14.368.0 .
     ```
 
 ## Pre-installed distribution builds ##
@@ -55,11 +55,11 @@ time rather than at run time.
 
 ```console
 docker build \
-  --build-arg CONTAINER_VERSION=14.364.0 \
-  --build-arg FOUNDRY_VERSION=14.364 \
+  --build-arg CONTAINER_VERSION=14.368.0 \
+  --build-arg FOUNDRY_VERSION=14.368 \
   --secret id=foundry_username,src=<(echo "<your_username>") \
   --secret id=foundry_password,src=<(echo "<your_password>") \
-  --tag ghcr.io/felddy/foundryvtt:14.364.0 \
+  --tag ghcr.io/felddy/foundryvtt:14.368.0 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```
 
@@ -70,11 +70,11 @@ docker build \
 >
 > ```console
 > docker build \
->   --build-arg CONTAINER_VERSION=14.364.0 \
->   --build-arg FOUNDRY_VERSION=14.364 \
+>   --build-arg CONTAINER_VERSION=14.368.0 \
+>   --build-arg FOUNDRY_VERSION=14.368 \
 >   --secret id=foundry_username,src=<(jq -r '.foundry_username' path/to/credentials.json) \
 >   --secret id=foundry_password,src=<(jq -r '.foundry_password' path/to/credentials.json) \
->   --tag ghcr.io/felddy/foundryvtt:14.364.0 \
+>   --tag ghcr.io/felddy/foundryvtt:14.368.0 \
 >   https://github.com/felddy/foundryvtt-docker.git#develop
 > ```
 
@@ -85,9 +85,9 @@ More information about Docker build secrets is in the
 
 ```console
 docker build \
-  --build-arg CONTAINER_VERSION=14.364.0 \
-  --build-arg FOUNDRY_VERSION=14.364 \
+  --build-arg CONTAINER_VERSION=14.368.0 \
+  --build-arg FOUNDRY_VERSION=14.368 \
   --build-arg FOUNDRY_RELEASE_URL='<temporary_url>' \
-  --tag ghcr.io/felddy/foundryvtt:14.364.0 \
+  --tag ghcr.io/felddy/foundryvtt:14.368.0 \
   https://github.com/felddy/foundryvtt-docker.git#develop
 ```

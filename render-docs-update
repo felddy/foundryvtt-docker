@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+
+# render-docs-update: regenerate every rendered document from its template.
+#
+# Renders the README and everything under docs/ using the CONTAINER_VERSION
+# derived from src/version.txt.  Equivalent to `make docs` without requiring
+# make; used by Renovate's postUpgradeTasks so the rendered documents land
+# in the same commit as the version bump.
+
+set -eu
+
+VERSION_FILE="src/version.txt"
+if ! command -v uv > /dev/null 2>&1; then
+  echo "ERROR: uv is required but not on the PATH.  Renovate must run the" >&2
+  echo "full image variant (renovate-version: NN-full), which ships uv." >&2
+  exit 1
+fi
+
+if [ ! -s "$VERSION_FILE" ]; then
+  echo "ERROR: ${VERSION_FILE} is missing or empty." >&2
+  exit 1
+fi
+
+# Derive CONTAINER_VERSION from the single source of truth (whitespace trimmed).
+CONTAINER_VERSION=$(tr -d '[:space:]' < "$VERSION_FILE")
+
+exec uv run --group dev python tools/render_docs.py --all "$CONTAINER_VERSION"

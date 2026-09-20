@@ -17,6 +17,10 @@ LOG_NAME="Entrypoint"
 source logging.sh
 # shellcheck source=src/backoff.sh
 source backoff.sh
+# shellcheck source=src/lifecycle.sh
+source lifecycle.sh
+# shellcheck source=src/download_lock.sh
+source download_lock.sh
 
 # ── Trap handlers ─────────────────────────────────────────────────────────────
 
@@ -60,6 +64,8 @@ trap_sigterm() {
 # SC2329 - shellcheck does not understand reachability via traps
 trap_exit() {
   local code=$?
+  # Never hold the download lock through a backoff sleep or into the grave.
+  download_slot_release
   log_debug "trap_exit: fired with exit code ${code} (sigterm_received=${_sigterm_received})"
   if [[ $code -eq 0 || "${_sigterm_received}" == "true" || $code -eq 143 ]]; then
     backoff_reset
@@ -73,7 +79,7 @@ trap trap_exit EXIT
 
 image_version=$(cat image_version.txt)
 
-if [ "$1" = "--version" ]; then
+if [ "${1:-}" = "--version" ]; then
   echo "${image_version}"
   trap - EXIT
   exit 0
@@ -89,7 +95,7 @@ done
 log "Starting felddy/foundryvtt container v${image_version}"
 log_debug "CONTAINER_VERBOSE set.  Debug logging enabled."
 log_debug "Running as: $(id)"
-log_debug "Environment:\n$(env | sort | sed -E 's/(.*PASSWORD|KEY.*)=.*/\1=[REDACTED]/g')"
+log_debug "Environment:\n$(env | sort | sed -E 's/([^=]*(PASSWORD|KEY|SECRET|TOKEN|SALT)[^=]*)=.*/\1=[REDACTED]/g')"
 log_debug "Data directory: ${DATA_DIR}"
 
 # Show the mount details for the data directory
@@ -182,37 +188,6 @@ fi
 
 # Install FoundryVTT if needed
 if [ $install_required = true ]; then
-  # Determine how we are going to get the release URL
-  if [ "${FOUNDRY_RELEASE_URL:-}" ]; then
-    log "Using FOUNDRY_RELEASE_URL to download release."
-    presigned_url="${FOUNDRY_RELEASE_URL}"
-  fi
-  if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
-    log "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
-    # If credentials are provided attempt authentication.
-    # The resulting cookiejar is used to get a release URL or license.
-
-    # Temporarily disable errexit to capture failure from authenticate.js
-    set +e
-    ./authenticate.js ${CONTAINER_VERBOSE+--log-level=debug} \
-      --user-agent="${node_user_agent}" \
-      "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
-    auth_exit_code=$?
-    set -e
-
-    if [ ${auth_exit_code} -ne 0 ]; then
-      log_warn "Authentication failed with exit code ${auth_exit_code}."
-      rm -f "${cookiejar_file}"
-    elif [[ ! "${presigned_url:-}" ]]; then
-      # If the presigned_url wasn't set by FOUNDRY_RELEASE_URL generate one now.
-      log "Using authenticated credentials to fetch release URL."
-      presigned_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} \
-        ${CONTAINER_URL_FETCH_RETRY+--retry=${CONTAINER_URL_FETCH_RETRY}} \
-        --user-agent="${node_user_agent}" \
-        "${cookiejar_file}" "${FOUNDRY_VERSION}")
-    fi
-  fi
-
   # If CONTAINER_CACHE is null, set it to a default.
   # If it is set to an empty string, disable the caching.
   CONTAINER_CACHE="${CONTAINER_CACHE-${DATA_DIR}/container_cache}"
@@ -231,13 +206,123 @@ END_OF_LINE
     log_warn "CONTAINER_CACHE has been unset.  Release caching is disabled."
   fi
 
-  set +o nounset
-  downloading_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}downloading.zip"
-  release_filename="${CONTAINER_CACHE%%+(/)}${CONTAINER_CACHE:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
-  set -o nounset
+  # Trim trailing slashes without extglob (the historical +(/) pattern
+  # required it and silently no-opped without it).
+  # An all-slash value ("/", "//") means the filesystem root, not "no cache".
+  cache_root="${CONTAINER_CACHE:-}"
+  while [[ "${cache_root}" == */ && "${cache_root}" != "/" ]]; do
+    cache_root="${cache_root%/}"
+  done
+  # The in-progress name is version-unique so instances downloading
+  # different versions into a shared cache cannot clobber each other and
+  # mislabel a release, and instance-unique so a presumed-dead downloader
+  # that resumes can only ever rename its own (complete) file into place.
+  # It must not match the foundryvtt-*.zip glob used by the cache-size
+  # cleanup below.
+  downloading_glob="${cache_root%/}${cache_root:+/}downloading-${FOUNDRY_VERSION}.*.zip"
+  downloading_filename="${cache_root%/}${cache_root:+/}downloading-${FOUNDRY_VERSION}.${HOSTNAME:-unknown}-$$.zip"
+  release_filename="${cache_root%/}${cache_root:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
 
-  if [[ "${presigned_url:-}" ]]; then
+  # Determine how we are going to get the release URL
+  if [ "${FOUNDRY_RELEASE_URL:-}" ]; then
+    log "Using FOUNDRY_RELEASE_URL to download release."
+    presigned_url="${FOUNDRY_RELEASE_URL}"
+  fi
+  if [[ "${FOUNDRY_USERNAME:-}" && "${FOUNDRY_PASSWORD:-}" ]]; then
+    # Authentication serves two purposes: fetching a presigned release URL
+    # and fetching a license key.  When the requested release is already
+    # cached and licensing is settled, neither is needed — skip the account
+    # round-trips so simultaneous container start-ups sharing a cache do not
+    # get rate-limited by foundryvtt.com (#1399).
+    license_key_for_check="${FOUNDRY_LICENSE_KEY:-}"
+    if [[ -f "${release_filename}" &&
+      (-f "${LICENSE_FILE}" || ${#license_key_for_check} -ge ${license_min_length}) ]]; then
+      log "Requested release is cached and licensing is settled.  Skipping authentication."
+    else
+      log "Using FOUNDRY_USERNAME and FOUNDRY_PASSWORD to authenticate."
+      # If credentials are provided attempt authentication.
+      # The resulting cookiejar is used to get a release URL or license.
+
+      # Temporarily disable errexit to capture failure from authenticate.js
+      set +e
+      ./authenticate.js ${CONTAINER_VERBOSE+--log-level=debug} \
+        --user-agent="${node_user_agent}" \
+        "${FOUNDRY_USERNAME}" "${FOUNDRY_PASSWORD}" "${cookiejar_file}"
+      auth_exit_code=$?
+      set -e
+
+      if [ ${auth_exit_code} -ne 0 ]; then
+        log_warn "Authentication failed with exit code ${auth_exit_code}."
+        rm -f "${cookiejar_file}"
+      elif [[ ! "${presigned_url:-}" && ! -f "${release_filename}" ]]; then
+        # A release URL is needed, but fetching it is deferred until the
+        # download slot is held so only one instance hits the rate-limited
+        # endpoint (#1399).
+        fetch_release_url=true
+      fi
+    fi
+  fi
+
+  # Arbitrate the download between instances sharing the cache, but only
+  # when the release is actually missing: a FOUNDRY_RELEASE_URL freshness
+  # re-download over an existing cached file stays unguarded (concurrent
+  # complete downloads rename atomically and are benign).
+  download_slot_state=${DOWNLOAD_SLOT_UNARBITRATED}
+  if [[ "${cache_root}" && ! -f "${release_filename}" &&
+    ("${presigned_url:-}" || "${fetch_release_url:-}" == "true") ]]; then
+    if download_slot_acquire "${release_filename}.lock" "${release_filename}" "${downloading_glob}"; then
+      download_slot_state=${DOWNLOAD_SLOT_ACQUIRED}
+    else
+      download_slot_state=$?
+    fi
+    case ${download_slot_state} in
+      "${DOWNLOAD_SLOT_CACHED}")
+        log "Another instance finished downloading this release.  Using the cached file."
+        ;;
+      "${DOWNLOAD_SLOT_GAVE_UP}")
+        log_error "Gave up waiting for another instance's stalled download."
+        exit 1
+        ;;
+    esac
+  fi
+
+  if [[ "${fetch_release_url:-}" == "true" && ! -f "${release_filename}" &&
+    ${download_slot_state} -ne ${DOWNLOAD_SLOT_GAVE_UP} ]]; then
+    log "Using authenticated credentials to fetch release URL."
+    presigned_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} \
+      ${CONTAINER_URL_FETCH_RETRY+--retry=${CONTAINER_URL_FETCH_RETRY}} \
+      --user-agent="${node_user_agent}" \
+      "${cookiejar_file}" "${FOUNDRY_VERSION}")
+  fi
+
+  if [[ "${presigned_url:-}" && ${download_slot_state} -ne ${DOWNLOAD_SLOT_CACHED} ]]; then
     log "Downloading Foundry Virtual Tabletop release."
+    # Remove any stale in-progress file left by an interrupted run.  On a
+    # --time-cond cache hit (304) curl exits 0 without writing the output
+    # file, and the mv below would otherwise rename the stale partial over
+    # the good cached release.  Also sweep in-progress files older than the
+    # stall window: their downloaders are gone, and an active file's mtime
+    # keeps advancing so it can never qualify.
+    rm -f "${downloading_filename}"
+    if [[ "${cache_root}" ]]; then
+      # find takes whole minutes; floor a possibly-fractional poll override
+      # and never sweep more aggressively than the 5-minute default window.
+      poll_floor="${DOWNLOAD_LOCK_POLL_SECONDS%%.*}"
+      # A non-numeric remainder would be treated as a variable name inside
+      # the arithmetic below and abort under nounset.
+      [[ "${poll_floor}" =~ ^[0-9]+$ ]] || poll_floor=0
+      # Force base 10: a leading zero ("08.0" floors to "08") is otherwise
+      # read as an invalid octal constant and aborts under errexit.
+      poll_floor=$((10#${poll_floor}))
+      sweep_minutes=$(((poll_floor * DOWNLOAD_LOCK_STALL_TICKS + 59) / 60))
+      ((sweep_minutes >= 5)) || sweep_minutes=5
+      find "${cache_root}" -maxdepth 1 -name "downloading-${FOUNDRY_VERSION}.*.zip" \
+        -mmin +${sweep_minutes} -delete 2> /dev/null || true
+      # Drop temp files left behind by older image generations (the shared
+      # and the version-only names); current instances never write these.
+      rm -f "${cache_root}/downloading.zip" \
+        "${cache_root}/downloading-${FOUNDRY_VERSION}.zip"
+    fi
     # Temporarily disable errexit for the curl command to capture its exit status
     set +e
     # Download release if newer than cached version.
@@ -268,6 +353,7 @@ END_OF_LINE
       mv "${downloading_filename}" "${release_filename}" > /dev/null 2>&1 || true
     fi
   fi
+  download_slot_release
 
   if [ -f "${release_filename}" ]; then
     log "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
@@ -355,9 +441,16 @@ END_OF_LINE
     for url in ${CONTAINER_PATCH_URLS}; do
       log "Downloading patch from URL: $url"
       patch_file=$(mktemp -t patch_url.sh.XXXXXX)
-      curl ${CONTAINER_VERBOSE+--verbose} --silent --location \
+      # --fail: an HTTP error body (a 404 page, a proxy error) must never
+      # reach the source builtin below.  A 200 response is still trusted,
+      # as the warning above states; HTTPS URLs are the way to keep
+      # interposers such as captive portals out of this path.
+      if ! curl ${CONTAINER_VERBOSE+--verbose} --silent --show-error --fail --location \
         --user-agent "${curl_user_agent}" \
-        --output "${patch_file}" "${url}"
+        --output "${patch_file}" "${url}"; then
+        log_error "Failed to download patch from URL: ${url}"
+        exit 1
+      fi
       log_debug "Sourcing patch file: ${patch_file}"
       # shellcheck disable=SC1090
       source "${patch_file}"
@@ -399,7 +492,8 @@ if [ ! -f "${LICENSE_FILE}" ]; then
     set -o nounset
     log "Applying license key passed via FOUNDRY_LICENSE_KEY."
     # FOUNDRY_LICENSE_KEY is long enough to be a key
-    echo "{ \"license\": \"${FOUNDRY_LICENSE_KEY}\" }" | tr -d '-' > "${LICENSE_FILE}"
+    jq --null-input --arg key "${FOUNDRY_LICENSE_KEY}" \
+      '{license: ($key | gsub("-"; ""))}' > "${LICENSE_FILE}"
   elif [ -f ${cookiejar_file} ]; then
     log "Attempting to fetch license key from authenticated account."
     if [[ "${FOUNDRY_LICENSE_KEY:-}" ]]; then
@@ -416,13 +510,20 @@ if [ ! -f "${LICENSE_FILE}" ]; then
         --user-agent="${node_user_agent}" \
         "${cookiejar_file}")
     fi
-    echo "{ \"license\": \"${fetched_license_key}\" }" > "${LICENSE_FILE}"
+    jq --null-input --arg key "${fetched_license_key}" '{license: $key}' > "${LICENSE_FILE}"
   else
     log_warn "Unable to apply a license key since neither a license key nor credentials were provided.  The license key will need to be entered in the browser."
   fi
   set -o nounset
 else
   log "Not modifying existing installation license key."
+fi
+
+# The cookiejar holds a live foundryvtt.com session and has no further use
+# once installation and licensing are settled.
+if [ -f "${cookiejar_file}" ]; then
+  log_debug "Removing session cookiejar: ${cookiejar_file}"
+  rm -f "${cookiejar_file}"
 fi
 
 # Export variables that were possibly set from secrets
@@ -434,8 +535,10 @@ trap trap_sigterm TERM
 ./launcher.sh "$@" &
 child_pid=$!
 log_debug "Waiting for child pid: ${child_pid} to exit."
-wait "$child_pid"
-exit_code=$?
+# A trapped SIGTERM interrupts `wait` before the child exits; wait_for_child
+# keeps waiting so PID 1 outlives the child's shutdown (see lifecycle.sh).
+exit_code=0
+wait_for_child "${child_pid}" exit_code
 trap - TERM
 log_debug "Child process exited with code: ${exit_code}."
 

@@ -19,11 +19,11 @@ guard-version:
 
 ## docs: render the README and every document under docs/ from its template.
 docs: guard-version
-	uv run --group dev render-docs --all $(CONTAINER_VERSION)
+	uv run --group dev python tools/render_docs.py --all $(CONTAINER_VERSION)
 
 ## docs-check: verify every rendered document is in sync with its template.
 docs-check: guard-version
-	uv run --group dev render-docs --check $(CONTAINER_VERSION)
+	uv run --group dev python tools/render_docs.py --check $(CONTAINER_VERSION)
 
 ## build: build the container image tagged with the CONTAINER_VERSION.
 build: guard-version

@@ -1,40 +1,9 @@
-[build-system]
-build-backend = "setuptools.build_meta"
-requires = ["setuptools", "wheel"]
-
 [project]
-authors = [{ name = "Mark Feldhousen", email = "markf@geekpad.com" }]
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Environment :: Web Environment",
-    "Intended Audience :: System Administrators",
-    "License :: OSI Approved :: MIT License",
-    "Natural Language :: English",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Topic :: Games/Entertainment :: Role-Playing",
-]
-dependencies = ["jinja2>=3.1", "semver>=3"]
-description = "FoundryVTT Docker Python library"
-dynamic = ["version"]
-keywords = ["foundryvtt", "virtual tabletop"]
-license = { file = "LICENSE" }
 name = "foundryvtt-docker"
-readme = "README.md"
+version = "0.0.0"
+description = "Test/tooling environment for the FoundryVTT Docker image"
 requires-python = ">=3.10"
-
-[project.urls]
-homepage = "https://github.com/felddy"
-issues = "https://github.com/felddy/foundryvtt-docker/issues"
-source = "https://github.com/felddy/foundryvtt-docker"
-
-[project.scripts]
-render-docs = "render_docs:main"
+dependencies = ["jinja2>=3.1", "semver>=3"]
 
 [dependency-groups]
 test = [
@@ -46,18 +15,14 @@ test = [
     "pytest",
     "pytest-cov",
 ]
-dev = ["ipython", "jinja2>=3.1", "mypy", "semver", { include-group = "test" }]
+dev = ["mypy", { include-group = "test" }]
+
+[tool.uv]
+package = false
+constraint-dependencies = ["click>=8.3.3"]
 
 [tool.pytest.ini_options]
 addopts = "--capture=no --color=yes --runslow --verbose -rA"
 log_cli = true
 log_cli_level = "INFO"
-markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-]
-
-[tool.setuptools]
-py-modules = ["render_docs"]
-
-[tool.setuptools.dynamic]
-version = { file = "src/version.txt" }
+markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]

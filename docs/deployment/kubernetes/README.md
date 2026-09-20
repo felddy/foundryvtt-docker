@@ -159,7 +159,7 @@ newer image tag).
 
 > [!NOTE]
 > Different instances can run different Foundry versions.  Pin each overlay's
-> image tag — for example `:14.364` for an exact minor release —
+> image tag — for example `:14.368` for an exact minor release —
 > and set the `FOUNDRY_VERSION` environment variable to match the version you
 > want installed.
 
