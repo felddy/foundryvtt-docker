@@ -357,8 +357,10 @@ END_OF_LINE
     for url in ${CONTAINER_PATCH_URLS}; do
       log "Downloading patch from URL: $url"
       patch_file=$(mktemp -t patch_url.sh.XXXXXX)
-      # --fail: an HTTP error page (404, 502, captive portal...) must never
-      # reach the source builtin below.
+      # --fail: an HTTP error body (a 404 page, a proxy error) must never
+      # reach the source builtin below.  A 200 response is still trusted,
+      # as the warning above states; HTTPS URLs are the way to keep
+      # interposers such as captive portals out of this path.
       if ! curl ${CONTAINER_VERBOSE+--verbose} --silent --show-error --fail --location \
         --user-agent "${curl_user_agent}" \
         --output "${patch_file}" "${url}"; then
