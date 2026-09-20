@@ -110,6 +110,93 @@ A few choices are worth understanding before you adapt these.
 > [`httproute.yaml`](manifests/httproute.yaml) for an `Ingress` routing your
 > host to the `foundryvtt` Service on port `80`.  Nothing else changes.
 
+## Publishing through a Cloudflare Tunnel ##
+
+Because the manifests speak the Gateway API, a [Cloudflare Tunnel] can carry
+the public traffic without changing the application at all: run a Gateway
+implementation whose data plane is the tunnel, and re-point the `HTTPRoute`'s
+`parentRefs` at it.  No inbound ports open on the cluster, TLS terminates at
+Cloudflare's edge, and `cloudflared` maintains outbound-only connections.
+This is how the maintainer publishes their own instances.
+
+```mermaid
+graph LR
+    Users((Users)) -->|HTTPS| Edge("Cloudflare edge")
+    Edge <-->|outbound-only tunnel| CFD("cloudflared pods")
+    subgraph Cluster
+        CFD -->|vtt.example.com| SvcP("production Service")
+        CFD -->|vtt-staging.example.com| SvcS("staging Service")
+    end
+```
+
+1. Install the [cloudflare-kubernetes-gateway] controller (pin a release):
+
+    ```console
+    kubectl apply -k https://github.com/pl4nty/cloudflare-kubernetes-gateway/config/default?ref=v0.10.1
+    ```
+
+1. Create a namespace and a Secret holding a [Cloudflare API token] with the
+   `Account:Cloudflare Tunnel:Edit` and `Zone:DNS:Edit` permissions:
+
+    ```console
+    kubectl create namespace cloudflare-gateway
+    kubectl --namespace cloudflare-gateway create secret generic cloudflare-api-token \
+      --from-literal=ACCOUNT_ID='<your_account_id>' \
+      --from-literal=TOKEN='<your_api_token>'
+    ```
+
+1. Define the `GatewayClass` and a `Gateway`.  The controller creates and
+   manages the tunnel and its `cloudflared` Deployment for you:
+
+    ```yaml
+    ---
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: GatewayClass
+    metadata:
+      name: cloudflare-gateway
+    spec:
+      controllerName: github.com/pl4nty/cloudflare-kubernetes-gateway
+      parametersRef:
+        group: ""
+        kind: Secret
+        name: cloudflare-api-token
+        namespace: cloudflare-gateway
+    ---
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+    metadata:
+      name: cloudflare-edge
+      namespace: cloudflare-gateway
+    spec:
+      gatewayClassName: cloudflare-gateway
+      listeners:
+        - name: http
+          port: 80
+          protocol: HTTP
+          allowedRoutes:
+            namespaces:
+              from: All
+    ```
+
+1. Point the route at the tunnel by editing the `parentRefs` in
+   [`httproute.yaml`](manifests/httproute.yaml):
+
+    ```yaml
+      parentRefs:
+        - name: cloudflare-edge
+          namespace: cloudflare-gateway
+    ```
+
+   The controller creates the DNS record for each `HTTPRoute` hostname; there
+   is no port forwarding or NAT to configure.
+
+> [!TIP]
+> The tunnel and an in-cluster `Gateway` compose nicely: keep a second
+> `HTTPRoute` attached to an internal Gateway with a LAN-only hostname, and
+> the same Service is reachable both from the internet (through the tunnel)
+> and directly on your network — split-horizon with no extra application
+> configuration.
+
 ## Running multiple Foundry instances ##
 
 A common need is hosting more than one game at once — for example a stable
@@ -177,6 +264,64 @@ newer image tag).
 > and set the `FOUNDRY_VERSION` environment variable to match the version you
 > want installed.
 
+The resulting topology, with the optional shared download cache described
+below:
+
+```mermaid
+graph LR
+    subgraph prod ["namespace: foundryvtt"]
+        SvcP("Service") --> PodP("Foundry pod") --> PVCP[("PVC /data")]
+    end
+    subgraph staging ["namespace: foundryvtt-staging"]
+        SvcS("Service") --> PodS("Foundry pod") --> PVCS[("PVC /data")]
+    end
+    PodP & PodS -.-> Cache[("shared RWX volume<br>container cache")]
+```
+
+### Sharing the download cache ###
+
+Instances can share a single download cache, so each Foundry release is
+downloaded once no matter how many instances want it.  Simultaneous start-ups
+coordinate through the cache itself: one instance downloads while the others
+wait for the finished file, a crashed downloader's claim is taken over, and
+different versions never collide.
+
+Give each instance a `ReadWriteMany` volume backed by the *same underlying
+share* and point `CONTAINER_CACHE` at it:
+
+```yaml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: foundryvtt-shared-cache
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: <your-rwx-class>
+  resources:
+    requests:
+      storage: 5Gi
+```
+
+Mount it and redirect the cache in each instance's Deployment (or overlay):
+
+```yaml
+          env:
+            - name: CONTAINER_CACHE
+              value: /cache
+          volumeMounts:
+            - name: shared-cache
+              mountPath: /cache
+```
+
+> [!NOTE]
+> `PersistentVolumeClaim`s are namespaced, so instances in different
+> namespaces need their claims provisioned onto the same backing directory —
+> for example an NFS CSI storage class with a fixed `subDir`, or static
+> `PersistentVolume`s pointing at one export.  With mixed major versions in
+> one cache, leave `CONTAINER_CACHE_SIZE` unset: its cleanup keeps the
+> highest version numbers, which would evict the older major's releases.
+
 ## Updating ##
 
 The in-application "Update Software" tab is disabled in this image.  The
@@ -191,5 +336,8 @@ To move to a new major version, change the image tag in
 [`deployment.yaml`](manifests/deployment.yaml) (and `FOUNDRY_VERSION` if you pin
 it) and re-apply.
 
+[Cloudflare API token]: https://developers.cloudflare.com/fundamentals/api/get-started/create-token/
+[Cloudflare Tunnel]: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
 [Gateway API]: https://gateway-api.sigs.k8s.io/
 [Kustomize]: https://kustomize.io/
+[cloudflare-kubernetes-gateway]: https://github.com/pl4nty/cloudflare-kubernetes-gateway

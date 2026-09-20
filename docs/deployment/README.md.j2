@@ -19,7 +19,7 @@ reference to work on a specific container runtime, plus a few worked examples
 
 | Guide | Use it when... |
 | ----- | -------------- |
-| [Kubernetes](kubernetes/README.md) | You run a cluster, or you want to host one or several Foundry instances with declarative manifests. |
+| [Kubernetes](kubernetes/README.md) | You run a cluster, or you want to host one or several Foundry instances with declarative manifests — optionally published through a Cloudflare Tunnel with a shared download cache. |
 | [Podman](podman.md) | You prefer a daemonless, rootless runtime, or you want the server managed as a `systemd` service. |
 | [Docker Compose](docker-compose.md) | You want the simplest single-host setup, with the image, configuration, storage, and ports captured in one file. |
 
