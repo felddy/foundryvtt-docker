@@ -10,8 +10,14 @@
 
 config_file="${DATA_DIR:-/data}/Config/options.json"
 
+# Prefer PATH resolution (tests stub the binaries there) but fall back to
+# the image's absolute paths so an overridden PATH cannot break the probe
+# or silently drop the options.json read.
+curl_bin=$(command -v curl) || curl_bin="/usr/bin/curl"
+jq_bin=$(command -v jq) || jq_bin="/usr/bin/jq"
+
 opt() {
-  jq --raw-output "$1 // empty" "${config_file}" 2> /dev/null
+  "${jq_bin}" --raw-output "$1 // empty" "${config_file}" 2> /dev/null
 }
 
 ssl_cert=$(opt .sslCert)
@@ -47,4 +53,4 @@ else
   STATUS_URL="${protocol}://localhost:${port}${route_prefix:+/${route_prefix}}/api/status"
 fi
 
-curl "${curl_args[@]}" "${STATUS_URL}" || exit 1
+"${curl_bin}" "${curl_args[@]}" "${STATUS_URL}" || exit 1
