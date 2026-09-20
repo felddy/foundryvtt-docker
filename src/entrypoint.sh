@@ -267,19 +267,19 @@ END_OF_LINE
   # when the release is actually missing: a FOUNDRY_RELEASE_URL freshness
   # re-download over an existing cached file stays unguarded (concurrent
   # complete downloads rename atomically and are benign).
-  download_slot_state=2
+  download_slot_state=${DOWNLOAD_SLOT_UNARBITRATED}
   if [[ "${cache_root}" && ! -f "${release_filename}" &&
     ("${presigned_url:-}" || "${fetch_release_url:-}" == "true") ]]; then
     if download_slot_acquire "${release_filename}.lock" "${release_filename}" "${downloading_glob}"; then
-      download_slot_state=0
+      download_slot_state=${DOWNLOAD_SLOT_ACQUIRED}
     else
       download_slot_state=$?
     fi
     case ${download_slot_state} in
-      1)
+      "${DOWNLOAD_SLOT_CACHED}")
         log "Another instance finished downloading this release.  Using the cached file."
         ;;
-      3)
+      "${DOWNLOAD_SLOT_GAVE_UP}")
         log_error "Gave up waiting for another instance's stalled download."
         exit 1
         ;;
@@ -287,7 +287,7 @@ END_OF_LINE
   fi
 
   if [[ "${fetch_release_url:-}" == "true" && ! -f "${release_filename}" &&
-    ${download_slot_state} -ne 3 ]]; then
+    ${download_slot_state} -ne ${DOWNLOAD_SLOT_GAVE_UP} ]]; then
     log "Using authenticated credentials to fetch release URL."
     presigned_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} \
       ${CONTAINER_URL_FETCH_RETRY+--retry=${CONTAINER_URL_FETCH_RETRY}} \
@@ -295,7 +295,7 @@ END_OF_LINE
       "${cookiejar_file}" "${FOUNDRY_VERSION}")
   fi
 
-  if [[ "${presigned_url:-}" && ${download_slot_state} -ne 1 ]]; then
+  if [[ "${presigned_url:-}" && ${download_slot_state} -ne ${DOWNLOAD_SLOT_CACHED} ]]; then
     log "Downloading Foundry Virtual Tabletop release."
     # Remove any stale in-progress file left by an interrupted run.  On a
     # --time-cond cache hit (304) curl exits 0 without writing the output

@@ -15,10 +15,12 @@
 #
 # Exposes:
 #   download_slot_acquire <lock_dir> <release_file> <temp_glob>
-#     0 → slot acquired: caller downloads, then calls download_slot_release
-#     1 → release file appeared: nothing to download, no lock held
-#     2 → degraded: locking impossible (e.g. read-only cache), no lock held
-#     3 → gave up: steal limit reached on a stalled lock, no lock held
+#     Returns one of the DOWNLOAD_SLOT_* states below:
+#     ACQUIRED      slot acquired: caller downloads, then calls
+#                   download_slot_release
+#     CACHED        release file appeared: nothing to download, no lock held
+#     UNARBITRATED  locking impossible (e.g. read-only cache), no lock held
+#     GAVE_UP       steal limit reached on a stalled lock, no lock held
 #   download_slot_release
 #     Release the lock if this process holds one.  Safe to call
 #     unconditionally, including from EXIT traps.
@@ -31,6 +33,14 @@
 #                                                              (default 3)
 #
 # Depends on logging.sh being sourced by the caller before this file.
+
+# download_slot_acquire return states.  Deliberately not readonly: the
+# entrypoint sources user patch scripts under errexit, and re-declaring a
+# readonly is fatal if this library is ever sourced twice.
+DOWNLOAD_SLOT_ACQUIRED=0
+DOWNLOAD_SLOT_CACHED=1
+DOWNLOAD_SLOT_UNARBITRATED=2
+DOWNLOAD_SLOT_GAVE_UP=3
 
 DOWNLOAD_LOCK_POLL_SECONDS="${DOWNLOAD_LOCK_POLL_SECONDS:-5}"
 DOWNLOAD_LOCK_STALL_TICKS="${DOWNLOAD_LOCK_STALL_TICKS:-60}"
@@ -129,7 +139,7 @@ download_slot_acquire() {
   while true; do
     # The release may have been produced since we last looked.
     if [[ -f "${release_file}" ]]; then
-      return 1
+      return "${DOWNLOAD_SLOT_CACHED}"
     fi
 
     if _download_lock_try "${lock_dir}"; then
@@ -143,15 +153,15 @@ download_slot_acquire() {
       # between our release check and the mkdir.
       if [[ -f "${release_file}" ]]; then
         download_slot_release
-        return 1
+        return "${DOWNLOAD_SLOT_CACHED}"
       fi
       log_debug "download_lock: acquired ${lock_dir}"
-      return 0
+      return "${DOWNLOAD_SLOT_ACQUIRED}"
     fi
 
     if ((rc == 2)); then
       log_warn "Cannot create download lock '${lock_dir}'.  Proceeding without download arbitration."
-      return 2
+      return "${DOWNLOAD_SLOT_UNARBITRATED}"
     fi
 
     # Lock is busy: wait, watching the holder's progress.
@@ -160,7 +170,7 @@ download_slot_acquire() {
     ticks=0
     while [[ -d "${lock_dir}" ]]; do
       if [[ -f "${release_file}" ]]; then
-        return 1
+        return "${DOWNLOAD_SLOT_CACHED}"
       fi
       sig=$(_download_progress_signature "${temp_glob}")
       if [[ "${sig}" != "${last_sig}" ]]; then
@@ -171,7 +181,7 @@ download_slot_acquire() {
         if ((ticks >= DOWNLOAD_LOCK_STALL_TICKS)); then
           if ((steals >= DOWNLOAD_LOCK_STEAL_LIMIT)); then
             log_error "Download lock '${lock_dir}' is stalled and the steal limit (${DOWNLOAD_LOCK_STEAL_LIMIT}) is reached.  Giving up."
-            return 3
+            return "${DOWNLOAD_SLOT_GAVE_UP}"
           fi
           # Atomic rename claims the stale lock: exactly one waiter's mv
           # succeeds, so two waiters can never both steal.  The RANDOM

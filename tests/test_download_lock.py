@@ -45,6 +45,20 @@ def _run(
     )
 
 
+def test_slot_state_constants_are_stable() -> None:
+    """The DOWNLOAD_SLOT_* constants are the acquire contract; pin them.
+
+    The rc=N assertions throughout this file are written against the raw
+    values on purpose — if a constant drifted, tests using the constant
+    would silently drift with it.
+    """
+    result = _run(
+        'echo "$DOWNLOAD_SLOT_ACQUIRED $DOWNLOAD_SLOT_CACHED'
+        ' $DOWNLOAD_SLOT_UNARBITRATED $DOWNLOAD_SLOT_GAVE_UP"'
+    )
+    assert result.stdout.strip() == "0 1 2 3", result.stderr
+
+
 # ── Basic acquire / release ───────────────────────────────────────────────────
 
 
