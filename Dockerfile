@@ -124,6 +124,7 @@ COPY \
   package-lock.json \
   src/backoff.sh \
   src/check_health.sh \
+  src/download_lock.sh \
   src/entrypoint.sh \
   src/launcher.sh \
   src/lifecycle.sh \

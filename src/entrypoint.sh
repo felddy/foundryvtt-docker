@@ -19,6 +19,8 @@ source logging.sh
 source backoff.sh
 # shellcheck source=src/lifecycle.sh
 source lifecycle.sh
+# shellcheck source=src/download_lock.sh
+source download_lock.sh
 
 # ── Trap handlers ─────────────────────────────────────────────────────────────
 
@@ -62,6 +64,8 @@ trap_sigterm() {
 # SC2329 - shellcheck does not understand reachability via traps
 trap_exit() {
   local code=$?
+  # Never hold the download lock through a backoff sleep or into the grave.
+  download_slot_release
   log_debug "trap_exit: fired with exit code ${code} (sigterm_received=${_sigterm_received})"
   if [[ $code -eq 0 || "${_sigterm_received}" == "true" || $code -eq 143 ]]; then
     backoff_reset
@@ -211,9 +215,12 @@ END_OF_LINE
   done
   # The in-progress name is version-unique so instances downloading
   # different versions into a shared cache cannot clobber each other and
-  # mislabel a release (#1399).  It must not match the foundryvtt-*.zip
-  # glob used by the cache-size cleanup below.
-  downloading_filename="${cache_root%/}${cache_root:+/}downloading-${FOUNDRY_VERSION}.zip"
+  # mislabel a release, and instance-unique so a presumed-dead downloader
+  # that resumes can only ever rename its own (complete) file into place.
+  # It must not match the foundryvtt-*.zip glob used by the cache-size
+  # cleanup below.
+  downloading_glob="${cache_root%/}${cache_root:+/}downloading-${FOUNDRY_VERSION}.*.zip"
+  downloading_filename="${cache_root%/}${cache_root:+/}downloading-${FOUNDRY_VERSION}.${HOSTNAME:-unknown}-$$.zip"
   release_filename="${cache_root%/}${cache_root:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
 
   # Determine how we are going to get the release URL
@@ -248,24 +255,64 @@ END_OF_LINE
         log_warn "Authentication failed with exit code ${auth_exit_code}."
         rm -f "${cookiejar_file}"
       elif [[ ! "${presigned_url:-}" && ! -f "${release_filename}" ]]; then
-        # If the presigned_url wasn't set by FOUNDRY_RELEASE_URL, and the
-        # release isn't already cached, generate one now.
-        log "Using authenticated credentials to fetch release URL."
-        presigned_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} \
-          ${CONTAINER_URL_FETCH_RETRY+--retry=${CONTAINER_URL_FETCH_RETRY}} \
-          --user-agent="${node_user_agent}" \
-          "${cookiejar_file}" "${FOUNDRY_VERSION}")
+        # A release URL is needed, but fetching it is deferred until the
+        # download slot is held so only one instance hits the rate-limited
+        # endpoint (#1399).
+        fetch_release_url=true
       fi
     fi
   fi
 
-  if [[ "${presigned_url:-}" ]]; then
+  # Arbitrate the download between instances sharing the cache, but only
+  # when the release is actually missing: a FOUNDRY_RELEASE_URL freshness
+  # re-download over an existing cached file stays unguarded (concurrent
+  # complete downloads rename atomically and are benign).
+  download_slot_state=2
+  if [[ "${cache_root}" && ! -f "${release_filename}" &&
+    ("${presigned_url:-}" || "${fetch_release_url:-}" == "true") ]]; then
+    if download_slot_acquire "${release_filename}.lock" "${release_filename}" "${downloading_glob}"; then
+      download_slot_state=0
+    else
+      download_slot_state=$?
+    fi
+    case ${download_slot_state} in
+      1)
+        log "Another instance finished downloading this release.  Using the cached file."
+        ;;
+      3)
+        log_error "Gave up waiting for another instance's stalled download."
+        exit 1
+        ;;
+    esac
+  fi
+
+  if [[ "${fetch_release_url:-}" == "true" && ! -f "${release_filename}" &&
+    ${download_slot_state} -ne 3 ]]; then
+    log "Using authenticated credentials to fetch release URL."
+    presigned_url=$(./get_release_url.js ${CONTAINER_VERBOSE+--log-level=debug} \
+      ${CONTAINER_URL_FETCH_RETRY+--retry=${CONTAINER_URL_FETCH_RETRY}} \
+      --user-agent="${node_user_agent}" \
+      "${cookiejar_file}" "${FOUNDRY_VERSION}")
+  fi
+
+  if [[ "${presigned_url:-}" && ${download_slot_state} -ne 1 ]]; then
     log "Downloading Foundry Virtual Tabletop release."
     # Remove any stale in-progress file left by an interrupted run.  On a
     # --time-cond cache hit (304) curl exits 0 without writing the output
     # file, and the mv below would otherwise rename the stale partial over
-    # the good cached release.
+    # the good cached release.  Also sweep in-progress files older than the
+    # stall window: their downloaders are gone, and an active file's mtime
+    # keeps advancing so it can never qualify.
     rm -f "${downloading_filename}"
+    if [[ "${cache_root}" ]]; then
+      # find takes whole minutes; floor a possibly-fractional poll override
+      # and never sweep more aggressively than the 5-minute default window.
+      poll_floor="${DOWNLOAD_LOCK_POLL_SECONDS%%.*}"
+      sweep_minutes=$(((poll_floor * DOWNLOAD_LOCK_STALL_TICKS + 59) / 60))
+      ((sweep_minutes >= 5)) || sweep_minutes=5
+      find "${cache_root}" -maxdepth 1 -name "downloading-${FOUNDRY_VERSION}.*.zip" \
+        -mmin +${sweep_minutes} -delete 2> /dev/null || true
+    fi
     # Temporarily disable errexit for the curl command to capture its exit status
     set +e
     # Download release if newer than cached version.
@@ -296,6 +343,7 @@ END_OF_LINE
       mv "${downloading_filename}" "${release_filename}" > /dev/null 2>&1 || true
     fi
   fi
+  download_slot_release
 
   if [ -f "${release_filename}" ]; then
     log "Installing Foundry Virtual Tabletop ${FOUNDRY_VERSION}"
