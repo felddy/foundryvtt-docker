@@ -5,8 +5,9 @@ set of plain manifests.  They are intentionally generic — no specific ingress
 controller, storage provider, or secrets tooling is assumed — so you can adapt
 them to your environment.
 
-The manifests live in [`manifests/`](manifests) and are pinned to the major
-image tag `:14`:
+The manifests live in [`manifests/`](manifests), form a ready-to-use
+[Kustomize] base, and are pinned to the major image tag
+`:14`:
 
 | File | Resource | Purpose |
 | ---- | -------- | ------- |
@@ -45,7 +46,7 @@ graph LR
 1. Apply the manifests:
 
     ```console
-    kubectl apply -f manifests/
+    kubectl apply -k manifests/
     ```
 
 1. Watch the pod start.  On first launch it downloads and installs the Foundry
@@ -124,9 +125,9 @@ The simplest approach is to deploy the same manifests into a second namespace
 with different values:
 
 ```console
-kubectl apply -f manifests/    # namespace: foundryvtt        -> vtt.example.com
+kubectl apply -k manifests/    # namespace: foundryvtt        -> vtt.example.com
 # ...copy and edit for a second instance...
-kubectl apply -f staging/      # namespace: foundryvtt-staging -> vtt-staging.example.com
+kubectl apply -k staging/      # namespace: foundryvtt-staging -> vtt-staging.example.com
 ```
 
 To avoid copy-pasting, layer the differences with [Kustomize].  Treat
