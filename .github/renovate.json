@@ -22,6 +22,19 @@
         "^(?<currentValue>\\d+\\.\\d+\\.\\d+)\\s*$"
       ],
       "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@foundryvtt/foundryvtt-cli",
+      "description": "Track the Foundry VTT CLI version pinned in the Dockerfile",
+      "managerFilePatterns": [
+        "/^Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG FOUNDRYVTT_CLI_VERSION=(?<currentValue>\\S+)"
+      ],
+      "versioningTemplate": "npm"
     }
   ],
   "enabledManagers": [
@@ -31,6 +44,19 @@
     "config:recommended"
   ],
   "packageRules": [
+    {
+      "commitMessageTopic": "Foundry VTT CLI",
+      "labels": [
+        "bot :robot:",
+        "dependencies :game_die:"
+      ],
+      "matchDatasources": [
+        "npm"
+      ],
+      "matchDepNames": [
+        "@foundryvtt/foundryvtt-cli"
+      ]
+    },
     {
       "commitMessageTopic": "FoundryVTT",
       "labels": [

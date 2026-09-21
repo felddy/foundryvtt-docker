@@ -265,6 +265,24 @@ particularly useful.
 | `config.json` | `foundry_service_key`   | Overrides `FOUNDRY_SERVICE_KEY` environment variable.   |
 | `config.json` | `foundry_username`      | Overrides `FOUNDRY_USERNAME` environment variable.      |
 
+## Foundry VTT CLI ##
+
+The image bundles the official [Foundry VTT
+CLI](https://github.com/foundryvtt/foundryvtt-cli) as the `fvtt` command.  It
+comes pre-configured with the container's installation and data paths, so
+package development workflows — such as packing and unpacking compendium
+databases — work in a running container without any setup:
+
+```console
+docker exec --interactive --tty <container_name> fvtt package workon "my-module"
+docker exec --interactive --tty <container_name> fvtt package unpack "my-pack"
+```
+
+The CLI stores its configuration in `$XDG_DATA_HOME/.fvttrc.yml`, which
+defaults to `/data/.local/share/.fvttrc.yml` in this image so that the
+configuration persists in the data volume and remains writable for any UID the
+container runs as.  Set `XDG_DATA_HOME` to change the location.
+
 ## Building ##
 
 Most users should pull a published image.  If you want to build the image

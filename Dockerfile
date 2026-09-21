@@ -11,6 +11,7 @@ ARG NODE_MAJOR_VERSION=24
 ARG DEBIAN_SUITE=trixie
 ARG NODE_IMAGE_VERSION=${NODE_MAJOR_VERSION}-${DEBIAN_SUITE}-slim
 ARG NPM_VERSION=11.12.1
+ARG FOUNDRYVTT_CLI_VERSION=3.0.4
 
 # This stage exists solely to track the state of the Debian archives that carry
 # security fixes.  BuildKit revalidates remote ADD sources on every build and
@@ -40,6 +41,18 @@ RUN --mount=type=bind,from=archive-state,target=/run/archive-state \
 FROM patched-base AS base
 ARG NPM_VERSION
 RUN npm install -g npm@${NPM_VERSION}
+
+# Install the Foundry VTT CLI in an isolated stage.  Its classic-level
+# dependency ships prebuilt bindings for amd64 and arm64 only; on the other
+# release platforms (ppc64le, s390x) node-gyp compiles it from source, which
+# needs a toolchain.  The toolchain never leaves this stage — the final stage
+# copies only the installed package.
+FROM base AS fvtt-cli-stage
+ARG FOUNDRYVTT_CLI_VERSION
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends g++ make python3 \
+  && rm -rf /var/lib/apt/lists/* \
+  && npm install -g @foundryvtt/foundryvtt-cli@${FOUNDRYVTT_CLI_VERSION}
 
 FROM base AS compile-typescript-stage
 
@@ -148,6 +161,12 @@ RUN mkdir -p resources /data \
   && npm ci --omit=dev && echo ${CONTAINER_VERSION} > image_version.txt \
   && npm uninstall -g npm \
   && rm -rf /usr/local/lib/node_modules/npm
+
+# The Foundry VTT CLI, wrapped by fvtt.sh which pins its configuration to a
+# writable, persistent location.  See the "Foundry VTT CLI" section of the
+# README for usage.
+COPY --from=fvtt-cli-stage /usr/local/lib/node_modules/@foundryvtt /usr/local/lib/node_modules/@foundryvtt
+COPY src/fvtt.sh /usr/local/bin/fvtt
 
 VOLUME ["/data"]
 # HTTP Server
