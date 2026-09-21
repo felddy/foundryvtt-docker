@@ -8,6 +8,8 @@ const MAXIMUM_PORT: number = 65535;
 const MINIMUM_PORT: number = 1;
 const UPDATE_CHANNEL: string = "stable";
 
+import envFlag, { flagValue } from "./env_flag.js";
+
 let parsedDemoConfig: any = undefined;
 
 /**
@@ -39,25 +41,31 @@ if (process.env.FOUNDRY_DEMO_CONFIG) {
 }
 
 let options: object = {
-    // "true" selects the AWS SDK's ambient credential evaluation (env vars,
-    // instance/task roles); any other non-empty value is a path to an
-    // awsConfig.json.  Passing the literal string through (#309) made
-    // Foundry look for a file named "true".
-    awsConfig:
-        process.env.FOUNDRY_AWS_CONFIG === "true"
-            ? true
-            : process.env.FOUNDRY_AWS_CONFIG === "false"
-              ? null
-              : process.env.FOUNDRY_AWS_CONFIG || null,
-    compressSocket: process.env.FOUNDRY_COMPRESS_WEBSOCKET == "true",
-    compressStatic: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
+    // A truthy flag word selects the AWS SDK's ambient credential evaluation
+    // (env vars, instance/task roles); a falsy one disables it; any other
+    // non-empty value is a path to an awsConfig.json.  Passing the literal
+    // string through (#309) made Foundry look for a file named "true", and a
+    // config file cannot be named after a bare flag word.
+    awsConfig: ((): boolean | string | null => {
+        const raw = process.env.FOUNDRY_AWS_CONFIG;
+        if (raw === undefined || raw === "") {
+            return null;
+        }
+        const flag = flagValue(raw);
+        if (flag !== undefined) {
+            return flag ? true : null;
+        }
+        return raw;
+    })(),
+    compressSocket: envFlag("FOUNDRY_COMPRESS_WEBSOCKET"),
+    compressStatic: envFlag("FOUNDRY_MINIFY_STATIC_FILES"),
     cssTheme: process.env.FOUNDRY_CSS_THEME || CSS_THEME,
     dataPath: DATA_PATH,
-    deleteNEDB: process.env.FOUNDRY_DELETE_NEDB == "true",
+    deleteNEDB: envFlag("FOUNDRY_DELETE_NEDB"),
     demo: parsedDemoConfig,
     fullscreen: false,
     hostname: process.env.FOUNDRY_HOSTNAME || null,
-    hotReload: process.env.FOUNDRY_HOT_RELOAD == "true",
+    hotReload: envFlag("FOUNDRY_HOT_RELOAD"),
     language: process.env.FOUNDRY_LANGUAGE || LANGUAGE,
     localHostname: process.env.FOUNDRY_LOCAL_HOSTNAME || null,
     passwordSalt: process.env.FOUNDRY_PASSWORD_SALT || null,
@@ -69,21 +77,17 @@ let options: object = {
         MAXIMUM_PORT,
         null,
     ),
-    proxySSL: process.env.FOUNDRY_PROXY_SSL == "true",
+    proxySSL: envFlag("FOUNDRY_PROXY_SSL"),
     routePrefix: process.env.FOUNDRY_ROUTE_PREFIX || null,
     serviceConfig: process.env.FOUNDRY_SERVICE_CONFIG || null,
     sslCert: process.env.FOUNDRY_SSL_CERT || null,
     sslKey: process.env.FOUNDRY_SSL_KEY || null,
-    telemetry:
-        process.env.FOUNDRY_TELEMETRY === "true"
-            ? true
-            : process.env.FOUNDRY_TELEMETRY === "false"
-              ? false
-              : null,
+    // Deliberately tri-state: unset (null) lets Foundry prompt the user.
+    telemetry: envFlag("FOUNDRY_TELEMETRY", null),
     tempDir: process.env.FOUNDRY_TEMP_DIR || null,
     unixSocket: process.env.FOUNDRY_UNIX_SOCKET || null,
     updateChannel: UPDATE_CHANNEL,
-    upnp: process.env.FOUNDRY_UPNP == "true",
+    upnp: envFlag("FOUNDRY_UPNP"),
     upnpLeaseDuration: process.env.FOUNDRY_UPNP_LEASE_DURATION || null,
     world: process.env.FOUNDRY_WORLD || null,
 };

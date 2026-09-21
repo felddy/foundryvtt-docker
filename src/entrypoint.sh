@@ -15,6 +15,8 @@ LOG_NAME="Entrypoint"
 
 # shellcheck source=src/logging.sh
 source logging.sh
+# shellcheck source=src/env_flag.sh
+source env_flag.sh
 # shellcheck source=src/backoff.sh
 source backoff.sh
 # shellcheck source=src/lifecycle.sh
@@ -25,6 +27,16 @@ source download_lock.sh
 source release_verify.sh
 # shellcheck source=src/cache_prune.sh
 source cache_prune.sh
+
+# Normalize CONTAINER_VERBOSE before anything logs or spawns: logging.sh and
+# the ${CONTAINER_VERBOSE+...} expansions below are presence-based, so
+# without this a value like "false" would turn debug logging ON.
+if env_is_true CONTAINER_VERBOSE; then
+  CONTAINER_VERBOSE=true
+  export CONTAINER_VERBOSE
+else
+  unset CONTAINER_VERBOSE
+fi
 
 # ── Trap handlers ─────────────────────────────────────────────────────────────
 
