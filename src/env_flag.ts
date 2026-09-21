@@ -9,6 +9,22 @@
 const TRUTHY = new Set(["1", "true", "yes", "on"]);
 const FALSY = new Set(["0", "false", "no", "off"]);
 
+/**
+ * Interpret a raw string as a boolean flag word, or undefined when it is not
+ * one — for options that accept a flag *or* another kind of value (such as a
+ * file path) and must not warn on the latter.
+ */
+export function flagValue(raw: string): boolean | undefined {
+    const value = raw.toLowerCase();
+    if (TRUTHY.has(value)) {
+        return true;
+    }
+    if (FALSY.has(value)) {
+        return false;
+    }
+    return undefined;
+}
+
 export default function envFlag(
     name: string,
     unset: boolean | null = false,
@@ -17,12 +33,9 @@ export default function envFlag(
     if (raw === undefined || raw === "") {
         return unset;
     }
-    const value = raw.toLowerCase();
-    if (TRUTHY.has(value)) {
-        return true;
-    }
-    if (FALSY.has(value)) {
-        return false;
+    const flag = flagValue(raw);
+    if (flag !== undefined) {
+        return flag;
     }
     console.error(
         `WARN: ${name} has unrecognized value '${raw}'.  Expected true/false ` +

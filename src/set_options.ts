@@ -8,7 +8,7 @@ const MAXIMUM_PORT: number = 65535;
 const MINIMUM_PORT: number = 1;
 const UPDATE_CHANNEL: string = "stable";
 
-import envFlag from "./env_flag.js";
+import envFlag, { flagValue } from "./env_flag.js";
 
 let parsedDemoConfig: any = undefined;
 
@@ -41,16 +41,22 @@ if (process.env.FOUNDRY_DEMO_CONFIG) {
 }
 
 let options: object = {
-    // "true" selects the AWS SDK's ambient credential evaluation (env vars,
-    // instance/task roles); any other non-empty value is a path to an
-    // awsConfig.json.  Passing the literal string through (#309) made
-    // Foundry look for a file named "true".
-    awsConfig:
-        process.env.FOUNDRY_AWS_CONFIG === "true"
-            ? true
-            : process.env.FOUNDRY_AWS_CONFIG === "false"
-              ? null
-              : process.env.FOUNDRY_AWS_CONFIG || null,
+    // A truthy flag word selects the AWS SDK's ambient credential evaluation
+    // (env vars, instance/task roles); a falsy one disables it; any other
+    // non-empty value is a path to an awsConfig.json.  Passing the literal
+    // string through (#309) made Foundry look for a file named "true", and a
+    // config file cannot be named after a bare flag word.
+    awsConfig: ((): boolean | string | null => {
+        const raw = process.env.FOUNDRY_AWS_CONFIG;
+        if (raw === undefined || raw === "") {
+            return null;
+        }
+        const flag = flagValue(raw);
+        if (flag !== undefined) {
+            return flag ? true : null;
+        }
+        return raw;
+    })(),
     compressSocket: envFlag("FOUNDRY_COMPRESS_WEBSOCKET"),
     compressStatic: envFlag("FOUNDRY_MINIFY_STATIC_FILES"),
     cssTheme: process.env.FOUNDRY_CSS_THEME || CSS_THEME,
