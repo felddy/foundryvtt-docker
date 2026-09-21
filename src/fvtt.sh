@@ -34,7 +34,10 @@ export XDG_DATA_HOME="${XDG_DATA_HOME:-/data/.local/share}"
 # a different UID can still `fvtt configure set`.
 config_file="${XDG_DATA_HOME}/.fvttrc.yml"
 if [[ ! -f "${config_file}" ]]; then
-  mkdir -p "${XDG_DATA_HOME}"
+  # umask 000: directories created here must stay writable by any UID a
+  # later container run may use.  Scoped to a subshell, and pre-existing
+  # directories (e.g. a user-supplied XDG_DATA_HOME) are never modified.
+  (umask 000 && mkdir -p "${XDG_DATA_HOME}")
   tmp_file=$(mktemp "${config_file}.XXXXXX")
   cat << END_OF_CONFIG > "${tmp_file}"
 installPath: /home/node/resources/app
