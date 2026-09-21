@@ -191,8 +191,8 @@ secrets](#using-secrets) instead of environment variables.
 Boolean variables accept `true`/`false` case-insensitively, along with
 `1`/`0`, `yes`/`no`, and `on`/`off`.  An unrecognized value logs a warning
 naming the variable and falls back to that variable's default.  An empty
-*Default* means the option is simply omitted, and Foundry's (or the
-system's) own behavior applies.
+*Default* means no value is configured, and Foundry's (or the system's)
+own behavior applies.
 
 | Name | Purpose | Default |
 | ---- | ------- | ------- |
