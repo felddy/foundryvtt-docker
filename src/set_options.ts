@@ -39,7 +39,16 @@ if (process.env.FOUNDRY_DEMO_CONFIG) {
 }
 
 let options: object = {
-    awsConfig: process.env.FOUNDRY_AWS_CONFIG || null,
+    // "true" selects the AWS SDK's ambient credential evaluation (env vars,
+    // instance/task roles); any other non-empty value is a path to an
+    // awsConfig.json.  Passing the literal string through (#309) made
+    // Foundry look for a file named "true".
+    awsConfig:
+        process.env.FOUNDRY_AWS_CONFIG === "true"
+            ? true
+            : process.env.FOUNDRY_AWS_CONFIG === "false"
+              ? null
+              : process.env.FOUNDRY_AWS_CONFIG || null,
     compressSocket: process.env.FOUNDRY_COMPRESS_WEBSOCKET == "true",
     compressStatic: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
     cssTheme: process.env.FOUNDRY_CSS_THEME || CSS_THEME,
