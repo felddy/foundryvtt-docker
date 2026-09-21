@@ -13,12 +13,14 @@ LOG_NAME="Launcher"
 
 # shellcheck source=src/logging.sh
 source logging.sh
+# shellcheck source=src/env_flag.sh
+source env_flag.sh
 
 # ensure the config directory exists
 log_debug "Ensuring ${CONFIG_DIR} directory exists."
 mkdir -p "${CONFIG_DIR}"
 
-if [[ "${CONTAINER_PRESERVE_CONFIG:-}" == "true" && -f "${CONFIG_FILE}" ]]; then
+if env_is_true CONTAINER_PRESERVE_CONFIG && [[ -f "${CONFIG_FILE}" ]]; then
   log_warn "CONTAINER_PRESERVE_CONFIG is set: Not updating options.json"
 else
   # Update configuration file
@@ -26,7 +28,7 @@ else
   ./set_options.js > "${CONFIG_FILE}"
 fi
 
-if [[ "${CONTAINER_PRESERVE_CONFIG:-}" == "true" && -f "${ADMIN_KEY_FILE}" ]]; then
+if env_is_true CONTAINER_PRESERVE_CONFIG && [[ -f "${ADMIN_KEY_FILE}" ]]; then
   log_warn "CONTAINER_PRESERVE_CONFIG is set: Not updating admin.txt"
 else
   # Save admin access key to file if set.  Delete file if unset.
@@ -44,7 +46,7 @@ if [[ "${CONTAINER_UMASK:-}" ]]; then
   umask "${CONTAINER_UMASK}" || log_warn "Failed to set umask."
 fi
 
-if [[ "${FOUNDRY_IP_DISCOVERY:-}" == "false" ]]; then
+if env_is_false FOUNDRY_IP_DISCOVERY; then
   log "FOUNDRY_IP_DISCOVERY is set to false: Disabling IP discovery."
   # Add argument to disable IP discovery
   set -- "$@" --noipdiscovery
@@ -60,7 +62,7 @@ if [[ "${FOUNDRY_MAX_LOGS:-}" ]]; then
   set -- "$@" --maxlogs="${FOUNDRY_MAX_LOGS}"
 fi
 
-if [[ "${FOUNDRY_NO_BACKUPS:-}" == "true" ]]; then
+if env_is_true FOUNDRY_NO_BACKUPS; then
   log "FOUNDRY_NO_BACKUPS is set to true: Disabling automatic world backups."
   set -- "$@" --nobackups
 fi

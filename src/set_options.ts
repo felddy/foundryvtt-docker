@@ -8,6 +8,8 @@ const MAXIMUM_PORT: number = 65535;
 const MINIMUM_PORT: number = 1;
 const UPDATE_CHANNEL: string = "stable";
 
+import envFlag from "./env_flag.js";
+
 let parsedDemoConfig: any = undefined;
 
 /**
@@ -49,15 +51,15 @@ let options: object = {
             : process.env.FOUNDRY_AWS_CONFIG === "false"
               ? null
               : process.env.FOUNDRY_AWS_CONFIG || null,
-    compressSocket: process.env.FOUNDRY_COMPRESS_WEBSOCKET == "true",
-    compressStatic: process.env.FOUNDRY_MINIFY_STATIC_FILES == "true",
+    compressSocket: envFlag("FOUNDRY_COMPRESS_WEBSOCKET"),
+    compressStatic: envFlag("FOUNDRY_MINIFY_STATIC_FILES"),
     cssTheme: process.env.FOUNDRY_CSS_THEME || CSS_THEME,
     dataPath: DATA_PATH,
-    deleteNEDB: process.env.FOUNDRY_DELETE_NEDB == "true",
+    deleteNEDB: envFlag("FOUNDRY_DELETE_NEDB"),
     demo: parsedDemoConfig,
     fullscreen: false,
     hostname: process.env.FOUNDRY_HOSTNAME || null,
-    hotReload: process.env.FOUNDRY_HOT_RELOAD == "true",
+    hotReload: envFlag("FOUNDRY_HOT_RELOAD"),
     language: process.env.FOUNDRY_LANGUAGE || LANGUAGE,
     localHostname: process.env.FOUNDRY_LOCAL_HOSTNAME || null,
     passwordSalt: process.env.FOUNDRY_PASSWORD_SALT || null,
@@ -69,21 +71,17 @@ let options: object = {
         MAXIMUM_PORT,
         null,
     ),
-    proxySSL: process.env.FOUNDRY_PROXY_SSL == "true",
+    proxySSL: envFlag("FOUNDRY_PROXY_SSL"),
     routePrefix: process.env.FOUNDRY_ROUTE_PREFIX || null,
     serviceConfig: process.env.FOUNDRY_SERVICE_CONFIG || null,
     sslCert: process.env.FOUNDRY_SSL_CERT || null,
     sslKey: process.env.FOUNDRY_SSL_KEY || null,
-    telemetry:
-        process.env.FOUNDRY_TELEMETRY === "true"
-            ? true
-            : process.env.FOUNDRY_TELEMETRY === "false"
-              ? false
-              : null,
+    // Deliberately tri-state: unset (null) lets Foundry prompt the user.
+    telemetry: envFlag("FOUNDRY_TELEMETRY", null),
     tempDir: process.env.FOUNDRY_TEMP_DIR || null,
     unixSocket: process.env.FOUNDRY_UNIX_SOCKET || null,
     updateChannel: UPDATE_CHANNEL,
-    upnp: process.env.FOUNDRY_UPNP == "true",
+    upnp: envFlag("FOUNDRY_UPNP"),
     upnpLeaseDuration: process.env.FOUNDRY_UPNP_LEASE_DURATION || null,
     world: process.env.FOUNDRY_WORLD || null,
 };

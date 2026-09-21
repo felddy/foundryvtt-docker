@@ -188,6 +188,10 @@ secrets](#using-secrets) instead of environment variables.
 
 ### Optional variables ###
 
+Boolean variables accept `true`/`false` case-insensitively, along with
+`1`/`0`, `yes`/`no`, and `on`/`off`.  An unrecognized value logs a warning
+naming the variable and falls back to that variable's default.
+
 | Name | Purpose | Default |
 | ---- | ------- | ------- |
 | `CONTAINER_CACHE` | Set a path to cache downloads of the Foundry distribution archive and speed up subsequent container startups.  The path should be in `/data` or another persistent mount point in the container.  Set to `""` to disable.  The cache may be shared by multiple containers: simultaneous startups coordinate among themselves so each release is downloaded only once.</br>***Note***: When the cache is disabled the container will sleep indefinitely on failure rather than exiting, to prevent a restart loop.  A distribution can be pre-downloaded and placed into a cache directory.  The distribution's name must be of the form: `foundryvtt-{{ foundry_version }}.zip`, and its contents must match the version in its name — mislabeled archives are rejected and removed. | `/data/container_cache` |

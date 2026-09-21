@@ -127,6 +127,7 @@ COPY \
   src/check_health.sh \
   src/download_lock.sh \
   src/entrypoint.sh \
+  src/env_flag.sh \
   src/launcher.sh \
   src/lifecycle.sh \
   src/logging.sh \
