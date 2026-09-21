@@ -19,6 +19,13 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
+cli_main="/usr/local/lib/node_modules/@foundryvtt/foundryvtt-cli/fvtt.mjs"
+if [[ ! -f "${cli_main}" ]]; then
+  echo "The Foundry VTT CLI is not included in this image's $(uname -m) variant:" >&2
+  echo "its classic-level dependency cannot be built for this architecture." >&2
+  exit 1
+fi
+
 export XDG_DATA_HOME="${XDG_DATA_HOME:-/data/.local/share}"
 
 # Seed through a temporary file and rename so concurrent first invocations
@@ -39,4 +46,4 @@ END_OF_CONFIG
   rm -f "${tmp_file}"
 fi
 
-exec node /usr/local/lib/node_modules/@foundryvtt/foundryvtt-cli/fvtt.mjs "$@"
+exec node "${cli_main}" "$@"

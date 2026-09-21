@@ -283,6 +283,10 @@ defaults to `/data/.local/share/.fvttrc.yml` in this image so that the
 configuration persists in the data volume and remains writable for any UID the
 container runs as.  Set `XDG_DATA_HOME` to change the location.
 
+> [!NOTE]
+> The CLI is included on every image platform except `s390x`, where its native
+> LevelDB dependency cannot be built.
+
 ## Building ##
 
 Most users should pull a published image.  If you want to build the image
