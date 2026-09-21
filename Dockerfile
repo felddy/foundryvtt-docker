@@ -43,16 +43,23 @@ ARG NPM_VERSION
 RUN npm install -g npm@${NPM_VERSION}
 
 # Install the Foundry VTT CLI in an isolated stage.  Its classic-level
-# dependency ships prebuilt bindings for amd64 and arm64 only; on the other
-# release platforms (ppc64le, s390x) node-gyp compiles it from source, which
-# needs a toolchain.  The toolchain never leaves this stage — the final stage
-# copies only the installed package.
+# dependency ships prebuilt bindings for amd64 and arm64 only; on ppc64le
+# node-gyp compiles it from source, which needs a toolchain.  The toolchain
+# never leaves this stage — the final stage copies only the installed
+# package.  On s390x the CLI is omitted entirely: classic-level's vendored
+# LevelDB does not implement atomic pointers for that architecture, so it
+# cannot be built (the fvtt wrapper explains this at runtime).  The mkdir
+# guarantees the directory the final stage copies always exists.
 FROM base AS fvtt-cli-stage
 ARG FOUNDRYVTT_CLI_VERSION
-RUN apt-get update \
+ARG TARGETARCH
+RUN mkdir -p /usr/local/lib/node_modules/@foundryvtt \
+  && if [ "${TARGETARCH}" != "s390x" ]; then \
+  apt-get update \
   && apt-get install -y --no-install-recommends g++ make python3 \
   && rm -rf /var/lib/apt/lists/* \
-  && npm install -g @foundryvtt/foundryvtt-cli@${FOUNDRYVTT_CLI_VERSION}
+  && npm install -g @foundryvtt/foundryvtt-cli@${FOUNDRYVTT_CLI_VERSION}; \
+  fi
 
 FROM base AS compile-typescript-stage
 
