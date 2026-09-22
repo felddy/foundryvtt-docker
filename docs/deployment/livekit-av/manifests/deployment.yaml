@@ -1,0 +1,82 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit
+  namespace: livekit
+  labels:
+    app.kubernetes.io/name: livekit
+spec:
+  # Without a Redis-backed multi-node setup, exactly one LiveKit instance may
+  # run.  The "Recreate" strategy stops the old pod before starting the new
+  # one so two instances never share the media Service during a rollout.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: livekit
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: livekit
+    spec:
+      # Media enters through the livekit-media LoadBalancer Service, keeping
+      # the pod inside the pod network.  If your cluster has no LoadBalancer
+      # implementation, host networking is LiveKit's traditional alternative
+      # — at the cost of the pod sharing the node's network namespace:
+      # hostNetwork: true
+      # dnsPolicy: ClusterFirstWithHostNet
+      #
+      # The Service named "livekit" makes kubelet inject the legacy link
+      # variable LIVEKIT_PORT=tcp://<clusterIP>:7880, which LiveKit reads as
+      # its own port setting and crashes parsing.  Disable the legacy
+      # injection; nothing consumes those variables.
+      enableServiceLinks: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: livekit
+          # Pin an exact release; check the LiveKit releases page for the
+          # current version: https://github.com/livekit/livekit/releases
+          image: livekit/livekit-server:v1.13.7
+          args:
+            - --config
+            - /etc/livekit/livekit.yaml
+          env:
+            # The API key/secret pair, kept out of the ConfigMap.
+            - name: LIVEKIT_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: livekit-keys
+                  key: LIVEKIT_KEYS
+          ports:
+            - name: http
+              containerPort: 7880
+              protocol: TCP
+            - name: rtc-tcp
+              containerPort: 7881
+              protocol: TCP
+            - name: rtc-udp
+              containerPort: 7882
+              protocol: UDP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: config
+              mountPath: /etc/livekit
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: livekit-config

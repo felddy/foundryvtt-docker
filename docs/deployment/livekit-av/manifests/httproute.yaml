@@ -1,0 +1,20 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: livekit
+  namespace: livekit
+spec:
+  # Attach to your cluster's shared Gateway: adjust the name and namespace to
+  # match your environment.  TLS is typically terminated by a listener on that
+  # Gateway, and attaching from another namespace requires the Gateway's
+  # `allowedRoutes` to permit it.
+  parentRefs:
+    - name: gateway
+      namespace: gateway-system
+  hostnames:
+    - livekit.example.com
+  rules:
+    - backendRefs:
+        - name: livekit
+          port: 7880

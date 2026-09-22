@@ -105,6 +105,7 @@ guides show how to run it well on a given platform.
 | [Reverse proxy with Caddy](docs/deployment/reverse-proxy-caddy/README.md) | Automatic HTTPS in front of the server. |
 | [Reverse proxy with nginx](docs/deployment/reverse-proxy-nginx/README.md) | TLS termination with certificates you already have. |
 | [Cloudflare Tunnel](docs/deployment/cloudflare-tunnel/README.md) | Public access without port forwarding or NAT. |
+| [Audio/video chat with LiveKit](docs/deployment/livekit-av/README.md) | Self-hosted voice and video for your game, without peer-to-peer bandwidth limits. |
 
 ## Updating ##
 

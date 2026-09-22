@@ -1,0 +1,21 @@
+---
+# Makes manifests/ a valid Kustomize base: apply it directly with
+# `kubectl apply -k manifests/`.  The LiveKit server is deployed beside your
+# Foundry instances; see the guide for how the pieces fit together.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: livekit
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - deployment.yaml
+  - service.yaml
+  - httproute.yaml
+# Packages config/livekit.yaml — kept as a plain file so editors and
+# linters see native YAML — into a ConfigMap.  The generated name carries a
+# content hash, and the Deployment's reference is rewritten to match, so
+# editing the file rolls the pod automatically on the next apply.
+configMapGenerator:
+  - name: livekit-config
+    files:
+      - config/livekit.yaml

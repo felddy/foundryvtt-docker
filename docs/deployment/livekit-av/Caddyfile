@@ -1,0 +1,10 @@
+# Caddy automatically provisions and renews TLS certificates for both
+# addresses.  Foundry and the LiveKit signal API both rely on WebSockets,
+# which Caddy proxies transparently.
+{$SITE_ADDRESS} {
+	reverse_proxy foundry:30000
+}
+
+{$LIVEKIT_ADDRESS} {
+	reverse_proxy livekit:7880
+}

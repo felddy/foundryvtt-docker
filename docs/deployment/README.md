@@ -33,6 +33,7 @@ written as Compose examples that work with both Docker and Podman.
 | [Reverse proxy with Caddy](reverse-proxy-caddy/README.md) | Puts the server behind [Caddy](https://caddyserver.com) for automatic HTTPS with free, auto-renewing certificates. |
 | [Reverse proxy with nginx](reverse-proxy-nginx/README.md) | Puts the server behind [nginx](https://nginx.org) for TLS termination with certificates you already have. |
 | [Cloudflare Tunnel](cloudflare-tunnel/README.md) | Exposes the server to the internet without opening ports or configuring NAT. |
+| [Audio/video chat with LiveKit](livekit-av/README.md) | Runs a [LiveKit](https://livekit.io) server beside Foundry so every player uploads their camera stream once instead of once per player.  Includes Compose and Kubernetes examples. |
 
 Kubernetes users generally front the server with a Gateway API `HTTPRoute`
 instead; see the [Kubernetes guide](kubernetes/README.md) for an example.

@@ -1,0 +1,42 @@
+---
+# Cluster-internal endpoint for the signal API only.  TLS is terminated by
+# the cluster Gateway in front of this Service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: livekit
+  namespace: livekit
+  labels:
+    app.kubernetes.io/name: livekit
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: livekit
+  ports:
+    - name: http
+      port: 7880
+      targetPort: http
+---
+# WebRTC media enters here, on a stable LoadBalancer address.  Mixing TCP
+# and UDP in one LoadBalancer Service requires Kubernetes 1.26 or newer;
+# on older clusters, split this into two Services.
+apiVersion: v1
+kind: Service
+metadata:
+  name: livekit-media
+  namespace: livekit
+  labels:
+    app.kubernetes.io/name: livekit
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: livekit
+  ports:
+    - name: rtc-tcp
+      port: 7881
+      targetPort: rtc-tcp
+      protocol: TCP
+    - name: rtc-udp
+      port: 7882
+      targetPort: rtc-udp
+      protocol: UDP

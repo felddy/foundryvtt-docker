@@ -1,0 +1,18 @@
+# LiveKit server configuration.
+# Reference: https://docs.livekit.io/home/self-hosting/deployment/
+---
+# The signal API (WebSocket).  Caddy terminates TLS in front of this port; it
+# is never published directly.
+port: 7880
+rtc:
+  # WebRTC over TCP: a fallback for players whose networks block UDP.
+  tcp_port: 7881
+  # All WebRTC media multiplexed onto one UDP port, instead of a port range.
+  udp_port: 7882
+  # Discover the host's public IP via STUN and advertise it to players.
+  # Required when the host sits behind NAT.
+  use_external_ip: true
+keys:
+  # Replace with the pair printed by:
+  #   docker run --rm livekit/livekit-server:v1.13.7 generate-keys
+  <api_key>: <api_secret>

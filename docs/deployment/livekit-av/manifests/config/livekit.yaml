@@ -1,0 +1,22 @@
+# LiveKit server configuration, packaged into a ConfigMap by the
+# configMapGenerator in kustomization.yaml.  The API key/secret pair is
+# intentionally absent: it is supplied by the LIVEKIT_KEYS environment
+# variable from the livekit-keys Secret.
+# Reference: https://docs.livekit.io/home/self-hosting/deployment/
+---
+# The signal API (WebSocket).  TLS is terminated by the cluster Gateway;
+# this port is only reached through the Service.
+port: 7880
+rtc:
+  # WebRTC over TCP: a fallback for players whose networks block UDP.
+  tcp_port: 7881
+  # All WebRTC media multiplexed onto one UDP port, instead of a range.
+  udp_port: 7882
+  # Players must be told an address they can actually send media to.
+  # Behind NAT — a firewall forwarding these ports to the livekit-media
+  # LoadBalancer — STUN discovery finds the firewall's public IP:
+  use_external_ip: true
+  # If the LoadBalancer address is itself directly routable, advertise it
+  # explicitly instead (STUN would discover a node address, not the LB):
+  # use_external_ip: false
+  # node_ip: <loadbalancer-address>
