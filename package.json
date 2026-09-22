@@ -15,7 +15,7 @@
   "description": "Utilities to help boot a FoundryVTT server.",
   "devDependencies": {
     "@types/docopt": "^0.6.37",
-    "@types/node": "^26.6.1",
+    "@types/node": "^26.6.2",
     "@types/tough-cookie": "^4.0.5",
     "@types/tough-cookie-file-store": "^2.0.4",
     "typescript": "^7.0.2"
