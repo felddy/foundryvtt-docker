@@ -28,6 +28,9 @@
   "license": "MIT",
   "main": "authenticate.js",
   "name": "foundryvtt-utils",
+  "overrides": {
+    "basic-ftp": "^6.2.1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/felddy/foundryvtt-docker.git"
