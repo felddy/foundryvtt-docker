@@ -11,7 +11,7 @@ ARG NODE_MAJOR_VERSION=24
 ARG DEBIAN_SUITE=trixie
 ARG NODE_IMAGE_VERSION=${NODE_MAJOR_VERSION}-${DEBIAN_SUITE}-slim
 ARG NPM_VERSION=11.12.1
-ARG FOUNDRYVTT_CLI_VERSION=3.0.4
+ARG FOUNDRYVTT_CLI_VERSION=3.0.5
 
 # This stage exists solely to track the state of the Debian archives that carry
 # security fixes.  BuildKit revalidates remote ADD sources on every build and
