@@ -50,7 +50,7 @@ permissions:
 jobs:
   diagnostics:
     name: Diagnostics
-    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
 
   config:
     name: Config
@@ -58,7 +58,7 @@ jobs:
 
   lint:
     name: Lint
-    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
 
   build:
     name: Build and Publish Container
@@ -71,7 +71,7 @@ jobs:
     if: |
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
-    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
     with:
       platforms: ${{ needs.config.outputs.platforms }}
       image-name: ${{ needs.config.outputs.image_name }}
@@ -102,7 +102,7 @@ jobs:
     if: |
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
-    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
     with:
       build-secret-1-name: foundry_password
       build-secret-2-name: foundry_username
@@ -126,7 +126,7 @@ jobs:
     needs:
       - config
       - build
-    uses: felddy/reusable-workflows/.github/workflows/container-test.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+    uses: felddy/reusable-workflows/.github/workflows/container-test.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
     permissions:
       actions: read
       contents: read
@@ -145,7 +145,7 @@ jobs:
     needs:
       - config
       - build-preinstalled
-    uses: felddy/reusable-workflows/.github/workflows/container-test.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+    uses: felddy/reusable-workflows/.github/workflows/container-test.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
     permissions:
       actions: read
       contents: read
@@ -201,7 +201,7 @@ jobs:
       - build
       - test
       - test-preinstalled
-    uses: felddy/reusable-workflows/.github/workflows/container-publish-manifest.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+    uses: felddy/reusable-workflows/.github/workflows/container-publish-manifest.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
     permissions:
       actions: read
       contents: read
@@ -219,7 +219,7 @@ jobs:
       - build-preinstalled
       - test
       - test-preinstalled
-    uses: felddy/reusable-workflows/.github/workflows/container-publish-manifest.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+    uses: felddy/reusable-workflows/.github/workflows/container-publish-manifest.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
     permissions:
       actions: read
       contents: read
@@ -242,7 +242,7 @@ jobs:
     permissions:
       contents: read
       packages: read
-    uses: felddy/reusable-workflows/.github/workflows/container-mirror.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+    uses: felddy/reusable-workflows/.github/workflows/container-mirror.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
     with:
       image_name: ${{ needs.config.outputs.image_name }}
       image_tag_names: ${{ needs.publish-manifest.outputs.image-tag-names }}
@@ -261,7 +261,7 @@ jobs:
       github.event_name == 'release' &&
       !github.event.release.prerelease &&
       needs.publish-manifest.outputs.is-latest == 'true'
-    uses: felddy/reusable-workflows/.github/workflows/dockerhub-description.yml@76486c28caa391f5f9db4941fc555a20a6e084c8 # tag=v4.2.0
+    uses: felddy/reusable-workflows/.github/workflows/dockerhub-description.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
     with:
       image_name: ${{ needs.config.outputs.image_name }}
     secrets:
