@@ -9,6 +9,7 @@ per test.
 # Standard Python Libraries
 import os
 from pathlib import Path
+import re
 import subprocess
 import textwrap
 
@@ -157,8 +158,27 @@ def test_instance_id_sanitizes_pathlike_hostname() -> None:
         env={"HOSTNAME": "https://domain.com"},
     )
     assert result.returncode == 0, result.stderr
-    assert result.stdout.startswith("https___domain.com-")
-    assert "/" not in result.stdout
+    assert re.fullmatch(
+        r"https___domain\.com\.[0-9a-f]{8}-[0-9]+", result.stdout.strip()
+    ), result.stdout
+
+
+def test_instance_id_distinguishes_colliding_hostnames() -> None:
+    """Hostnames that sanitize to the same string still get distinct ids.
+
+    Entrypoint PIDs are equal across containers (always 1), so the PID
+    suffix cannot disambiguate.  Without the hostname digest, colliding
+    instances would share an in-progress download name, and a zombie
+    holder could pass the owner check in download_slot_release and delete
+    a replacement holder's lock.  The PID suffix is stripped here because
+    the two ids come from different test subprocesses.
+    """
+    ids = set()
+    for hostname in ("foundry+blue", "foundry_blue"):
+        result = _run("download_lock_instance_id", env={"HOSTNAME": hostname})
+        assert result.returncode == 0, result.stderr
+        ids.add(result.stdout.strip().rsplit("-", 1)[0])
+    assert len(ids) == 2, ids
 
 
 def test_zombie_release_spares_reacquired_lock(tmp_path: Path) -> None:

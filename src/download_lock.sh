@@ -25,8 +25,8 @@
 #     Release the lock if this process holds one.  Safe to call
 #     unconditionally, including from EXIT traps.
 #   download_lock_instance_id
-#     Print this instance's per-run id (sanitized hostname + PID), safe to
-#     embed in a single file name.
+#     Print this instance's per-run id (sanitized hostname + hostname
+#     digest + PID), safe to embed in a single file name.
 #
 # Tunables (mainly for tests):
 #   DOWNLOAD_LOCK_POLL_SECONDS  seconds between polls          (default 5)
@@ -80,10 +80,17 @@ _download_lock_held=""
 # the stale-lock rename target), and a user-set container hostname can
 # contain characters that are invalid there (e.g. "https://domain.com",
 # #1565) or that glob/find would treat as metacharacters, so anything
-# outside a conservative filename alphabet is squashed to "_".
+# outside a conservative filename alphabet is squashed to "_" and the
+# readable part is capped well under the filename length limit.
+# Squashing can collapse distinct hostnames ("a+b" and "a_b"), and equal
+# PIDs are the norm across containers, so a digest of the raw hostname
+# keeps such instances distinct (a collision-avoider, not a security
+# boundary).
 download_lock_instance_id() {
-  local host="${HOSTNAME:-unknown}"
-  printf '%s-%s' "${host//[^A-Za-z0-9._-]/_}" "$$"
+  local host="${HOSTNAME:-unknown}" digest
+  digest=$(printf '%s' "${host}" | md5sum | cut -c 1-8)
+  host="${host//[^A-Za-z0-9._-]/_}"
+  printf '%s.%s-%s' "${host:0:63}" "${digest}" "$$"
 }
 
 # _download_lock_try <lock_dir> → 0 acquired / 1 busy / 2 cannot lock
