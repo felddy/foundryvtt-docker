@@ -257,9 +257,11 @@ END_OF_LINE
   # mislabel a release, and instance-unique so a presumed-dead downloader
   # that resumes can only ever rename its own (complete) file into place.
   # It must not match the foundryvtt-*.zip glob used by the cache-size
-  # cleanup below.
+  # cleanup below.  The instance id is the sanitized one from
+  # download_lock.sh — a raw container hostname can contain characters
+  # that are invalid in a file name (#1565).
   downloading_glob="${cache_root%/}${cache_root:+/}downloading-${FOUNDRY_VERSION}.*.zip"
-  downloading_filename="${cache_root%/}${cache_root:+/}downloading-${FOUNDRY_VERSION}.${HOSTNAME:-unknown}-$$.zip"
+  downloading_filename="${cache_root%/}${cache_root:+/}downloading-${FOUNDRY_VERSION}.$(download_lock_instance_id).zip"
   release_filename="${cache_root%/}${cache_root:+/}foundryvtt-${FOUNDRY_VERSION}.zip"
 
   # Determine how we are going to get the release URL
