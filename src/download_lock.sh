@@ -24,6 +24,9 @@
 #   download_slot_release
 #     Release the lock if this process holds one.  Safe to call
 #     unconditionally, including from EXIT traps.
+#   download_lock_instance_id
+#     Print this instance's per-run id (sanitized hostname + hostname
+#     digest + PID), safe to embed in a single file name.
 #
 # Tunables (mainly for tests):
 #   DOWNLOAD_LOCK_POLL_SECONDS  seconds between polls          (default 5)
@@ -72,9 +75,22 @@ _download_lock_held=""
 
 # In a container the entrypoint's PID is always 1 and a restarted container
 # keeps its hostname, so this id is stable per run but not across runs —
-# which is exactly what the owner file (debug info only) needs.
-_download_lock_instance_id() {
-  printf '%s-%s' "${HOSTNAME:-unknown}" "$$"
+# which is exactly what the owner file (debug info only) needs.  The id is
+# also embedded in single path components (the in-progress download name,
+# the stale-lock rename target), and a user-set container hostname can
+# contain characters that are invalid there (e.g. "https://domain.com",
+# #1565) or that glob/find would treat as metacharacters, so anything
+# outside a conservative filename alphabet is squashed to "_" and the
+# readable part is capped well under the filename length limit.
+# Squashing can collapse distinct hostnames ("a+b" and "a_b"), and equal
+# PIDs are the norm across containers, so a digest of the raw hostname
+# keeps such instances distinct (a collision-avoider, not a security
+# boundary).
+download_lock_instance_id() {
+  local host="${HOSTNAME:-unknown}" digest
+  digest=$(printf '%s' "${host}" | md5sum | cut -c 1-8)
+  host="${host//[^A-Za-z0-9._-]/_}"
+  printf '%s.%s-%s' "${host:0:63}" "${digest}" "$$"
 }
 
 # _download_lock_try <lock_dir> → 0 acquired / 1 busy / 2 cannot lock
@@ -84,7 +100,7 @@ _download_lock_try() {
     _download_lock_held="${lock_dir}"
     # Debug info only: PIDs are meaningless across containers and nodes,
     # so liveness is judged by download progress, never by this file.
-    _download_lock_instance_id > "${lock_dir}/owner" 2> /dev/null || true
+    download_lock_instance_id > "${lock_dir}/owner" 2> /dev/null || true
     return 0
   fi
   if [[ -d "${lock_dir}" ]]; then
@@ -103,7 +119,7 @@ download_slot_release() {
     # holder's mkdir caught before its owner write, and an ownerless lock
     # of our own is self-healing (it stalls and gets stolen).
     owner=$(cat "${_download_lock_held}/owner" 2> /dev/null) || owner=""
-    if [[ "${owner}" == "$(_download_lock_instance_id)" ]]; then
+    if [[ "${owner}" == "$(download_lock_instance_id)" ]]; then
       log_debug "download_lock: releasing ${_download_lock_held}"
       rm -rf "${_download_lock_held}" 2> /dev/null || true
     else
@@ -193,7 +209,7 @@ download_slot_acquire() {
           # stall -> failed steal -> stall forever instead of failing
           # cleanly into backoff.
           steals=$((steals + 1))
-          stale_dir="${lock_dir}.stale.$(_download_lock_instance_id)-${RANDOM}"
+          stale_dir="${lock_dir}.stale.$(download_lock_instance_id)-${RANDOM}"
           if mv "${lock_dir}" "${stale_dir}" 2> /dev/null; then
             log_warn "Download lock holder is not making progress.  Stole stale lock (steal ${steals}/${DOWNLOAD_LOCK_STEAL_LIMIT})."
             rm -rf "${stale_dir}" 2> /dev/null || true

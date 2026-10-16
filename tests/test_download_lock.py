@@ -9,6 +9,7 @@ per test.
 # Standard Python Libraries
 import os
 from pathlib import Path
+import re
 import subprocess
 import textwrap
 
@@ -145,6 +146,41 @@ def test_zero_poll_interval_falls_back(tmp_path: Path) -> None:
     assert "poll=5" in result.stdout
 
 
+def test_instance_id_sanitizes_pathlike_hostname() -> None:
+    """A hostname with filename-hostile characters yields a usable id.
+
+    The id is embedded in single path components (the in-progress download
+    name, the stale-lock rename target), and a user-set container hostname
+    can be URL-shaped (#1565).
+    """
+    result = _run(
+        "download_lock_instance_id",
+        env={"HOSTNAME": "https://domain.com"},
+    )
+    assert result.returncode == 0, result.stderr
+    assert re.fullmatch(
+        r"https___domain\.com\.[0-9a-f]{8}-[0-9]+", result.stdout.strip()
+    ), result.stdout
+
+
+def test_instance_id_distinguishes_colliding_hostnames() -> None:
+    """Hostnames that sanitize to the same string still get distinct ids.
+
+    Entrypoint PIDs are equal across containers (always 1), so the PID
+    suffix cannot disambiguate.  Without the hostname digest, colliding
+    instances would share an in-progress download name, and a zombie
+    holder could pass the owner check in download_slot_release and delete
+    a replacement holder's lock.  The PID suffix is stripped here because
+    the two ids come from different test subprocesses.
+    """
+    ids = set()
+    for hostname in ("foundry+blue", "foundry_blue"):
+        result = _run("download_lock_instance_id", env={"HOSTNAME": hostname})
+        assert result.returncode == 0, result.stderr
+        ids.add(result.stdout.strip().rsplit("-", 1)[0])
+    assert len(ids) == 2, ids
+
+
 def test_zombie_release_spares_reacquired_lock(tmp_path: Path) -> None:
     """A stolen-and-reacquired lock survives the original holder's release.
 
@@ -265,6 +301,27 @@ def test_stalled_lock_is_stolen_and_acquired(tmp_path: Path) -> None:
     # The lock was re-created by us, not inherited from the dead holder.
     assert "dead-holder" not in result.stdout.splitlines()[-1]
     # No stale wreckage left behind.
+    assert not list(tmp_path.glob("v.lock.stale.*"))
+
+
+def test_stalled_lock_is_stolen_with_pathlike_hostname(tmp_path: Path) -> None:
+    """Stale-lock stealing works when HOSTNAME contains path separators.
+
+    The steal renames the lock to a path built from the instance id; an
+    unsanitized URL-shaped hostname (#1565) would make every rename fail
+    and burn the whole steal budget.
+    """
+    result = _run(
+        textwrap.dedent(f"""\
+            mkdir "{tmp_path}/v.lock"
+            echo "dead-holder" > "{tmp_path}/v.lock/owner"
+            download_slot_acquire "{tmp_path}/v.lock" "{tmp_path}/release.zip" \\
+              "{tmp_path}/downloading-v.*.zip"
+            echo "rc=$?"
+        """),
+        env={"HOSTNAME": "https://domain.com"},
+    )
+    assert "rc=0" in result.stdout, result.stderr
     assert not list(tmp_path.glob("v.lock.stale.*"))
 
 
