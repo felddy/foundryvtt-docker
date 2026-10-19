@@ -111,18 +111,7 @@ jobs:
       private: ${{ matrix.private }}
       pass-build-secrets: ${{ matrix.pass-build-secrets }}
       scan-severity: ${{ matrix.scan-severity }}
-      # GitHub code scanning only accepts SARIF tied to a branch ref or a pull
-      # request, so upload only for PRs, the merge queue, and branch refs
-      # (refs/heads/*, which also covers scheduled and dispatch runs on a
-      # branch). Skip it on release events and tag refs (refs/tags/*), where
-      # codeql-action has no branch to attach results to and fails with
-      # "GITHUB_REF ... must be set". The scan still runs; only the
-      # Security-tab upload is skipped on those refs.
-      upload-scan-results: >-
-        ${{ matrix.upload-scan-results &&
-          (github.event_name == 'pull_request'
-            || github.event_name == 'merge_group'
-            || startsWith(github.ref, 'refs/heads/')) }}
+      upload-scan-results: ${{ matrix.upload-scan-results }}
       build-args: |
         CONTAINER_VERSION=${{ needs.config.outputs.container_version }}
         FOUNDRY_VERSION=${{ needs.config.outputs.foundry_version }}
