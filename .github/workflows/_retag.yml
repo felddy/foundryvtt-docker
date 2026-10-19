@@ -1,0 +1,47 @@
+---
+name: Retag
+
+# Reconciles floating container tags when a release is edited. Under
+# immutable releases, edits can only change metadata (notes, prerelease
+# flag, latest marker), so the response is retagging existing digests —
+# never a rebuild.
+
+on: # yamllint disable-line rule:truthy
+  release:
+    types:
+      - edited
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        description: Git tag of the release to reconcile (e.g. v1.2.3)
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  retag:
+    name: Retag Container
+    permissions:
+      contents: read
+      packages: write
+    uses: felddy/reusable-workflows/.github/workflows/container-retag.yml@412e87d7ed6efdb355b017e8bf764ac5df467bca # tag=v5.0.0-rc1
+    with:
+      image-name: felddy/foundryvtt
+      release-tag: ${{ github.event.release.tag_name || inputs.release-tag }}
+
+  retag-preinstall:
+    name: Retag Container Pre-Installed
+    permissions:
+      contents: read
+      packages: write
+    uses: felddy/reusable-workflows/.github/workflows/container-retag.yml@412e87d7ed6efdb355b017e8bf764ac5df467bca # tag=v5.0.0-rc1
+    with:
+      image-name: felddy/foundryvtt-preinstall
+      release-tag: ${{ github.event.release.tag_name || inputs.release-tag }}
+    secrets:
+      private-package-token: ${{ secrets.PRIVATE_PACKAGE_TOKEN }}
