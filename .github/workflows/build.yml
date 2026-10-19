@@ -12,19 +12,13 @@ on: # yamllint disable-line rule:truthy
       - develop-*
   release:
     types:
-      - edited
       - published
   schedule:
-    - cron: 0 10 * * * # everyday at 10am
+    # Weekly image refresh (updates the edge tag). Daily CVE monitoring is
+    # handled by _rescan.yml against the attested SBOMs; floating-tag
+    # reconciliation after release edits is handled by _retag.yml.
+    - cron: 0 10 * * 1 # Mondays at 10am
   workflow_dispatch:
-
-# Set a default shell for any run steps. The `-Eueo pipefail` sets errtrace,
-# nounset, errexit, and pipefail. The `-x` will print all commands as they are
-# run. Please see the GitHub Actions documentation for more information:
-# https://docs.github.com/en/actions/using-jobs/setting-default-values-for-jobs
-defaults:
-  run:
-    shell: bash -Eueo pipefail -x {0}
 
 concurrency:
   # Key the group on the fully-qualified ref so each event type gets its own
@@ -40,136 +34,109 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  packages: write
-  id-token: write
-  attestations: write
-  security-events: write
+# Grant write scopes per job; a workflow-level grant would hand every
+# job (lint, diagnostics, config) a write-capable token it never needs.
+permissions: {}
 
 jobs:
   diagnostics:
     name: Diagnostics
-    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
+    permissions:
+      contents: read
+    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@f6750a7ef87d15f11ecae4c0ef3784daceb83d5d # tag=v5.0.0-rc2
 
   config:
     name: Config
+    permissions:
+      contents: read
     uses: ./.github/workflows/_config.yml
 
   lint:
     name: Lint
-    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
+    permissions:
+      contents: read
+    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@f6750a7ef87d15f11ecae4c0ef3784daceb83d5d # tag=v5.0.0-rc2
 
-  build:
-    name: Build and Publish Container
+  pipeline:
+    name: Pipeline (${{ matrix.flavor }})
     needs:
+      - diagnostics
       - config
       - lint
-      - diagnostics
-    # Skip registry-pushing jobs on fork PRs — secrets are unavailable and
-    # GITHUB_TOKEN is read-only, so pushes would fail with auth errors.
-    if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository
-    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
-    with:
-      platforms: ${{ needs.config.outputs.platforms }}
-      image-name: ${{ needs.config.outputs.image_name }}
-      context: .
-      dockerfile: ./Dockerfile
-      scan-severity: CRITICAL,HIGH
-      # GitHub code scanning only accepts SARIF tied to a branch ref or a pull
-      # request, so upload only for PRs, the merge queue, and branch refs
-      # (refs/heads/*, which also covers scheduled and dispatch runs on a
-      # branch). Skip it on release events and tag refs (refs/tags/*), where
-      # codeql-action has no branch to attach results to and fails with
-      # "GITHUB_REF ... must be set". The scan still runs; only the
-      # Security-tab upload is skipped on those refs.
-      upload-scan-results: >-
-        ${{ github.event_name == 'pull_request'
-          || github.event_name == 'merge_group'
-          || startsWith(github.ref, 'refs/heads/') }}
-      build-args: |
-        CONTAINER_VERSION=${{ needs.config.outputs.container_version }}
-        FOUNDRY_VERSION=${{ needs.config.outputs.foundry_version }}
-
-  build-preinstalled:
-    name: Build and Publish Container Pre-Installed
-    needs:
-      - config
-      - lint
-      - diagnostics
-    if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository
-    uses: felddy/reusable-workflows/.github/workflows/container-build.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
-    with:
-      build-secret-1-name: foundry_password
-      build-secret-2-name: foundry_username
-      cache-scope: preinstall # prevent preinstall from skipping from regular build cache
-      platforms: ${{ needs.config.outputs.test_platforms }}
-      image-name: ${{ needs.config.outputs.image_name_preinstall }}
-      context: .
-      dockerfile: ./Dockerfile
-      scan-severity: "" # don't fail on vulns in FoundryVTT binaries
-      upload-scan-results: false # don't pollute repo security tab with third-party vulns
-      build-args: |
-        CONTAINER_VERSION=${{ needs.config.outputs.container_version }}
-        FOUNDRY_VERSION=${{ needs.config.outputs.foundry_version }}
-    secrets:
-      private-package-token: ${{ secrets.PRIVATE_PACKAGE_TOKEN }}
-      build-secret-1: ${{ secrets.FOUNDRY_PASSWORD }}
-      build-secret-2: ${{ secrets.FOUNDRY_USERNAME }}
-
-  test:
-    name: Test Container
-    needs:
-      - config
-      - build
-    uses: felddy/reusable-workflows/.github/workflows/container-test.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The public image ships without Foundry binaries; the private
+          # preinstall image authenticates during the build and embeds them,
+          # so it is published unlinked (private) and scanned without a gate
+          # (third-party binaries are not actionable here).
+          - flavor: public
+            image-name: felddy/foundryvtt
+            platforms-source: platforms
+            private: false
+            pass-build-secrets: false
+            scan-severity: CRITICAL,HIGH
+            upload-scan-results: true
+            mirror: true
+            readme: true
+            test-secret-1-name: FOUNDRY_USERNAME
+            test-secret-2-name: FOUNDRY_PASSWORD
+          - flavor: preinstall
+            image-name: felddy/foundryvtt-preinstall
+            platforms-source: test_platforms
+            private: true
+            pass-build-secrets: true
+            scan-severity: ""
+            upload-scan-results: false
+            mirror: false
+            readme: false
+            test-secret-1-name: ""
+            test-secret-2-name: ""
     permissions:
       actions: read
-      contents: read
-      packages: read
+      # contents: write lets the pipeline record image digests in release
+      # notes; every other pipeline job narrows back to contents: read.
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+      security-events: write
+    uses: felddy/reusable-workflows/.github/workflows/container-pipeline.yml@f6750a7ef87d15f11ecae4c0ef3784daceb83d5d # tag=v5.0.0-rc2
     with:
-      image-name: ${{ needs.config.outputs.image_name }}
-      platforms: ${{ needs.config.outputs.test_platforms }}
-      test-secret-1-name: FOUNDRY_USERNAME
-      test-secret-2-name: FOUNDRY_PASSWORD
+      image-name: ${{ matrix.image-name }}
+      platforms: ${{ needs.config.outputs[matrix.platforms-source] }}
+      test-platforms: ${{ needs.config.outputs.test_platforms }}
+      private: ${{ matrix.private }}
+      pass-build-secrets: ${{ matrix.pass-build-secrets }}
+      scan-severity: ${{ matrix.scan-severity }}
+      upload-scan-results: ${{ matrix.upload-scan-results }}
+      build-args: |
+        CONTAINER_VERSION=${{ needs.config.outputs.container_version }}
+        FOUNDRY_VERSION=${{ needs.config.outputs.foundry_version }}
+      build-secret-1-name: foundry_password
+      build-secret-2-name: foundry_username
+      test-secret-1-name: ${{ matrix.test-secret-1-name }}
+      test-secret-2-name: ${{ matrix.test-secret-2-name }}
+      mirror-on-release: ${{ matrix.mirror }}
+      publish-readme-on-release: ${{ matrix.readme }}
     secrets:
+      private-package-token: ${{ secrets.PRIVATE_PACKAGE_TOKEN }}
+      docker-hub-username: ${{ secrets.DOCKER_USERNAME }}
+      docker-hub-password: ${{ secrets.DOCKER_PASSWORD }}
+      build-secret-1: ${{ secrets.FOUNDRY_PASSWORD }}
+      build-secret-2: ${{ secrets.FOUNDRY_USERNAME }}
       test-secret-1: ${{ secrets.FOUNDRY_USERNAME }}
       test-secret-2: ${{ secrets.FOUNDRY_PASSWORD }}
 
-  test-preinstalled:
-    name: Test Container Pre-Installed
-    needs:
-      - config
-      - build-preinstalled
-    uses: felddy/reusable-workflows/.github/workflows/container-test.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
-    permissions:
-      actions: read
-      contents: read
-      packages: read
-    with:
-      image-name: ${{ needs.config.outputs.image_name_preinstall }}
-      platforms: ${{ needs.config.outputs.test_platforms }}
-    secrets:
-      registry-token: ${{ secrets.PRIVATE_PACKAGE_TOKEN }}
-
   ci-gate:
     name: CI Gate
-    # Single aggregate status check required by branch protection. Keeping this
-    # job's NAME stable means reworking the jobs above never requires editing
-    # the ruleset again -- only this job's `needs:` list, which lives in code
-    # and is reviewed like any other change.
     needs:
+      - diagnostics
       - config
       - lint
-      - diagnostics
-      - build
-      - build-preinstalled
-      - test
-      - test-preinstalled
+      - pipeline
     # Run whether dependencies succeed, fail, or are skipped so the gate can
     # evaluate their results -- but NOT when the run itself is cancelled (for
     # example when superseded via `concurrency`). `always()` would execute
@@ -177,93 +144,7 @@ jobs:
     # still runs when a dependency *fails* (failure is not cancellation), so
     # genuine failures are caught while cancelled runs simply skip the gate.
     if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify required jobs succeeded
-        run: |
-          # These jobs run on every event and must pass:
-          [[ "${{ needs.config.result }}"      == success ]] || { echo "config: ${{ needs.config.result }}";           exit 1; }
-          [[ "${{ needs.lint.result }}"        == success ]] || { echo "lint: ${{ needs.lint.result }}";               exit 1; }
-          [[ "${{ needs.diagnostics.result }}" == success ]] || { echo "diagnostics: ${{ needs.diagnostics.result }}"; exit 1; }
-          # build/test jobs run on same-repo PRs but are skipped on fork PRs
-          # (no secrets are available); accept success or skipped, reject
-          # failure/cancelled:
-          [[ "${{ needs.build.result }}"              =~ ^(success|skipped)$ ]] || { echo "build: ${{ needs.build.result }}";                           exit 1; }
-          [[ "${{ needs['build-preinstalled'].result }}" =~ ^(success|skipped)$ ]] || { echo "build-preinstalled: ${{ needs['build-preinstalled'].result }}"; exit 1; }
-          [[ "${{ needs.test.result }}"               =~ ^(success|skipped)$ ]] || { echo "test: ${{ needs.test.result }}";                             exit 1; }
-          [[ "${{ needs['test-preinstalled'].result }}"  =~ ^(success|skipped)$ ]] || { echo "test-preinstalled: ${{ needs['test-preinstalled'].result }}";   exit 1; }
-          echo "All required jobs passed."
-
-  publish-manifest:
-    name: Publish Manifest
-    needs:
-      - config
-      - build
-      - test
-      - test-preinstalled
-    uses: felddy/reusable-workflows/.github/workflows/container-publish-manifest.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
-    permissions:
-      actions: read
-      contents: read
-      packages: write
-      id-token: write
-      attestations: write
+    permissions: {}
+    uses: felddy/reusable-workflows/.github/workflows/ci-gate.yml@f6750a7ef87d15f11ecae4c0ef3784daceb83d5d # tag=v5.0.0-rc2
     with:
-      image-name: ${{ needs.config.outputs.image_name }}
-      platforms: ${{ needs.config.outputs.platforms }}
-
-  publish-manifest-preinstalled:
-    name: Publish Manifest Pre-Installed
-    needs:
-      - config
-      - build-preinstalled
-      - test
-      - test-preinstalled
-    uses: felddy/reusable-workflows/.github/workflows/container-publish-manifest.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
-    permissions:
-      actions: read
-      contents: read
-      packages: write
-      id-token: write
-      attestations: write
-    with:
-      image-name: ${{ needs.config.outputs.image_name_preinstall }}
-      platforms: ${{ needs.config.outputs.test_platforms }}
-    secrets:
-      private-package-token: ${{ secrets.PRIVATE_PACKAGE_TOKEN }}
-
-  mirror-to-dockerhub:
-    name: Mirror images to DockerHub
-    needs:
-      - publish-manifest
-      - publish-manifest-preinstalled
-      - config
-    if: github.event_name == 'release' && !github.event.release.prerelease
-    permissions:
-      contents: read
-      packages: read
-    uses: felddy/reusable-workflows/.github/workflows/container-mirror.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
-    with:
-      image_name: ${{ needs.config.outputs.image_name }}
-      image_tag_names: ${{ needs.publish-manifest.outputs.image-tag-names }}
-      target_registry: docker.io
-    secrets:
-      target-registry-username: ${{ secrets.DOCKER_USERNAME }}
-      target-registry-password: ${{ secrets.DOCKER_PASSWORD }}
-
-  publish-readme:
-    name: Publish docs to DockerHub
-    needs:
-      - publish-manifest
-      - publish-manifest-preinstalled
-      - config
-    if: |
-      github.event_name == 'release' &&
-      !github.event.release.prerelease &&
-      needs.publish-manifest.outputs.is-latest == 'true'
-    uses: felddy/reusable-workflows/.github/workflows/dockerhub-description.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
-    with:
-      image_name: ${{ needs.config.outputs.image_name }}
-    secrets:
-      docker_password: ${{ secrets.DOCKER_PASSWORD }}
-      docker_username: ${{ secrets.DOCKER_USERNAME }}
+      needs-json: ${{ toJSON(needs) }}

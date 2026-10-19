@@ -32,7 +32,7 @@ ADD https://deb.debian.org/debian/dists/${DEBIAN_SUITE}-updates/InRelease /updat
 # to <suite>-security are absent from it until a Debian point release folds
 # them into main.  This affects the shipped image and the stages that handle
 # credentials and untrusted downloads alike.
-FROM public.ecr.aws/docker/library/node:${NODE_IMAGE_VERSION} AS patched-base
+FROM node:${NODE_IMAGE_VERSION} AS patched-base
 RUN --mount=type=bind,from=archive-state,target=/run/archive-state \
   apt-get update \
   && apt-get upgrade -y --with-new-pkgs \
