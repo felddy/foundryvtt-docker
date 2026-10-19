@@ -47,6 +47,8 @@ jobs:
 
   config:
     name: Config
+    permissions:
+      contents: read
     uses: ./.github/workflows/_config.yml
 
   lint:
