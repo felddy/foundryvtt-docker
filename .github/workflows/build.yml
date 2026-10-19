@@ -43,7 +43,7 @@ jobs:
     name: Diagnostics
     permissions:
       contents: read
-    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@412e87d7ed6efdb355b017e8bf764ac5df467bca # tag=v5.0.0-rc1
+    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@f6750a7ef87d15f11ecae4c0ef3784daceb83d5d # tag=v5.0.0-rc2
 
   config:
     name: Config
@@ -55,7 +55,7 @@ jobs:
     name: Lint
     permissions:
       contents: read
-    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@412e87d7ed6efdb355b017e8bf764ac5df467bca # tag=v5.0.0-rc1
+    uses: felddy/reusable-workflows/.github/workflows/common-lint.yml@f6750a7ef87d15f11ecae4c0ef3784daceb83d5d # tag=v5.0.0-rc2
 
   pipeline:
     name: Pipeline (${{ matrix.flavor }})
@@ -103,7 +103,7 @@ jobs:
       attestations: write
       artifact-metadata: write
       security-events: write
-    uses: felddy/reusable-workflows/.github/workflows/container-pipeline.yml@412e87d7ed6efdb355b017e8bf764ac5df467bca # tag=v5.0.0-rc1
+    uses: felddy/reusable-workflows/.github/workflows/container-pipeline.yml@f6750a7ef87d15f11ecae4c0ef3784daceb83d5d # tag=v5.0.0-rc2
     with:
       image-name: ${{ matrix.image-name }}
       platforms: ${{ needs.config.outputs[matrix.platforms-source] }}
@@ -156,6 +156,6 @@ jobs:
     # genuine failures are caught while cancelled runs simply skip the gate.
     if: ${{ !cancelled() }}
     permissions: {}
-    uses: felddy/reusable-workflows/.github/workflows/ci-gate.yml@412e87d7ed6efdb355b017e8bf764ac5df467bca # tag=v5.0.0-rc1
+    uses: felddy/reusable-workflows/.github/workflows/ci-gate.yml@f6750a7ef87d15f11ecae4c0ef3784daceb83d5d # tag=v5.0.0-rc2
     with:
       needs-json: ${{ toJSON(needs) }}
