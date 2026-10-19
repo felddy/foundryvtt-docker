@@ -1,0 +1,52 @@
+---
+name: Rescan
+
+# Daily CVE monitoring of the published images: scans the attested SBOMs of
+# the floating tags without rebuilding or pulling images. The weekly Build
+# workflow refreshes the images themselves.
+
+on: # yamllint disable-line rule:truthy
+  schedule:
+    - cron: 0 10 * * * # everyday at 10am
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  rescan:
+    name: Rescan Container
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+      security-events: write
+    uses: felddy/reusable-workflows/.github/workflows/container-rescan.yml@412e87d7ed6efdb355b017e8bf764ac5df467bca # tag=v5.0.0-rc1
+    with:
+      image-name: felddy/foundryvtt
+      tags: '["latest","edge"]'
+
+  rescan-preinstall:
+    name: Rescan Container Pre-Installed
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+      security-events: write
+    uses: felddy/reusable-workflows/.github/workflows/container-rescan.yml@412e87d7ed6efdb355b017e8bf764ac5df467bca # tag=v5.0.0-rc1
+    with:
+      image-name: felddy/foundryvtt-preinstall
+      tags: '["latest","edge"]'
+      # Third-party Foundry binaries are embedded; report findings without
+      # failing the run, matching the build-time scan policy.
+      scan-severity: ""
+      upload-scan-results: false
+    secrets:
+      private-package-token: ${{ secrets.PRIVATE_PACKAGE_TOKEN }}
