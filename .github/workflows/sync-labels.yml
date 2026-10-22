@@ -14,7 +14,7 @@ permissions:
 jobs:
   diagnostics:
     name: Run Diagnostics
-    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@8a2ace3a3358dad0f5269a4c47397d3d03156a20 # tag=v4.2.1
+    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@c37b510076afebbca32009d7869267ae3e0b62e6 # tag=v5.0.0
   labeler:
     needs:
       - diagnostics
