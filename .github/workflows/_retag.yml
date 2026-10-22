@@ -29,7 +29,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: felddy/reusable-workflows/.github/workflows/container-retag.yml@f6750a7ef87d15f11ecae4c0ef3784daceb83d5d # tag=v5.0.0-rc2
+    uses: felddy/reusable-workflows/.github/workflows/container-retag.yml@c37b510076afebbca32009d7869267ae3e0b62e6 # tag=v5.0.0
     with:
       image-name: felddy/foundryvtt
       release-tag: ${{ github.event.release.tag_name || inputs.release-tag }}
@@ -39,7 +39,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: felddy/reusable-workflows/.github/workflows/container-retag.yml@f6750a7ef87d15f11ecae4c0ef3784daceb83d5d # tag=v5.0.0-rc2
+    uses: felddy/reusable-workflows/.github/workflows/container-retag.yml@c37b510076afebbca32009d7869267ae3e0b62e6 # tag=v5.0.0
     with:
       image-name: felddy/foundryvtt-preinstall
       release-tag: ${{ github.event.release.tag_name || inputs.release-tag }}
