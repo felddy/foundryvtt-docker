@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "changelog-path": "CHANGELOG.md",
+      "changelog-type": "github",
+      "release-type": "simple",
+      "version-file": "src/version.txt"
+    }
+  }
+}

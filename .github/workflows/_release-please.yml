@@ -1,0 +1,51 @@
+---
+name: Release Please
+
+# Maintains the release PR from conventional commits (src/version.txt bump
+# plus changelog) and publishes the GitHub release when that PR merges. The
+# container version tracks upstream Foundry VTT: Renovate's foundryvtt bump
+# commits carry a Release-As footer that pins the next release to the
+# upstream version, and container-only fixes bump the patch level between
+# Foundry builds. The release must be published with a personal access
+# token: events created with GITHUB_TOKEN do not trigger workflows, so a
+# release published that way would never run the Build pipeline. The PAT's
+# identity is a repository admin, whose ruleset bypass permits creating the
+# semver tag.
+
+on: # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - develop
+
+permissions: {}
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Both scopes let the action operate in its degraded GITHUB_TOKEN
+      # fallback mode (see the token input).
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # tag=v2.22.1
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+
+      - name: Run release-please
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # tag=v5.0.0
+        with:
+          # Falls back to GITHUB_TOKEN so the release PR keeps working if
+          # the secret is absent — but a release published in fallback mode
+          # does NOT trigger the Build pipeline (no images are built).
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
