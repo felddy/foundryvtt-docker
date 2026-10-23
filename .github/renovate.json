@@ -107,6 +107,7 @@
       ]
     },
     {
+      "commitBody": "Release-As: {{{newVersion}}}",
       "commitMessageTopic": "FoundryVTT",
       "labels": [
         "bot :robot:",
