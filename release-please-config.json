@@ -5,7 +5,8 @@
       "changelog-path": "CHANGELOG.md",
       "changelog-type": "github",
       "release-type": "simple",
-      "version-file": "src/version.txt"
+      "version-file": "src/version.txt",
+      "versioning": "always-bump-patch"
     }
   }
 }
