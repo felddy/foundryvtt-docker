@@ -1,9 +1,10 @@
 ---
 name: Rescan
 
-# Daily CVE monitoring of the published images: scans the attested SBOMs of
-# the floating tags without rebuilding or pulling images. The weekly Build
-# workflow refreshes the images themselves.
+# Daily CVE monitoring of the released images: scans the attested SBOMs of
+# the latest release without rebuilding or pulling images. A red run means
+# the fix is to cut a new release. Unreleased tags (develop, edge) are not
+# scanned; scheduled builds refresh those on their own.
 
 on: # yamllint disable-line rule:truthy
   schedule:
@@ -29,7 +30,6 @@ jobs:
     uses: felddy/reusable-workflows/.github/workflows/container-rescan.yml@v5
     with:
       image-name: felddy/foundryvtt
-      tags: '["latest","edge"]'
 
   rescan-preinstall:
     name: Rescan Container Pre-Installed
@@ -43,7 +43,6 @@ jobs:
     uses: felddy/reusable-workflows/.github/workflows/container-rescan.yml@v5
     with:
       image-name: felddy/foundryvtt-preinstall
-      tags: '["latest","edge"]'
       # Third-party Foundry binaries are embedded; report findings without
       # failing the run, matching the build-time scan policy.
       scan-severity: ""
