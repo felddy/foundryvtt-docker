@@ -35,6 +35,32 @@
         "ARG FOUNDRYVTT_CLI_VERSION=(?<currentValue>\\S+)"
       ],
       "versioningTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "datasourceTemplate": "node-version",
+      "depNameTemplate": "node",
+      "description": "Track the Node.js runtime pinned in the Dockerfile",
+      "managerFilePatterns": [
+        "/^Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG NODE_VERSION=(?<currentValue>\\S+)"
+      ],
+      "versioningTemplate": "node"
+    },
+    {
+      "customType": "regex",
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "npm",
+      "description": "Track the npm version pinned in the Dockerfile",
+      "managerFilePatterns": [
+        "/^Dockerfile$/"
+      ],
+      "matchStrings": [
+        "ARG NPM_VERSION=(?<currentValue>\\S+)"
+      ],
+      "versioningTemplate": "npm"
     }
   ],
   "enabledManagers": [
@@ -44,6 +70,29 @@
     "config:recommended"
   ],
   "packageRules": [
+    {
+      "commitMessageTopic": "Node.js",
+      "labels": [
+        "bot :robot:",
+        "dependencies :game_die:"
+      ],
+      "matchDatasources": [
+        "node-version"
+      ]
+    },
+    {
+      "commitMessageTopic": "npm",
+      "labels": [
+        "bot :robot:",
+        "dependencies :game_die:"
+      ],
+      "matchDatasources": [
+        "npm"
+      ],
+      "matchDepNames": [
+        "npm"
+      ]
+    },
     {
       "commitMessageTopic": "Foundry VTT CLI",
       "labels": [

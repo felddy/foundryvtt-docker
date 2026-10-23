@@ -5,11 +5,16 @@ ARG FOUNDRY_RELEASE_URL
 ARG FOUNDRY_VERSION
 # Base image coordinates.  DEBIAN_SUITE is the single source of truth: it
 # selects the node image variant below and the Debian archives tracked by the
-# archive-state stage.  Global ARG defaults are expanded against previously
-# declared global ARGs, so the declaration order here matters.
-ARG NODE_MAJOR_VERSION=24
+# archive-state stage.  NODE_VERSION is pinned exactly because no scanner can
+# flag the upstream node binary against Node.js security releases; Renovate's
+# bump PR is the alert that a new release should be cut.  Global ARG defaults
+# are expanded against previously declared global ARGs, so the declaration
+# order here matters.
+# renovate: datasource=node-version depName=node
+ARG NODE_VERSION=24.22.1
 ARG DEBIAN_SUITE=trixie
-ARG NODE_IMAGE_VERSION=${NODE_MAJOR_VERSION}-${DEBIAN_SUITE}-slim
+ARG NODE_IMAGE_VERSION=${NODE_VERSION}-${DEBIAN_SUITE}-slim
+# renovate: datasource=npm depName=npm
 ARG NPM_VERSION=11.12.1
 ARG FOUNDRYVTT_CLI_VERSION=3.0.5
 
