@@ -15,7 +15,7 @@ ARG NODE_VERSION=24.22.1
 ARG DEBIAN_SUITE=trixie
 ARG NODE_IMAGE_VERSION=${NODE_VERSION}-${DEBIAN_SUITE}-slim
 # renovate: datasource=npm depName=npm
-ARG NPM_VERSION=11.12.1
+ARG NPM_VERSION=11.21.1
 ARG FOUNDRYVTT_CLI_VERSION=3.0.5
 
 # This stage exists solely to track the state of the Debian archives that carry
