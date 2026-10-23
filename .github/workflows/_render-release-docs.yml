@@ -1,0 +1,69 @@
+---
+name: Render Release Docs
+
+# release-please bumps src/version.txt on its release branch but does not
+# know the committed docs are rendered from that version, so every
+# release-authored bump leaves the rendered documents stale against their
+# templates and fails the render-docs pre-commit check. This workflow
+# re-renders the docs on the release branch and pushes the result. The push
+# must use the same PAT as release-please so the pull request's checks
+# re-run (GITHUB_TOKEN pushes do not trigger workflows); the commit is
+# unsigned, which the release PR already requires an admin bypass for.
+# Re-triggering on its own push is harmless: a clean tree exits early.
+
+on: # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - release-please--branches--develop
+
+permissions: {}
+
+jobs:
+  render:
+    name: Render docs for release version
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # tag=v2.22.1
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            files.pythonhosted.org:443
+            github.com:443
+            objects.githubusercontent.com:443
+            pypi.org:443
+            release-assets.githubusercontent.com:443
+            releases.astral.sh:443
+
+      - name: Checkout release branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag=v7.0.1
+        with:
+          ref: ${{ github.ref }}
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # tag=v10.3.0
+        with:
+          enable-cache: true
+
+      - name: Render documents from templates
+        run: sh render-docs-update
+
+      - name: Commit and push rendered documents
+        run: |
+          if git diff --quiet; then
+            echo "Rendered documents already match the templates"
+            exit 0
+          fi
+          VERSION=$(tr -d '[:space:]' < src/version.txt)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: render docs for ${VERSION}"
+          git push
