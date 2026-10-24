@@ -2,7 +2,7 @@
 name = "foundryvtt-docker"
 version = "0.0.0"
 description = "Test/tooling environment for the FoundryVTT Docker image"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = ["jinja2>=3.1", "semver>=3"]
 
 [dependency-groups]
