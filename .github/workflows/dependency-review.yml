@@ -1,29 +1,16 @@
 ---
 name: Dependency Review
 
+# Trigger-only stub: the dual-trigger dependency-review workflow in
+# felddy/reusable-workflows does the work (Phase E).
+
 on: # yamllint disable-line rule:truthy
   - pull_request
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   dependency-review:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # tag=v2.22.2
-        with:
-          disable-sudo: true
-          egress-policy: block
-          allowed-endpoints: >
-            api.deps.dev:443
-            api.github.com:443
-            api.securityscorecards.dev:443
-            github.com:443
-
-      - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag=v7.0.1
-
-      - name: Dependency Review
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # tag=v5.0.0
+    uses: felddy/reusable-workflows/.github/workflows/dependency-review.yml@e64cc86348b14db46c7f468704ed3ced5118d550
+    permissions:
+      contents: read
