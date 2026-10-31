@@ -131,7 +131,7 @@ Virtual Tabletop](https://foundryvtt.com/article/versioning/) that they support.
 | ----------- | ------------- |
 | `ghcr.io/felddy/foundryvtt:14` | The most recent image matching the major version number.  Most users will use this tag. |
 | `ghcr.io/felddy/foundryvtt:14.369` | The most recent image matching the major and minor version numbers. |
-| `ghcr.io/felddy/foundryvtt:14.369.1` | An exact image version. |
+| `ghcr.io/felddy/foundryvtt:14.369.2` | An exact image version. |
 | `ghcr.io/felddy/foundryvtt:release` | The most recent image from the `stable` channel.  These images are **considered stable**, and well-tested.  The `latest` tag always points to the same version as `release`. |
 | `ghcr.io/felddy/foundryvtt:latest` | Same as the `release` tag.  [Why does `latest` == `release`?](https://vsupalov.com/docker-latest-tag/) |
 
