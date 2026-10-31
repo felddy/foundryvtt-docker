@@ -1,20 +1,15 @@
+# GENERATED FILE - DO NOT EDIT.
+# Merged from felddy/reusable-workflows lint-config/pre-commit-base.yaml
+# and this repository's .pre-commit-overlay.yaml by
+# tools/merge_precommit.py.
+# yamllint disable rule:line-length
 ---
-ci:
-  # Do not commit changes from running pre-commit for pull requests.
-  autofix_prs: false
-  # Autoupdate hooks weekly (this is the default).
-  autoupdate_schedule: weekly
-
 default_language_version:
-  # force all unspecified python hooks to run python3
   python: python3
-
 repos:
-  # Check the pre-commit configuration
   - repo: meta
     hooks:
       - id: check-useless-excludes
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -43,8 +38,6 @@ repos:
           - --autofix
       - id: requirements-txt-fixer
       - id: trailing-whitespace
-
-  # Text file hooks
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.48.0
     hooks:
@@ -55,9 +48,6 @@ repos:
     rev: v3.8.1
     hooks:
       - id: prettier
-        # This is the latest version of v3 available from NPM. The pre-commit
-        # mirror does not pull tags for old major versions once a new major
-        # version tag is published.
         additional_dependencies:
           - prettier@3.3.1
   - repo: https://github.com/adrienverge/yamllint
@@ -66,67 +56,55 @@ repos:
       - id: yamllint
         args:
           - --strict
-
-  # GitHub Actions hooks
   - repo: https://github.com/python-jsonschema/check-jsonschema
     rev: 0.37.0
     hooks:
       - id: check-github-actions
       - id: check-github-workflows
-
-  # pre-commit hooks
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+        args:
+          - -shellcheck=
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.31.1
+    hooks:
+      - id: zizmor
+        args:
+          - --min-severity=medium
   - repo: https://github.com/pre-commit/pre-commit
     rev: v4.5.1
     hooks:
       - id: validate_manifest
-
-  # Go hooks
   - repo: https://github.com/TekWizely/pre-commit-golang
     rev: v1.0.0-rc.4
     hooks:
-      # Go Build
       - id: go-build-repo-mod
-      # Style Checkers
       - id: go-critic
-      # goimports
       - id: go-imports-repo
         args:
-          # Write changes to files
           - -w
-      # Go Mod Tidy
       - id: go-mod-tidy-repo
-      # GoSec
       - id: go-sec-repo-mod
-      # StaticCheck
       - id: go-staticcheck-repo-mod
-      # Go Test
       - id: go-test-repo-mod
-      # Go Vet
       - id: go-vet-repo-mod
-  # Nix hooks
   - repo: https://github.com/nix-community/nixpkgs-fmt
     rev: v1.3.0
     hooks:
       - id: nixpkgs-fmt
-
-  # Shell script hooks
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.13.0-1
     hooks:
       - id: shfmt
         args:
-          # List files that will be formatted
           - --list
-          # Write result to file instead of stdout
           - --write
-          # Indent by two spaces
           - --indent
           - "2"
-          # Binary operators may start a line
           - --binary-next-line
-          # Switch cases are indented
           - --case-indent
-          # Redirect operators are followed by a space
           - --space-redirects
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1
@@ -134,9 +112,6 @@ repos:
       - id: shellcheck
         args:
           - -x
-
-  # Python hooks
-  # Run bandit on the "tests" tree with a configuration
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.4
     hooks:
@@ -145,7 +120,6 @@ repos:
         files: tests
         args:
           - --config=.bandit.yml
-  # Run bandit on everything except the "tests" tree
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.4
     hooks:
@@ -180,10 +154,6 @@ repos:
     hooks:
       - id: pyupgrade
         args:
-          # Python 3.10 is currently the oldest non-EOL version of
-          # Python, so we want to apply all rules that apply to this
-          # version or later.  See here for more details:
-          # https://www.gyford.com/phil/writing/2025/08/26/how-to-use-pyupgrade/
           - --py310-plus
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.11.3
@@ -197,25 +167,17 @@ repos:
         entry: uv audit --preview-features audit
         files: ^uv.lock$
         pass_filenames: false
-
-  # Render-consistency hooks
-  - repo: local
-    hooks:
       - id: render-docs-check
         name: render-docs-check
         language: system
         entry: ./render-docs-check
         files: ^(.*\.j2|docs/.*|README\.md|src/version\.txt)$
         pass_filenames: false
-
-  # Terraform hooks
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.105.0
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
-      # This needs to run after the terraform_validate hook so that any Terraform
-      # configurations are initialized.
       - id: terraform_providers_lock
         args:
           - --args=-platform=darwin_amd64
@@ -223,14 +185,10 @@ repos:
           - --args=-platform=linux_amd64
           - --args=-platform=linux_arm64
           - --hook-config=--mode=always-regenerate-lockfile
-
-  # Docker hooks
   - repo: https://github.com/IamTheFij/docker-pre-commit
     rev: v3.0.1
     hooks:
       - id: docker-compose-check
-
-  # Packer hooks
   - repo: https://github.com/cisagov/pre-commit-packer
     rev: v0.3.1
     hooks:

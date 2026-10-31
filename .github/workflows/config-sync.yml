@@ -1,0 +1,22 @@
+---
+name: Config Sync
+
+# Trigger-only stub: the reusable config-sync workflow in
+# felddy/reusable-workflows regenerates the generated
+# .pre-commit-config.yaml from the central base plus this repository's
+# .pre-commit-overlay.yaml and opens an auto-merging PR on drift.
+
+on: # yamllint disable-line rule:truthy
+  schedule:
+    - cron: 53 6 * * 1 # weekly, Monday morning
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  sync:
+    uses: felddy/reusable-workflows/.github/workflows/config-sync.yml@v5
+    permissions:
+      contents: write
+      pull-requests: write
+    secrets: inherit
