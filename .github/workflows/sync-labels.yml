@@ -1,42 +1,25 @@
 ---
 name: sync-labels
 
+# Trigger-only stub: the dual-trigger sync-labels workflow in
+# felddy/reusable-workflows does the work.
+# Label definitions are central; a local .github/labels.yml, if ever
+# added, merges over them as a repo-specific overlay.
+
 on: # yamllint disable-line rule:truthy
   push:
     paths:
       - .github/labels.yml
       - .github/workflows/sync-labels.yml
+  schedule:
+    - cron: 17 5 * * 1 # weekly, Monday morning
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
-  diagnostics:
-    name: Run Diagnostics
-    uses: felddy/reusable-workflows/.github/workflows/diagnostics.yml@v5
   labeler:
-    needs:
-      - diagnostics
+    uses: felddy/reusable-workflows/.github/workflows/sync-labels.yml@v5
     permissions:
-      # actions/checkout needs this to fetch code
       contents: read
-      # crazy-max/ghaction-github-labeler needs this to manage repository labels
       issues: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # tag=v2.22.2
-        with:
-          egress-policy: block
-          allowed-endpoints: >
-            api.github.com:443
-            github.com:443
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # tag=v7.0.1
-      - name: Sync repository labels
-        if: success()
-        uses: crazy-max/ghaction-github-labeler@548a7c3603594ec17c819e1239f281a3b801ab4d # tag=v6.0.0
-        with:
-          # This is a hideous ternary equivalent so we only do a dry run unless
-          # this workflow is triggered by the develop branch.
-          dry-run: ${{ github.ref_name == 'develop' && 'false' || 'true' }}

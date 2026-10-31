@@ -1,90 +1,18 @@
 ---
 name: Label pull requests
 
-on:  # yamllint disable-line rule:truthy
-  # We use the default activity types for the pull_request event as specified here:
-  # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request
+# Trigger-only stub: the dual-trigger label-prs workflow in
+# felddy/reusable-workflows does the work.
+# Path-matching rules stay local in .github/labeler.yml.
+
+on: # yamllint disable-line rule:truthy
   pull_request:
 
-# Set a default shell for any run steps. The `-Eueo pipefail` sets errtrace,
-# nounset, errexit, and pipefail. The `-x` will print all commands as they are
-# run. Please see the GitHub Actions documentation for more information:
-# https://docs.github.com/en/actions/using-jobs/setting-default-values-for-jobs
-defaults:
-  run:
-    shell: bash -Eueo pipefail -x {0}
+permissions: {}
 
 jobs:
-  diagnostics:
-    name: Run diagnostics
-    # This job does not need any permissions
-    permissions: {}
-    runs-on: ubuntu-latest
-    steps:
-      # Note that a duplicate of this step must be added at the top of
-      # each job.
-      - name: Apply standard cisagov job preamble
-        uses: cisagov/action-job-preamble@v1
-        with:
-          check_github_status: "true"
-          # This functionality is poorly implemented and has been
-          # causing problems due to the MITM implementation hogging or
-          # leaking memory.  As a result we disable it by default.  If
-          # you want to temporarily enable it, simply set
-          # monitor_permissions equal to "true".
-          #
-          # TODO: Re-enable this functionality when practical.  See
-          # cisagov/skeleton-generic#207 for more details.
-          monitor_permissions: "false"
-          output_workflow_context: "true"
-          # Use a variable to specify the permissions monitoring
-          # configuration. By default this will yield the
-          # configuration stored in the cisagov organization-level
-          # variable, but if you want to use a different configuration
-          # then simply:
-          # 1. Create a repository-level variable with the name
-          # ACTIONS_PERMISSIONS_CONFIG.
-          # 2. Set this new variable's value to the configuration you
-          # want to use for this repository.
-          #
-          # Note in particular that changing the permissions
-          # monitoring configuration *does not* require you to modify
-          # this workflow.
-          permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
   label:
-    needs:
-      - diagnostics
+    uses: felddy/reusable-workflows/.github/workflows/label-prs.yml@v5
     permissions:
-      # Permissions required by actions/labeler
       contents: read
       pull-requests: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Apply standard cisagov job preamble
-        uses: cisagov/action-job-preamble@v1
-        with:
-          # This functionality is poorly implemented and has been
-          # causing problems due to the MITM implementation hogging or
-          # leaking memory.  As a result we disable it by default.  If
-          # you want to temporarily enable it, simply set
-          # monitor_permissions equal to "true".
-          #
-          # TODO: Re-enable this functionality when practical.  See
-          # cisagov/skeleton-generic#207 for more details.
-          monitor_permissions: "false"
-          # Use a variable to specify the permissions monitoring
-          # configuration. By default this will yield the
-          # configuration stored in the cisagov organization-level
-          # variable, but if you want to use a different configuration
-          # then simply:
-          # 1. Create a repository-level variable with the name
-          # ACTIONS_PERMISSIONS_CONFIG.
-          # 2. Set this new variable's value to the configuration you
-          # want to use for this repository.
-          #
-          # Note in particular that changing the permissions
-          # monitoring configuration *does not* require you to modify
-          # this workflow.
-          permissions_monitoring_config: ${{ vars.ACTIONS_PERMISSIONS_CONFIG }}
-      - name: Apply suitable labels to a pull request
-        uses: actions/labeler@v7

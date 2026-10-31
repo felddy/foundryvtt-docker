@@ -1,36 +1,18 @@
 ---
 name: Label and close stale issues
 
+# Trigger-only stub: the dual-trigger stale-issues workflow in
+# felddy/reusable-workflows does the work.
+
 on: # yamllint disable-line rule:truthy
   schedule:
     - cron: 0 10 * * * # everyday at 10am
   workflow_dispatch:
 
-permissions:
-  issues: write
+permissions: {}
 
 jobs:
   stale:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # tag=v2.22.2
-        with:
-          egress-policy: block
-          allowed-endpoints: >
-            api.github.com:443
-      - uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # tag=v11.0.0
-        with:
-          days-before-stale: 28
-          days-before-close: 7
-          stale-issue-message: >-
-            This issue has been automatically marked as stale because it has been
-            inactive for 28 days. To reactivate the issue, simply post a comment
-            with the requested information to help us diagnose this issue. If this
-            issue remains inactive for another 7 days, it will be automatically
-            closed.
-          close-issue-message: >-
-            This issue has been automatically closed due to inactivity. If you are
-            still experiencing problems, please open a new issue.
-          stale-issue-label: "stale :skull:"
-          only-labels: "needs more info :thinking:"
+    uses: felddy/reusable-workflows/.github/workflows/stale-issues.yml@v5
+    permissions:
+      issues: write
