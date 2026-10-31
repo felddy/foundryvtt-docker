@@ -9,6 +9,8 @@ version: 2
 updates:
   - package-ecosystem: docker
     directory: /
+    cooldown:
+      default-days: 7
     schedule:
       interval: daily
     labels:
@@ -23,6 +25,8 @@ updates:
 
   - package-ecosystem: docker-compose
     directory: /
+    cooldown:
+      default-days: 7
     schedule:
       interval: daily
     labels:
@@ -37,6 +41,8 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
+    cooldown:
+      default-days: 7
     schedule:
       interval: daily
     labels:
@@ -51,6 +57,8 @@ updates:
 
   - package-ecosystem: npm
     directory: /
+    cooldown:
+      default-days: 7
     schedule:
       interval: daily
     labels:
@@ -65,6 +73,8 @@ updates:
 
   - package-ecosystem: pip
     directory: /
+    cooldown:
+      default-days: 7
     schedule:
       interval: daily
     labels:
@@ -79,6 +89,8 @@ updates:
 
   - package-ecosystem: uv
     directory: /
+    cooldown:
+      default-days: 7
     schedule:
       interval: daily
     labels:

@@ -1,0 +1,29 @@
+---
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        # felddy-owned reusable workflows deliberately ride the
+        # advance-only floating v5 tag (the accepted consumption model);
+        # everything else must stay hash-pinned.
+        felddy/reusable-workflows/*: ref-pin
+        "*": hash-pin
+  dangerous-triggers:
+    ignore:
+      # pull_request_target is required for a write-capable token on the
+      # auto_merge_* events. The job checks out no code and runs nothing
+      # from the PR; only users with write access can toggle auto-merge.
+      - label-automerge.yml
+  archived-uses:
+    ignore:
+      # nixpkgs-fmt comes from the cisagov lineage skeleton and matches no
+      # files in this repository; replacing it is upstream's call.
+      - .pre-commit-config.yaml
+  secrets-inherit:
+    ignore:
+      # All three pass repo secrets by design: the render and sync stubs
+      # need the release-please PAT so pushed commits re-trigger checks,
+      # and the renovate stub passes the App's private key.
+      - _render-release-docs.yml
+      - config-sync.yml
+      - renovate.yml
