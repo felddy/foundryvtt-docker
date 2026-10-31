@@ -1,25 +1,19 @@
 ---
 name: Label auto-merge PRs
 
+# Trigger-only stub: the dual-trigger label-automerge workflow in
+# felddy/reusable-workflows does the work.
+
 on: # yamllint disable-line rule:truthy
   pull_request_target:
     types:
       - auto_merge_enabled
       - auto_merge_disabled
 
-env:
-  LABEL_NAME: "automerge :bell:"
+permissions: {}
 
 jobs:
   add-remove-label:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Update label
-        run: |
-          if [[ "${{ github.event.action }}" == "auto_merge_enabled" ]]; then
-            gh pr edit ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --add-label "${{ env.LABEL_NAME }}"
-          elif [[ "${{ github.event.action }}" == "auto_merge_disabled" ]]; then
-            gh pr edit ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --remove-label "${{ env.LABEL_NAME }}"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: felddy/reusable-workflows/.github/workflows/label-automerge.yml@v5
+    permissions:
+      pull-requests: write
