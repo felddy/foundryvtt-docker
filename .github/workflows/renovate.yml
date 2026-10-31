@@ -26,11 +26,9 @@ on: # yamllint disable-line rule:truthy
         required: false
         type: choice
 
-concurrency:
-  # Only one Renovate run at a time; the called workflow's own
-  # concurrency group is ignored for reusable calls.
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
+# No concurrency block here: the called workflow's own group evaluates
+# with this workflow's name and serializes runs; declaring the same
+# group here deadlocks parent against child (run 41203604569).
 
 permissions: {}
 
