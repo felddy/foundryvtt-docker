@@ -150,7 +150,7 @@ repos:
     hooks:
       - id: mypy
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.2
+    rev: v3.22.0
     hooks:
       - id: pyupgrade
         args:
@@ -173,8 +173,16 @@ repos:
         entry: ./render-docs-check
         files: ^(.*\.j2|docs/.*|README\.md|src/version\.txt)$
         pass_filenames: false
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v26.10.1
+    hooks:
+      - id: ansible-lint
+        always_run: false
+        files: (^|/)(ansible|playbooks|roles|molecule|group_vars|host_vars)/|(^|/)(ansible\.cfg|\.ansible-lint(\.ya?ml)?)$
+        additional_dependencies:
+          - ansible-core>=2.17.7
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.105.0
+    rev: v1.109.4
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
