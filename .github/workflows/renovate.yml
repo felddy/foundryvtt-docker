@@ -36,6 +36,9 @@ jobs:
   renovate:
     uses: felddy/reusable-workflows/.github/workflows/renovate.yml@v5
     with:
+      # postUpgradeTasks commands this repository's renovate.json may
+      # run; keep in sync with .github/renovate.json.
+      allowed-commands: '["^sh render-docs-update$"]'
       dry-run: ${{ inputs.dry-run || false }}
       log-level: ${{ inputs.log-level || 'info' }}
     secrets: inherit
