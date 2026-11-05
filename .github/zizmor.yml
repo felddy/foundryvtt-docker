@@ -8,12 +8,6 @@ rules:
         # everything else must stay hash-pinned.
         felddy/reusable-workflows/*: ref-pin
         "*": hash-pin
-  dangerous-triggers:
-    ignore:
-      # pull_request_target is required for a write-capable token on the
-      # auto_merge_* events. The job checks out no code and runs nothing
-      # from the PR; only users with write access can toggle auto-merge.
-      - label-automerge.yml
   archived-uses:
     ignore:
       # nixpkgs-fmt comes from the cisagov lineage skeleton and matches no
