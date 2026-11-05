@@ -39,17 +39,15 @@ repos:
       - id: requirements-txt-fixer
       - id: trailing-whitespace
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.48.0
+    rev: v0.50.0
     hooks:
       - id: markdownlint
         args:
           - --config=.mdl_config.yaml
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.8.1
+    rev: v3.9.10
     hooks:
       - id: prettier
-        additional_dependencies:
-          - prettier@3.3.1
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
     hooks:
@@ -57,7 +55,7 @@ repos:
         args:
           - --strict
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.37.0
+    rev: 0.39.0
     hooks:
       - id: check-github-actions
       - id: check-github-workflows
@@ -68,13 +66,13 @@ repos:
         args:
           - -shellcheck=
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.31.1
+    rev: v1.32.0
     hooks:
       - id: zizmor
         args:
           - --min-severity=medium
   - repo: https://github.com/pre-commit/pre-commit
-    rev: v4.5.1
+    rev: v4.7.0
     hooks:
       - id: validate_manifest
   - repo: https://github.com/TekWizely/pre-commit-golang
@@ -127,11 +125,11 @@ repos:
         name: bandit (everything else)
         exclude: tests
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.3.1
+    rev: 26.10.1
     hooks:
       - id: black
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.3.0
+    rev: 7.5.0
     hooks:
       - id: flake8
         additional_dependencies:
@@ -146,7 +144,7 @@ repos:
     hooks:
       - id: isort
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.1
+    rev: v2.4.1
     hooks:
       - id: mypy
   - repo: https://github.com/asottile/pyupgrade
@@ -156,7 +154,7 @@ repos:
         args:
           - --py310-plus
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.3
+    rev: 0.13.7
     hooks:
       - id: uv-lock
   - repo: local
