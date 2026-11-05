@@ -127,7 +127,8 @@
         ]
       },
       "prBodyNotes": [
-        "The rendered documentation (`README.md` and `docs/**`) was regenerated from its templates as part of this update."
+        "The rendered documentation (`README.md` and `docs/**`) was regenerated from its templates as part of this update.",
+        "Release-As: {{{newVersion}}}"
       ]
     }
   ]
