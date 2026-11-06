@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+
+# lint-config-update: regenerate .pre-commit-config.yaml from the central
+# pre-commit base at the release pinned in .pre-commit-overlay.yaml.
+#
+# Used by Renovate's postUpgradeTasks so the regenerated config lands in
+# the same commit as the pin bump; equally runnable by hand after editing
+# the overlay. The base is fetched with a shallow clone of the pinned tag
+# so the script works under egress policies that allow github.com only.
+
+set -eu
+
+if ! command -v uv > /dev/null 2>&1; then
+  echo "ERROR: uv is required but not on the PATH.  Renovate must run the" >&2
+  echo "full image variant (renovate-version: NN-full), which ships uv." >&2
+  exit 1
+fi
+
+ref=$(sed -n 's/^# lint-base-version: *//p' .pre-commit-overlay.yaml | head -n 1)
+case "${ref}" in
+  v[0-9]*.[0-9]*.[0-9]*) ;;
+  *)
+    echo "ERROR: no valid lint-base-version pin in .pre-commit-overlay.yaml" >&2
+    exit 1
+    ;;
+esac
+
+tmpdir=$(mktemp -d)
+trap 'rm -rf "${tmpdir}"' EXIT
+
+git -c advice.detachedHead=false clone --quiet --depth 1 --branch "${ref}" \
+  https://github.com/felddy/reusable-workflows "${tmpdir}"
+
+uv run --no-project --with pyyaml python "${tmpdir}/tools/merge_precommit.py" \
+  "${tmpdir}/lint-config/pre-commit-base.yaml" \
+  .pre-commit-overlay.yaml \
+  --output .pre-commit-config.yaml
+
+echo "Regenerated .pre-commit-config.yaml from lint base ${ref}"

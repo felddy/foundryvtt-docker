@@ -38,7 +38,7 @@ jobs:
     with:
       # postUpgradeTasks commands this repository's renovate.json may
       # run; keep in sync with .github/renovate.json.
-      allowed-commands: '["^sh render-docs-update$"]'
+      allowed-commands: '["^sh render-docs-update$", "^sh lint-config-update$"]'
       dry-run: ${{ inputs.dry-run || false }}
       log-level: ${{ inputs.log-level || 'info' }}
     secrets: inherit
