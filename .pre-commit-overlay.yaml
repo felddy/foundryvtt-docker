@@ -1,8 +1,11 @@
 # Repo-specific layer over the central pre-commit base in
-# felddy/reusable-workflows lint-config/pre-commit-base.yaml. The
-# config-sync workflow (or tools/merge_precommit.py from a
-# reusable-workflows checkout) merges the pair into the generated
-# .pre-commit-config.yaml.
+# felddy/reusable-workflows lint-config/pre-commit-base.yaml, taken at
+# the release pinned below. Renovate bumps the pin and runs
+# `sh lint-config-update` in the same PR to regenerate the merged
+# .pre-commit-config.yaml; the lint render check compares against the
+# pinned release, so central releases never stale this repository.
+# renovate: datasource=github-releases depName=felddy/reusable-workflows
+# lint-base-version: v5.6.0
 ---
 repos:
   - repo: local

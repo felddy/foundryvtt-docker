@@ -61,6 +61,19 @@
         "ARG NPM_VERSION=(?<currentValue>\\S+)"
       ],
       "versioningTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "felddy/reusable-workflows",
+      "description": "Track the central lint-config base release pinned in the overlay",
+      "managerFilePatterns": [
+        "/^\\.pre-commit-overlay\\.yaml$/"
+      ],
+      "matchStrings": [
+        "# lint-base-version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"
+      ],
+      "versioningTemplate": "semver-coerced"
     }
   ],
   "enabledManagers": [
@@ -104,6 +117,31 @@
       ],
       "matchDepNames": [
         "@foundryvtt/foundryvtt-cli"
+      ]
+    },
+    {
+      "commitMessageTopic": "lint config base",
+      "labels": [
+        "bot :robot:",
+        "dependencies :game_die:"
+      ],
+      "matchDatasources": [
+        "github-releases"
+      ],
+      "matchDepNames": [
+        "felddy/reusable-workflows"
+      ],
+      "postUpgradeTasks": {
+        "commands": [
+          "sh lint-config-update"
+        ],
+        "executionMode": "branch",
+        "fileFilters": [
+          ".pre-commit-config.yaml"
+        ]
+      },
+      "prBodyNotes": [
+        "The generated `.pre-commit-config.yaml` was regenerated from the pinned central base as part of this update."
       ]
     },
     {
