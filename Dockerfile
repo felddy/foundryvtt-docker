@@ -11,7 +11,7 @@ ARG FOUNDRY_VERSION
 # are expanded against previously declared global ARGs, so the declaration
 # order here matters.
 # renovate: datasource=node-version depName=node
-ARG NODE_VERSION=24.22.2
+ARG NODE_VERSION=24.22.3
 ARG DEBIAN_SUITE=trixie
 ARG NODE_IMAGE_VERSION=${NODE_VERSION}-${DEBIAN_SUITE}-slim
 # renovate: datasource=npm depName=npm
