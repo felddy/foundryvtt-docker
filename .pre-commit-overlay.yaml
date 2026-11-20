@@ -5,7 +5,7 @@
 # .pre-commit-config.yaml; the lint render check compares against the
 # pinned release, so central releases never stale this repository.
 # renovate: datasource=github-releases depName=felddy/reusable-workflows
-# lint-base-version: v5.6.0
+# lint-base-version: v6.0.1
 ---
 repos:
   - repo: local
