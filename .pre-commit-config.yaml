@@ -177,6 +177,7 @@ repos:
       - id: ansible-lint
         always_run: false
         files: (^|/)(ansible|playbooks|roles|molecule|group_vars|host_vars)/|(^|/)(ansible\.cfg|\.ansible-lint(\.ya?ml)?)$
+        language_version: python3
         additional_dependencies:
           - ansible-core>=2.17.7
   - repo: https://github.com/antonbabenko/pre-commit-terraform
