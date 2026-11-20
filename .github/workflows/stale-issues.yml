@@ -13,6 +13,6 @@ permissions: {}
 
 jobs:
   stale:
-    uses: felddy/reusable-workflows/.github/workflows/stale-issues.yml@v5
+    uses: felddy/reusable-workflows/.github/workflows/stale-issues.yml@v6
     permissions:
       issues: write

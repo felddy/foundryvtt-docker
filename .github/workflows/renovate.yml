@@ -34,7 +34,7 @@ permissions: {}
 
 jobs:
   renovate:
-    uses: felddy/reusable-workflows/.github/workflows/renovate.yml@v5
+    uses: felddy/reusable-workflows/.github/workflows/renovate.yml@v6
     with:
       # postUpgradeTasks commands this repository's renovate.json may
       # run; keep in sync with .github/renovate.json.
