@@ -12,7 +12,7 @@ permissions: {}
 
 jobs:
   label:
-    uses: felddy/reusable-workflows/.github/workflows/label-prs.yml@v5
+    uses: felddy/reusable-workflows/.github/workflows/label-prs.yml@v6
     permissions:
       contents: read
       pull-requests: write

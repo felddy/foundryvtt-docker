@@ -21,6 +21,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: felddy/reusable-workflows/.github/workflows/release-please.yml@v5
+    uses: felddy/reusable-workflows/.github/workflows/release-please.yml@v6
     secrets:
       release-please-token: ${{ secrets.RELEASE_PLEASE_TOKEN }}

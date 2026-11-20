@@ -19,7 +19,7 @@ permissions: {}
 
 jobs:
   labeler:
-    uses: felddy/reusable-workflows/.github/workflows/sync-labels.yml@v5
+    uses: felddy/reusable-workflows/.github/workflows/sync-labels.yml@v6
     permissions:
       contents: read
       issues: write

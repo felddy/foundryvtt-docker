@@ -14,7 +14,7 @@ permissions: {}
 
 jobs:
   render:
-    uses: felddy/reusable-workflows/.github/workflows/render-docs.yml@v5
+    uses: felddy/reusable-workflows/.github/workflows/render-docs.yml@v6
     permissions:
       contents: write
     secrets: inherit

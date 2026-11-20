@@ -11,6 +11,6 @@ permissions: {}
 
 jobs:
   dependency-review:
-    uses: felddy/reusable-workflows/.github/workflows/dependency-review.yml@v5
+    uses: felddy/reusable-workflows/.github/workflows/dependency-review.yml@v6
     permissions:
       contents: read
