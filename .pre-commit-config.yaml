@@ -45,7 +45,7 @@ repos:
         args:
           - --config=.mdl_config.yaml
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.9.10
+    rev: v3.10.1
     hooks:
       - id: prettier
   - repo: https://github.com/adrienverge/yamllint
@@ -154,7 +154,7 @@ repos:
         args:
           - --py310-plus
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.13.7
+    rev: 0.13.9
     hooks:
       - id: uv-lock
   - repo: local
@@ -181,7 +181,7 @@ repos:
         additional_dependencies:
           - ansible-core>=2.17.7
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.109.4
+    rev: v1.109.5
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
